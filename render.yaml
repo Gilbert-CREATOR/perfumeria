@@ -1,11 +1,11 @@
 services:
-  # Web Service
+  # Web Service con Docker
   - type: web
     name: perfumeria-darcy
-    env: python
+    env: docker
     plan: free
-    buildCommand: ./build.sh
-    startCommand: gunicorn perfumeria.wsgi:application
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     autoDeploy: true
     
     # Environment Variables
@@ -58,10 +58,3 @@ services:
         fromDatabase:
           name: perfumeria-db
           property: connectionString
-
-# Build Configuration
-build:
-  commands:
-    - pip install -r requirements.txt
-    - python manage.py collectstatic --noinput
-    - python manage.py migrate

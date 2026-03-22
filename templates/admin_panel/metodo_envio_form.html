@@ -1,0 +1,53 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Editar Método{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Método de envío</p>
+        <h1>Editar {{ metodo.nombre }}</h1>
+        <p class="admin-subtitle">Actualiza la configuración del método desde una pantalla HTML del panel.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_metodos_envio' %}" class="btn btn-outline-dark">Volver</a>
+    </div>
+</section>
+
+<section class="admin-panel-card admin-panel-card-narrow">
+    <form method="post" class="admin-form-stack">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-0">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div>
+            <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre</label>
+            {{ form.nombre }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+            {{ form.descripcion }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.costo.id_for_label }}">Costo</label>
+            {{ form.costo }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.tiempo_entrega.id_for_label }}">Tiempo de entrega</label>
+            {{ form.tiempo_entrega }}
+        </div>
+
+        <div class="form-check">
+            {{ form.activo }}
+            <label class="form-check-label" for="{{ form.activo.id_for_label }}">Activo</label>
+        </div>
+
+        <button type="submit" class="btn btn-dark">Guardar cambios</button>
+    </form>
+</section>
+{% endblock %}

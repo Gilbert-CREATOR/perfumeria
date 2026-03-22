@@ -1,0 +1,244 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Home - D.A.R.C.Y.{% endblock %}
+
+{% block content %}
+<p class="breadcrumb">Home Page</p>
+
+<section class="catalog-hero">
+  <h1>D.A.R.C.Y.</h1>
+  <div class="hero-links">
+    <a href="{% url 'catalogo' %}">DISCOVER</a>
+    <a href="{% url 'catalogo' %}?temporada=special">NEW COLLECTION</a>
+    <a href="{% url 'nosotros' %}">ABOUT</a>
+    <a href="{% url 'contacto' %}">CONTACT</a>
+  </div>
+</section>
+
+<section class="catalog-toolbar">
+  <div class="toolbar-carousel">
+    <div class="carousel-item main-item">
+      <span onclick="toggleFilters()">FILTERS +</span>
+      <div class="sub-categories">
+        <a href="{% url 'catalogo' %}#filters">BRAND</a>
+        <a href="{% url 'catalogo' %}#filters">SEASON</a>
+        <a href="{% url 'catalogo' %}#filters">PRICE</a>
+        <a href="{% url 'catalogo' %}">CLEAR ALL</a>
+      </div>
+    </div>
+    
+    <div class="carousel-item main-item">
+      <span onclick="toggleSort()">SORT BY +</span>
+      <div class="sub-categories">
+        <a href="{% url 'catalogo' %}?sort=nombre">NAME A-Z</a>
+        <a href="{% url 'catalogo' %}?sort=precio_asc">PRICE LOW-HIGH</a>
+        <a href="{% url 'catalogo' %}?sort=precio_desc">PRICE HIGH-LOW</a>
+        <a href="{% url 'catalogo' %}?sort=popularidad">POPULARITY</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="products-grid">
+  {% for producto in productos_destacados %}
+  <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
+    <h2>{{ producto.nombre|upper }}</h2>
+    <div class="price">${{ producto.precio|floatformat:2 }}</div>
+    <div class="author">
+      {% if producto.temporada == 'summer' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+      {% if producto.temporada == 'winter' %}BY HELEN SANDR<br>& MINIMALIST{% endif %}
+      {% if producto.temporada == 'night' %}BY ANN KODOR<br>& MINIMALIST{% endif %}
+      {% if producto.temporada == 'day' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+      {% if producto.temporada == 'special' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+    </div>
+    {% if producto.imagen %}
+      <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+    {% else %}
+      <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}">
+    {% endif %}
+  </article>
+  {% endfor %}
+</section>
+
+<div class="view-more-wrap">
+  <a href="{% url 'catalogo' %}" class="view-more">VIEW ALL PRODUCTS</a>
+</div>
+
+<style>
+/* Toolbar Carousel Styles */
+.toolbar-carousel {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin: 20px 0;
+}
+
+.toolbar-carousel .carousel-item.main-item > span {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+.toolbar-carousel .carousel-item.main-item:hover > span,
+.toolbar-carousel .carousel-item.main-item > span.active {
+  border-color: #000;
+}
+
+.toolbar-carousel .sub-categories {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  padding: 12px 0;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  border: 1px solid #ddd;
+}
+
+.toolbar-carousel .carousel-item.expanded .sub-categories {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(10px);
+}
+
+.toolbar-carousel .sub-categories a {
+  display: block;
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #000;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none !important;
+  cursor: pointer;
+}
+
+.toolbar-carousel .sub-categories a:hover,
+.toolbar-carousel .sub-categories a.active {
+  background: var(--bg);
+  color: #000;
+}
+
+.toolbar-carousel .carousel-item {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center center;
+}
+
+.toolbar-carousel .carousel-item.main-item {
+  perspective: 1000px;
+}
+
+.toolbar-carousel .carousel-item.expanded {
+  transform: scale(1.05) rotateY(5deg);
+}
+
+.toolbar-carousel .carousel-item:not(.expanded) {
+  transform: scale(1) rotateY(0deg);
+}
+
+/* Toolbar Responsive */
+@media (max-width: 768px) {
+  .toolbar-carousel {
+    gap: 40px;
+  }
+  
+  .toolbar-carousel .sub-categories {
+    min-width: 150px;
+  }
+  
+  .toolbar-carousel .carousel-item.expanded {
+    transform: scale(1.02) rotateY(2deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .toolbar-carousel {
+    gap: 30px;
+  }
+  
+  .toolbar-carousel .carousel-item.main-item > span {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+  
+  .toolbar-carousel .sub-categories {
+    min-width: 120px;
+    padding: 8px 0;
+  }
+  
+  .toolbar-carousel .sub-categories a {
+    padding: 8px 15px;
+    font-size: 10px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleFilters() {
+  // Redirigir a la página de catálogo con filtros
+  window.location.href = '{% url "catalogo" %}#filters';
+}
+
+function toggleSort() {
+  // Redirigir a la página de catálogo con ordenamiento
+  window.location.href = '{% url "catalogo" %}#sort';
+}
+
+// Carrusel functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const carouselItems = document.querySelectorAll('.toolbar-carousel .carousel-item');
+  
+  carouselItems.forEach(item => {
+    let timeout;
+    
+    item.addEventListener('mouseenter', function() {
+      clearTimeout(timeout);
+      this.classList.add('expanded');
+      
+      // Ocultar otros items expandidos
+      carouselItems.forEach(otherItem => {
+        if (otherItem !== this) {
+          otherItem.classList.remove('expanded');
+        }
+      });
+    });
+    
+    item.addEventListener('mouseleave', function() {
+      timeout = setTimeout(() => {
+        this.classList.remove('expanded');
+      }, 300);
+    });
+    
+    // Para touch devices
+    item.addEventListener('click', function(e) {
+      if (e.target.classList.contains('main-item') || e.target.parentElement.classList.contains('main-item')) {
+        e.preventDefault();
+        this.classList.toggle('expanded');
+        
+        carouselItems.forEach(otherItem => {
+          if (otherItem !== this) {
+            otherItem.classList.remove('expanded');
+          }
+        });
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

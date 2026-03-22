@@ -1,0 +1,181 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Empleados - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="empleados-container">
+    <!-- Header -->
+    <div class="empleados-header">
+        <h1 class="empleados-title">👥 Gestión de Empleados</h1>
+        <p class="empleados-subtitle">Administra los empleados del sistema</p>
+    </div>
+
+    <!-- Role Alert -->
+    <div class="role-alert {% if es_admin %}admin{% elif perfil_actual.es_empleado %}empleado{% else %}cliente{% endif %}">
+        {% if es_admin %}
+            <strong>👑 Administrador:</strong> Puedes gestionar todos los empleados y usuarios.
+        {% elif perfil_actual.es_empleado %}
+            <strong>👤 Empleado:</strong> Puedes ver la lista de empleados, pero no puedes modificarlos.
+        {% else %}
+            <strong>🛍️ Cliente:</strong> No tienes permiso para gestionar empleados.
+        {% endif %}
+    </div>
+
+    <!-- Controls -->
+    <div class="empleados-controls">
+        {% if es_admin %}
+        <a href="{% url 'agregar_empleado' %}" class="btn-agregar">
+            ➕ Agregar Empleado
+        </a>
+        {% else %}
+        <button class="btn-agregar" disabled>
+            ➕ Agregar Empleado (Solo Admin)
+        </button>
+        {% endif %}
+        
+        <div class="results-info">
+            <span>{{ empleados.count }} empleado{{ empleados.count|pluralize }}</span>
+        </div>
+    </div>
+
+    <!-- Empleados Grid -->
+    <div class="empleados-grid">
+        {% for empleado in empleados %}
+        <div class="empleado-card">
+            <!-- Avatar -->
+            <div class="empleado-avatar">
+                {{ empleado.usuario.username.0|upper }}
+            </div>
+            
+            <!-- Info -->
+            <div class="empleado-info">
+                <div class="empleado-nombre">{{ empleado.usuario.get_full_name|default:empleado.usuario.username }}</div>
+                <div class="empleado-email">{{ empleado.usuario.email }}</div>
+                
+                <div class="empleado-meta">
+                    <div class="meta-item">
+                        <span>👤</span>
+                        <span>@{{ empleado.usuario.username }}</span>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span>{{ empleado.creado|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    {% if empleado.telefono %}
+                    <div class="meta-item">
+                        <span>📞</span>
+                        <span>{{ empleado.telefono }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="role-badge {{ empleado.tipo_usuario }}">
+                        {% if empleado.tipo_usuario == 'admin' %}
+                            <span>👑</span>
+                            <span>Admin</span>
+                        {% elif empleado.tipo_usuario == 'empleado' %}
+                            <span>👤</span>
+                            <span>Empleado</span>
+                        {% else %}
+                            <span>🛍️</span>
+                            <span>Cliente</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="empleado-actions">
+                {% if es_admin %}
+                    <a href="{% url 'admin_usuario_pedidos' empleado.usuario.id %}" class="btn-action">
+                        📋 Ver Pedidos
+                    </a>
+                    <a href="{% url 'editar_empleado' empleado.usuario.id %}" class="btn-action btn-editar">
+                        ✏️ Editar
+                    </a>
+                    {% if empleado.usuario != request.user %}
+                    <a href="{% url 'eliminar_empleado' empleado.usuario.id %}" class="btn-action btn-eliminar" 
+                       onclick="return confirm('¿Estás seguro de que quieres eliminar a {{ empleado.usuario.username }}?')">
+                        🗑️ Eliminar
+                    </a>
+                    {% else %}
+                    <button class="btn-action" disabled>
+                        👤 Tu Cuenta
+                    </button>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'admin_usuario_pedidos' empleado.usuario.id %}" class="btn-action">
+                        📋 Ver Pedidos
+                    </a>
+                    <button class="btn-action" disabled>
+                        ✏️ Editar (Solo Admin)
+                    </button>
+                    <button class="btn-action" disabled>
+                        🗑️ Eliminar (Solo Admin)
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h2 class="empty-title">No hay empleados</h2>
+            <p class="empty-text">
+                No se encontraron empleados en el sistema. 
+                {% if es_admin %}
+                Agrega tu primer empleado para comenzar.
+                {% else %}
+                Contacta a un administrador para agregar empleados.
+                {% endif %}
+            </p>
+            {% if es_admin %}
+            <a href="{% url 'agregar_empleado' %}" class="btn-submit">
+                ➕ Agregar Primer Empleado
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects
+    const empleadoCards = document.querySelectorAll('.empleado-card');
+    
+    empleadoCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add click feedback
+    empleadoCards.forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking on buttons
+            if (e.target.classList.contains('btn-action') || e.target.closest('.btn-action')) {
+                return;
+            }
+            
+            // Add subtle click effect
+            this.style.transform = 'translateY(0)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px)';
+            }, 100);
+        });
+    });
+});
+</script>
+{% endblock %}

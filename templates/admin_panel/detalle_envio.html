@@ -1,0 +1,97 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Envío Pedido #{{ envio.pedido.id }}{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Envío del pedido #{{ envio.pedido.id }}</p>
+        <h1>Detalle del envío</h1>
+        <p class="admin-subtitle">Actualiza seguimiento, estado y fechas de entrega desde el panel personalizado.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_envios' %}" class="btn btn-outline-dark">Volver a envíos</a>
+        <a href="{% url 'admin_detalle_pedido' envio.pedido.id %}" class="btn btn-dark">Ver pedido</a>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-5">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Resumen logístico</h2>
+                    <p>Información ligada al pedido y al despacho.</p>
+                </div>
+                <span class="admin-badge {{ envio.estado }}">{{ envio.get_estado_display }}</span>
+            </div>
+
+            <div class="admin-data-list">
+                <div><span>Cliente</span><strong>{{ envio.pedido.usuario.username }}</strong></div>
+                <div><span>Correo</span><strong>{{ envio.pedido.usuario.email|default:"Sin correo" }}</strong></div>
+                <div><span>Método</span><strong>{{ envio.metodo_envio.nombre }}</strong></div>
+                <div><span>Seguimiento</span><strong>{{ envio.numero_seguimiento|default:"Sin asignar" }}</strong></div>
+                <div><span>Creado</span><strong>{{ envio.creado|date:"d/m/Y H:i" }}</strong></div>
+                <div><span>Actualizado</span><strong>{{ envio.actualizado|date:"d/m/Y H:i" }}</strong></div>
+                <div><span>Despacho</span><strong>{{ envio.fecha_despacho|date:"d/m/Y H:i"|default:"Pendiente" }}</strong></div>
+                <div><span>Entrega estimada</span><strong>{{ envio.fecha_entrega_estimada|date:"d/m/Y"|default:"No definida" }}</strong></div>
+                <div><span>Entrega real</span><strong>{{ envio.fecha_entrega_real|date:"d/m/Y H:i"|default:"Pendiente" }}</strong></div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-7">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Editar envío</h2>
+                    <p>Los cambios aquí actualizan el control administrativo sin usar Django Admin.</p>
+                </div>
+            </div>
+
+            <form method="post" class="admin-form-grid">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-0">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div>
+                    <label class="form-label" for="{{ form.metodo_envio.id_for_label }}">Método de envío</label>
+                    {{ form.metodo_envio }}
+                    {% if form.metodo_envio.errors %}
+                        <div class="text-danger small mt-1">{{ form.metodo_envio.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ form.estado.id_for_label }}">Estado</label>
+                    {{ form.estado }}
+                    {% if form.estado.errors %}
+                        <div class="text-danger small mt-1">{{ form.estado.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ form.numero_seguimiento.id_for_label }}">Número de seguimiento</label>
+                    {{ form.numero_seguimiento }}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ form.fecha_entrega_estimada.id_for_label }}">Entrega estimada</label>
+                    {{ form.fecha_entrega_estimada }}
+                </div>
+
+                <div class="admin-form-span-2">
+                    <label class="form-label" for="{{ form.notas.id_for_label }}">Notas</label>
+                    {{ form.notas }}
+                </div>
+
+                <div class="admin-form-span-2 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-dark">Guardar cambios</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Editar Empleado (Admin) - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="empleados-container">
+    <!-- Header -->
+    <div class="empleados-header">
+        <h1 class="empleados-title">✏️ Editar Empleado</h1>
+        <p class="empleados-subtitle">Modifica la información del empleado</p>
+    </div>
+
+    <!-- Admin Alert -->
+    <div class="role-alert admin">
+        <strong>🔐 Acceso de Administrador:</strong> Solo los administradores pueden editar empleados.
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Información del Empleado -->
+            <h2 class="form-title">Información de {{ empleado.usuario.username }}</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="username">Nombre de Usuario</label>
+                    <input type="text" class="form-input" id="username" name="username" 
+                           value="{{ empleado.usuario.username }}" readonly>
+                    <small style="color: #666; font-size: 0.8rem;">El nombre de usuario no se puede modificar</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" class="form-input" id="email" name="email" 
+                           value="{{ empleado.usuario.email }}" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="first_name">Nombre</label>
+                    <input type="text" class="form-input" id="first_name" name="first_name" 
+                           value="{{ empleado.usuario.first_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="last_name">Apellido</label>
+                    <input type="text" class="form-input" id="last_name" name="last_name" 
+                           value="{{ empleado.usuario.last_name }}" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="telefono">Teléfono</label>
+                <input type="tel" class="form-input" id="telefono" name="telefono" 
+                       value="{{ empleado.telefono }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="direccion">Dirección</label>
+                <textarea class="form-textarea" id="direccion" name="direccion">{{ empleado.direccion }}</textarea>
+            </div>
+            
+            <!-- Cambio de Rol -->
+            <h2 class="form-title" style="margin-top: 40px;">Cambiar Rol</h2>
+            
+            <div class="form-group">
+                <label class="form-label" for="tipo_usuario">Tipo de Usuario</label>
+                <select class="form-select" id="tipo_usuario" name="tipo_usuario">
+                    <option value="admin" {% if empleado.tipo_usuario == 'admin' %}selected{% endif %}>
+                        👑 Administrador
+                    </option>
+                    <option value="empleado" {% if empleado.tipo_usuario == 'empleado' %}selected{% endif %}>
+                        👤 Empleado
+                    </option>
+                    <option value="cliente" {% if empleado.tipo_usuario == 'cliente' %}selected{% endif %}>
+                        🛍️ Cliente
+                    </option>
+                </select>
+                <small style="color: #666; font-size: 0.8rem;">
+                    ⚠️ Ten cuidado al cambiar roles. Los administradores tienen acceso completo al sistema.
+                </small>
+            </div>
+            
+            <!-- Información del Sistema -->
+            <h2 class="form-title" style="margin-top: 40px;">Información del Sistema</h2>
+            
+            <div style="background: #f8f9fa; padding: 20px; border: 1px solid #e0e0e0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <strong>ID de Usuario:</strong> {{ empleado.usuario.id }}
+                    </div>
+                    <div>
+                        <strong>Fecha de Registro:</strong> {{ empleado.usuario.date_joined|date:"d/m/Y H:i" }}
+                    </div>
+                    <div>
+                        <strong>Último Login:</strong> {{ empleado.usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}
+                    </div>
+                    <div>
+                        <strong>Estado:</strong> 
+                        {% if empleado.usuario.is_active %}
+                            <span style="color: #28a745;">✅ Activo</span>
+                        {% else %}
+                            <span style="color: #dc3545;">❌ Inactivo</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones -->
+            <div class="form-buttons">
+                <button type="submit" class="btn-submit">
+                    💾 Guardar Cambios
+                </button>
+                <a href="{% url 'empleados_lista' %}" class="btn-submit btn-cancel">
+                    ❌ Cancelar
+                </a>
+                <a href="/admin/auth/user/{{ empleado.usuario.id }}/password/" 
+                   class="btn-submit" style="background: #ffc107; color: #333; border-color: #ffc107;" target="_blank">
+                    🔐 Cambiar Contraseña
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const emailInput = document.getElementById('email');
+    const tipoUsuarioSelect = document.getElementById('tipo_usuario');
+    
+    // Validación en tiempo real
+    emailInput.addEventListener('blur', function() {
+        const email = this.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.style.borderColor = '#dc3545';
+        } else {
+            this.style.borderColor = '#28a745';
+        }
+    });
+    
+    // Advertencia al cambiar a admin
+    tipoUsuarioSelect.addEventListener('change', function() {
+        if (this.value === 'admin') {
+            if (!confirm('⚠️ ¿Estás seguro de que quieres hacer a este usuario administrador?\n\nLos administradores tienen acceso completo al sistema, incluyendo la capacidad de gestionar otros usuarios.')) {
+                this.value = '{{ empleado.tipo_usuario }}';
+            }
+        }
+    });
+    
+    // Submit validation
+    form.addEventListener('submit', function(e) {
+        const email = emailInput.value.trim();
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            alert('Por favor, ingresa un email válido');
+            emailInput.focus();
+            return;
+        }
+        
+        // Confirmación para cambios importantes
+        const nuevoRol = tipoUsuarioSelect.value;
+        const rolActual = '{{ empleado.tipo_usuario }}';
+        
+        if (nuevoRol !== rolActual) {
+            if (!confirm(`¿Estás seguro de cambiar el rol de {{ empleado.usuario.username }} de "${rolActual}" a "${nuevoRol}"?`)) {
+                e.preventDefault();
+                tipoUsuarioSelect.value = rolActual;
+                return;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

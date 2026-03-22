@@ -1,0 +1,185 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Panel de Empleado - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="empleados-container">
+    <!-- Header -->
+    <div class="empleados-header">
+        <h1 class="empleados-title">🏢 Panel de Control</h1>
+        <p class="empleados-subtitle">Gestiona el sistema de D.A.R.C.Y.</p>
+    </div>
+
+    <!-- Role Alert -->
+    <div class="role-alert {% if perfil.es_admin %}admin{% elif perfil.es_empleado %}empleado{% else %}cliente{% endif %}">
+        {% if perfil.es_admin %}
+            <strong>👑 Administrador:</strong> Tienes acceso completo al sistema.
+        {% elif perfil.es_empleado %}
+            <strong>👤 Empleado:</strong> Tienes acceso a la mayoría de las funciones del sistema.
+        {% else %}
+            <strong>🛍️ Cliente:</strong> Tienes acceso limitado al sistema.
+        {% endif %}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_usuarios }}</div>
+            <div class="stat-label">Usuarios Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_pedidos }}</div>
+            <div class="stat-label">Pedidos Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ pedidos_pendientes }}</div>
+            <div class="stat-label">Pedidos Pendientes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">👤</div>
+            <div class="stat-label">{{ perfil.get_tipo_usuario_display }}</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <h2 style="text-align: center; margin-bottom: 30px; font-size: 1.8rem; font-weight: 300;">Acciones Rápidas</h2>
+        
+        <div class="empleados-grid">
+            <!-- Ver Pedidos -->
+            <div class="empleado-card">
+                <div class="empleado-avatar">📋</div>
+                <div class="empleado-info">
+                    <div class="empleado-nombre">Ver Todos los Pedidos</div>
+                    <div class="empleado-email">Revisa y gestiona todos los pedidos del sistema</div>
+                </div>
+                <div class="empleado-actions">
+                    <a href="{% url 'admin_pedidos_todos' %}" class="btn-action">
+                        📊 Ver Pedidos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Ver Usuarios -->
+            <div class="empleado-card">
+                <div class="empleado-avatar">👥</div>
+                <div class="empleado-info">
+                    <div class="empleado-nombre">Gestionar Usuarios</div>
+                    <div class="empleado-email">Administra los usuarios y empleados del sistema</div>
+                </div>
+                <div class="empleado-actions">
+                    <a href="{% url 'empleados_lista' %}" class="btn-action">
+                        👥 Ver Usuarios
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            {% if perfil.puede_ver_estadisticas %}
+            <div class="empleado-card">
+                <div class="empleado-avatar">📊</div>
+                <div class="empleado-info">
+                    <div class="empleado-nombre">Estadísticas</div>
+                    <div class="empleado-email">Analiza el rendimiento del sistema</div>
+                </div>
+                <div class="empleado-actions">
+                    <a href="{% url 'admin_estadisticas' %}" class="btn-action">
+                        📈 Ver Estadísticas
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Agregar Empleado (Solo Admin) -->
+            {% if perfil.puede_gestionar_usuarios %}
+            <div class="empleado-card">
+                <div class="empleado-avatar">➕</div>
+                <div class="empleado-info">
+                    <div class="empleado-nombre">Agregar Empleado</div>
+                    <div class="empleado-email">Crea nuevas cuentas de empleado</div>
+                </div>
+                <div class="empleado-actions">
+                    <a href="{% url 'agregar_empleado' %}" class="btn-action">
+                        ➕ Agregar
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Debug (Solo Admin) -->
+            {% if perfil.es_admin %}
+            <div class="empleado-card">
+                <div class="empleado-avatar">🔍</div>
+                <div class="empleado-info">
+                    <div class="empleado-nombre">Debug del Sistema</div>
+                    <div class="empleado-email">Herramientas de depuración y diagnóstico</div>
+                </div>
+                <div class="empleado-actions">
+                    <a href="{% url 'debug_pedidos' %}" class="btn-action">
+                        🔍 Debug
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Admin Django (Solo Admin) -->
+            {% if perfil.es_admin %}
+            <div class="empleado-card">
+                <div class="empleado-avatar">⚙️</div>
+                <div class="empleado-info">
+                    <div class="empleado-nombre">Admin Django</div>
+                    <div class="empleado-email">Acceso completo al panel de administración</div>
+                </div>
+                <div class="empleado-actions">
+                    <a href="/admin/" target="_blank" class="btn-action btn-editar">
+                        ⚙️ Admin
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div style="max-width: 1200px; margin: 60px auto 0;">
+        <h2 style="text-align: center; margin-bottom: 30px; font-size: 1.8rem; font-weight: 300;">Actividad Reciente</h2>
+        
+        <div style="background: white; border: 1px solid #e0e0e0; padding: 30px;">
+            <div style="text-align: center; color: #666;">
+                <p>📊 Aquí se mostrarán las actividades recientes del sistema...</p>
+                <p style="margin-top: 10px;">Último login: {{ request.user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.empleado-card');
+    
+    cards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Auto-refresh stats every 30 seconds
+    setInterval(function() {
+        // Aquí podrías agregar una llamada AJAX para actualizar las estadísticas
+        console.log('Actualizando estadísticas...');
+    }, 30000);
+});
+</script>
+{% endblock %}

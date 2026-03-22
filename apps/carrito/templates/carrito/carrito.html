@@ -1,0 +1,36 @@
+{% extends 'base_moderno.html' %}
+
+{% block content %}
+
+<h1>Carrito</h1>
+
+{% if productos %}
+    <ul class="list-group">
+        {% for item in productos %}
+            <li class="list-group-item">
+                {{ item.producto.nombre }}
+
+                <a href="{% url 'disminuir_cantidad' item.producto.id %}">➖</a>
+                {{ item.cantidad }}
+                <a href="{% url 'agregar_al_carrito' item.producto.id %}">➕</a>
+
+                - ${{ item.subtotal }}
+
+                <a href="{% url 'eliminar_del_carrito' item.producto.id %}">
+                    ❌
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="mt-3">Total: ${{ total }}</h3>
+
+    <a href="{% url 'checkout' %}" class="btn btn-success mt-3">
+        Ir a pagar
+    </a>
+
+{% else %}
+    <p>El carrito está vacío</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Métodos de Envío{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Configuración logística</p>
+        <h1>Métodos de envío</h1>
+        <p class="admin-subtitle">Crea, edita y activa métodos de envío sin pasar por el admin de Django.</p>
+    </div>
+</section>
+
+<section class="admin-mini-stats">
+    <article><strong>{{ metodo_stats.total }}</strong><span>Total</span></article>
+    <article><strong>{{ metodo_stats.activos }}</strong><span>Activos</span></article>
+    <article><strong>{{ metodo_stats.inactivos }}</strong><span>Inactivos</span></article>
+    <article><strong>{{ metodo_stats.usados }}</strong><span>Usados en envíos</span></article>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-5">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Nuevo método</h2>
+                    <p>Define el costo, tiempo y estado operativo.</p>
+                </div>
+            </div>
+
+            <form method="post" class="admin-form-stack">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-0">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div>
+                    <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre</label>
+                    {{ form.nombre }}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ form.costo.id_for_label }}">Costo</label>
+                    {{ form.costo }}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ form.tiempo_entrega.id_for_label }}">Tiempo de entrega</label>
+                    {{ form.tiempo_entrega }}
+                </div>
+
+                <div class="form-check">
+                    {{ form.activo }}
+                    <label class="form-check-label" for="{{ form.activo.id_for_label }}">Disponible para el checkout</label>
+                </div>
+
+                <button type="submit" class="btn btn-dark w-100">Crear método</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="col-xl-7">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Métodos existentes</h2>
+                    <p>Edita o apaga los métodos disponibles.</p>
+                </div>
+            </div>
+
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-9">
+                    <input type="text" name="q" class="form-control" value="{{ busqueda }}" placeholder="Buscar por nombre o descripción">
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-outline-dark">Buscar</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Costo</th>
+                            <th>Tiempo</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for metodo in metodos %}
+                            <tr>
+                                <td>
+                                    <strong>{{ metodo.nombre }}</strong>
+                                    <small>{{ metodo.descripcion|default:"Sin descripción" }}</small>
+                                </td>
+                                <td>${{ metodo.costo }}</td>
+                                <td>{{ metodo.tiempo_entrega|default:"No definido" }}</td>
+                                <td>
+                                    <span class="admin-badge {% if metodo.activo %}entregado{% else %}cancelado{% endif %}">
+                                        {% if metodo.activo %}Activo{% else %}Inactivo{% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="admin-table-actions">
+                                        <a href="{% url 'admin_metodo_envio_editar' metodo.id %}" class="btn btn-sm btn-outline-dark">Editar</a>
+                                        <form method="post" action="{% url 'admin_metodo_envio_toggle' metodo.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                {% if metodo.activo %}Desactivar{% else %}Activar{% endif %}
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'admin_metodo_envio_eliminar' metodo.id %}" onsubmit="return confirm('¿Eliminar este método de envío?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">No hay métodos de envío creados.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

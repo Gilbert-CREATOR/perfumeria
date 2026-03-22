@@ -1,0 +1,526 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} - Perfumería Premium{% endblock %}
+{% block meta_description %}{{ producto.nombre }} de {{ producto.marca }}. {{ producto.descripcion|truncatechars:160 }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/producto_detalle.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- 🔝 BREADCRUMB -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="/catalogo/">Catálogo</a></li>
+            <li class="breadcrumb-item active">{{ producto.nombre }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- 🖼️ IMAGEN PRINCIPAL -->
+        <div class="col-lg-6">
+            <div class="product-gallery">
+                <div class="main-image mb-3">
+                    {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" 
+                             class="img-fluid rounded shadow-lg" 
+                             alt="{{ producto.nombre }}"
+                             id="mainProductImage">
+                    {% else %}
+                        <div class="img-fluid rounded shadow-lg bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 500px;">
+                            <i class="fas fa-spray-can fa-5x text-muted"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- 📸 MINIATURAS -->
+                {% if producto.imagen %}
+                <div class="thumbnails d-flex gap-2">
+                    <!-- Miniatura eliminada para evitar duplicación -->
+                    <!-- Aquí podrías agregar más imágenes del producto -->
+                </div>
+                {% endif %}
+                
+                <!-- 🏷️ BADGES -->
+                <div class="product-badges mt-3">
+                    {% if producto.stock < 5 %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-fire me-1"></i> Últimos {{ producto.stock }} unidades
+                        </span>
+                    {% endif %}
+                    {% if producto.stock == 0 %}
+                        <span class="badge bg-danger">
+                            <i class="fas fa-times-circle me-1"></i> Agotado
+                        </span>
+                    {% endif %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i> 100% Auténtico
+                    </span>
+                    <span class="badge bg-info">
+                        <i class="fas fa-shipping-fast me-1"></i> Envío 24h
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📝 INFORMACIÓN DEL PRODUCTO -->
+        <div class="col-lg-6">
+            <div class="product-info">
+                <!-- 🏷️ MARCA Y NOMBRE -->
+                <div class="mb-3">
+                    <h1 class="display-5 font-display mb-2">{{ producto.nombre }}</h1>
+                    <p class="h4 text-muted mb-0">
+                        <i class="fas fa-crown me-2"></i>{{ producto.marca }}
+                    </p>
+                </div>
+
+                <!-- ⭐ RATING -->
+                <div class="rating-section mb-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rating me-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= producto.rating_promedio|floatformat:0 %}
+                                    ⭐
+                                {% else %}
+                                    ☆
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="text-muted">
+                            {{ producto.rating_promedio|default:0 }} ({{ producto.total_resenas }} reseñas)
+                        </span>
+                    </div>
+                    <a href="#resenas" class="text-primary text-decoration-none">
+                        <small>Escribir una reseña</small>
+                    </a>
+                </div>
+
+                <!-- 💰 PRECIO -->
+                <div class="price-section mb-4">
+                    <div class="d-flex align-items-baseline">
+                        <span class="price-current h2 text-success">${{ producto.precio }}</span>
+                        <span class="price-unit ms-2 text-muted">/ {{ producto.tamano_ml }}ml</span>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Precio incluye ITBIS
+                    </div>
+                </div>
+
+                <!-- 📦 STOCK Y DISPONIBILIDAD -->
+                <div class="stock-section mb-4">
+                    {% if producto.stock > 0 %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>En stock</strong> - {{ producto.stock }} unidades disponibles
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <strong>Agotado</strong> - No disponible temporalmente
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- 🎯 ACCIONES -->
+                <div class="action-section mb-4">
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="button" id="decreaseBtn">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ producto.stock }}">
+                                <button class="btn btn-outline-secondary" type="button" id="increaseBtn">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-primary w-100" id="addToCartBtn" 
+                                    {% if not producto.stock %}disabled{% endif %}
+                                    onclick="addToCart('{{ producto.id }}')">
+                                <i class="fas fa-cart-plus me-1"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-heart me-2"></i> Agregar a Favoritos
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="fas fa-share-alt me-2"></i> Compartir
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 📋 DETALLES -->
+                <div class="details-section mb-4">
+                    <h4 class="mb-3">Detalles del Producto</h4>
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Tipo:</strong></td>
+                            <td>{{ producto.get_tipo_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tamaño:</strong></td>
+                            <td>{{ producto.tamano_ml }}ml</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Temporada:</strong></td>
+                            <td>{{ producto.get_temporada_display|default:"Todas" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Código:</strong></td>
+                            <td>PRD-{{ producto.id|stringformat:"06d" }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- 📝 DESCRIPCIÓN -->
+                <div class="description-section mb-4">
+                    <h4 class="mb-3">Descripción</h4>
+                    <p class="text-muted">{{ producto.descripcion }}</p>
+                </div>
+
+                <!-- 🚚 INFORMACIÓN DE ENVÍO -->
+                <div class="shipping-section">
+                    <h4 class="mb-3">Información de Envío</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-truck text-primary me-3"></i>
+                                <div>
+                                    <strong>Envío Estándar</strong><br>
+                                    <small class="text-muted">3-5 días hábiles</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-bolt text-warning me-3"></i>
+                                <div>
+                                    <strong>Envío Express</strong><br>
+                                    <small class="text-muted">1-2 días hábiles</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center text-success">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            <small>Envío gratis en compras mayores a $100</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 TABS DE INFORMACIÓN -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button">
+                        <i class="fas fa-info-circle me-2"></i>Descripción
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button">
+                        <i class="fas fa-flask me-2"></i>Ingredientes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="usage-tab" data-bs-toggle="tab" data-bs-target="#usage" type="button">
+                        <i class="fas fa-spray-can me-2"></i>Modo de Uso
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="resenas-tab" data-bs-toggle="tab" data-bs-target="#resenas" type="button">
+                        <i class="fas fa-star me-2"></i>Reseñas ({{ producto.total_resenas }})
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="productTabContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    <div class="p-4">
+                        <h5 class="mb-3">Descripción Completa</h5>
+                        <p class="text-muted">{{ producto.descripcion }}</p>
+                        <div class="mt-4">
+                            <h6>Características Principales:</h6>
+                            <ul class="text-muted">
+                                <li>Fragancia {{ producto.get_tipo_display }}</li>
+                                <li>Presentación de {{ producto.tamano_ml }}ml</li>
+                                <li>Ideal para {{ producto.get_temporada_display|default:"cualquier temporada" }}</li>
+                                <li>Larga duración en la piel</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="ingredients" role="tabpanel">
+                    <div class="p-4">
+                        <h5 class="mb-3">Ingredientes</h5>
+                        <p class="text-muted">
+                            Alcohol Denat., Aqua (Water/Eau), Parfum (Fragrance), 
+                            Limonene, Linalool, Coumarin, Citronellol, Geraniol.
+                        </p>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <small>La lista de ingredientes puede variar. Por favor, revisa el empaque del producto.</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="usage" role="tabpanel">
+                    <div class="p-4">
+                        <h5 class="mb-3">Modo de Uso</h5>
+                        <ol class="text-muted">
+                            <li>Aplica el perfume en puntos de pulso: muñecas, cuello, detrás de las orejas.</li>
+                            <li>Mantén el perfume a una distancia de 15-20cm de la piel.</li>
+                            <li>No frotes el perfume después de aplicarlo.</li>
+                            <li>Aplica sobre piel limpia y ligeramente húmeda para mayor duración.</li>
+                            <li>Evita rociar el perfume directamente sobre la ropa.</li>
+                        </ol>
+                        
+                        <div class="mt-4">
+                            <h6>Consejos Profesionales:</h6>
+                            <ul class="text-muted">
+                                <li>Usa una loción sin perfume antes de aplicar el perfume.</li>
+                                <li>Guarda tus perfumes en lugar fresco y oscuro.</li>
+                                <li>Evita exponer el perfume a la luz solar directa.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="resenas" role="tabpanel">
+                    <div class="p-4">
+                        <h5 class="mb-3">Reseñas de Clientes</h5>
+                        
+                        <!-- 📝 FORMULARIO DE RESEÑA -->
+                        {% if user.is_authenticated %}
+                        <div class="review-form mb-4">
+                            <h6>Escribe tu reseña</h6>
+                            <form id="reviewForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Calificación</label>
+                                    <div class="rating-input">
+                                        {% for i in "54321" %}
+                                        <input type="radio" name="rating" value="{{ i }}" id="rating{{ i }}" class="d-none">
+                                        <label for="rating{{ i }}" class="rating-star">⭐</label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Comentario</label>
+                                    <textarea class="form-control" name="comentario" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Enviar Reseña
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- 📋 LISTA DE RESEÑAS -->
+                        <div class="reviews-list">
+                            {% for resena in producto.resenas.all %}
+                            <div class="review-item mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>{{ resena.usuario.username }}</strong>
+                                    <div class="rating">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= resena.estrellas %}⭐{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="text-muted mb-0">{{ resena.comentario }}</p>
+                                <small class="text-muted">{{ resena.creado|date:"d/m/Y" }}</small>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted text-center">No hay reseñas aún. ¡Sé el primero en opinar!</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🛒 PRODUCTOS RELACIONADOS -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Productos Relacionados</h3>
+            <div class="row g-4">
+                {% for producto_relacionado in productos_relacionados %}
+                <div class="col-md-3">
+                    <div class="card h-100">
+                        {% if producto_relacionado.imagen %}
+                            <img src="{{ producto_relacionado.imagen.url }}" class="card-img-top" alt="{{ producto_relacionado.nombre }}">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 150px;">
+                                <i class="fas fa-spray-can fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title">{{ producto_relacionado.nombre }}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">{{ producto_relacionado.marca }}</small><br>
+                                <strong>${{ producto_relacionado.precio }}</strong>
+                            </p>
+                            <div class="d-grid">
+                                <a href="/productos/{{ producto_relacionado.id }}/" class="btn btn-primary btn-sm">
+                                    Ver Detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Cambiar imagen principal
+function changeMainImage(src) {
+    document.getElementById('mainProductImage').src = src;
+}
+
+// Control de cantidad
+document.addEventListener('DOMContentLoaded', function() {
+    const decreaseBtn = document.getElementById('decreaseBtn');
+    const increaseBtn = document.getElementById('increaseBtn');
+    const quantityInput = document.getElementById('quantity');
+    const maxStock = {{ producto.stock }};
+    
+    decreaseBtn.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    });
+    
+    increaseBtn.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue < maxStock) {
+            quantityInput.value = currentValue + 1;
+        }
+    });
+    
+    quantityInput.addEventListener('change', function() {
+        let value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+            this.value = 1;
+        } else if (value > maxStock) {
+            this.value = maxStock;
+        }
+    });
+});
+
+// Agregar al carrito
+function addToCart(productId) {
+    const quantity = document.getElementById('quantity').value;
+    
+    fetch(`/carrito/agregar/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            cantidad: quantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartCount();
+            showNotification('¡Producto agregado al carrito!', 'success');
+        } else {
+            showNotification(data.error || 'Error al agregar producto', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error de conexión', 'error');
+    });
+}
+
+// Actualizar contador del carrito
+function updateCartCount() {
+    fetch('/carrito/api/count/')
+        .then(response => response.json())
+        .then(data => {
+            const cartCount = document.getElementById('cart-count');
+            if (cartCount) {
+                cartCount.textContent = data.count || 0;
+                cartCount.style.display = data.count > 0 ? 'inline' : 'none';
+            }
+        });
+}
+
+// Notificaciones
+function showNotification(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Formulario de reseña
+document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const rating = formData.get('rating');
+    const comentario = formData.get('comentario');
+    
+    if (!rating) {
+        showNotification('Por favor, selecciona una calificación', 'error');
+        return;
+    }
+    
+    // Aquí iría el envío del formulario
+    showNotification('¡Reseña enviada con éxito!', 'success');
+    this.reset();
+});
+</script>
+{% endblock %}

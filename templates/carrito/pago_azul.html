@@ -1,0 +1,41 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Pago con Azul - Perfumería Premium{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Pagar con Azul</h4>
+                    
+                    <div class="mb-4">
+                        <p class="text-center">Pedido #{{ pedido_id }}</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Serás redirigido a la plataforma de pago segura de Azul.
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <img src="https://via.placeholder.com/200x80/0066CC/FFFFFF?text=Azul" alt="Azul" class="mb-4">
+                        
+                        <form method="post" action="#">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card me-2"></i> Continuar a Azul
+                            </button>
+                        </form>
+                        
+                        <a href="{% url 'ver_carrito' %}" class="btn btn-outline-secondary mt-3">
+                            <i class="fas fa-arrow-left me-2"></i> Volver al Carrito
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

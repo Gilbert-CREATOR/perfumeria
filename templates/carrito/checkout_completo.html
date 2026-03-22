@@ -1,0 +1,233 @@
+{% extends 'base_moderno.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Checkout</h1>
+            
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- 📍 Dirección de Envío -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>📍 Dirección de Envío</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre Completo *</label>
+                                    <input type="text" name="nombre_completo" class="form-control" required 
+                                           placeholder="Juan Pérez">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Teléfono *</label>
+                                    <input type="tel" name="telefono" class="form-control" required 
+                                           placeholder="+1 (809) 123-4567">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Dirección *</label>
+                                    <input type="text" name="direccion" class="form-control" required 
+                                           placeholder="Calle Principal #123, Apt 4A">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ciudad *</label>
+                                    <input type="text" name="ciudad" class="form-control" required 
+                                           placeholder="Santo Domingo">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Provincia *</label>
+                                    <input type="text" name="provincia" class="form-control" required 
+                                           placeholder="Distrito Nacional">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Código Postal *</label>
+                                    <input type="text" name="codigo_postal" class="form-control" required 
+                                           placeholder="10101">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📦 Método de Envío -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>📦 Método de Envío</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for metodo in metodos_envio %}
+                            <div class="form-check border p-3 mb-2">
+                                <input class="form-check-input" type="radio" name="metodo_envio" 
+                                       value="{{ metodo.id }}" 
+                                       id="envio_{{ metodo.id }}"
+                                       {% if forloop.first %}checked{% endif %}>
+                                <label class="form-check-label w-100" for="envio_{{ metodo.id }}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ metodo.nombre }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ metodo.descripcion }}</small>
+                                            <br>
+                                            <small class="text-success">⏱️ {{ metodo.tiempo_entrega }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong class="text-success">${{ metodo.costo }}</strong>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 💳 Método de Pago -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>💳 Método de Pago</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Seleccionar Método de Pago</label>
+                            <select name="metodo_pago" class="form-select" required>
+                                <option value="">Selecciona un método</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="stripe">Stripe</option>
+                                <option value="azul">Azul</option>
+                                <option value="contra_entrega">Contra Entrega</option>
+                                <option value="transferencia">Transferencia Bancaria</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🛒 Resumen del Pedido -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>🛒 Resumen del Pedido</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>{{ item.producto.nombre }}</td>
+                                        <td>{{ item.cantidad }}</td>
+                                        <td>${{ item.producto.precio }}</td>
+                                        <td>${{ item.subtotal }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3">Subtotal:</th>
+                                        <th>${{ subtotal }}</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Envío:</th>
+                                        <th id="costo_envio">$5.00</th>
+                                    </tr>
+                                    <tr class="table-active">
+                                        <th colspan="3">Total:</th>
+                                        <th class="text-success fw-bold" id="total">${{ subtotal|add:5 }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                🛒 Confirmar Pedido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <!-- ℹ️ Información Importante -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>ℹ️ Información Importante</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>📦 Envíos</h6>
+                        <small class="text-muted">
+                            Los envíos se procesan en 24-48 horas hábiles. 
+                            Recibirás un número de seguimiento cuando tu pedido sea despachado.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>💰 Pagos</h6>
+                        <small class="text-muted">
+                            Aceptamos PayPal, tarjetas de crédito/débito y transferencias bancarias. 
+                            Todos los pagos son seguros y encriptados.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>🔄 Devoluciones</h6>
+                        <small class="text-muted">
+                            Tienes 30 días para devolver productos en su estado original. 
+                            Los costos de envío no son reembolsables.
+                        </small>
+                    </div>
+                    
+                    <div>
+                        <h6>📞 Ayuda</h6>
+                        <small class="text-muted">
+                            ¿Necesitas ayuda? Contacta nuestro soporte:<br>
+                            📧 ayuda@perfumeria.com<br>
+                            📞 +1 (809) 123-4567
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Actualizar total cuando cambia el método de envío
+document.querySelectorAll('input[name="metodo_envio"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const costoEnvio = parseFloat(this.dataset.costo || 5);
+        const subtotal = parseFloat('{{ subtotal }}');
+        const total = subtotal + costoEnvio;
+        
+        document.getElementById('costo_envio').textContent = `$${costoEnvio.toFixed(2)}`;
+        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    });
+});
+
+// Asignar costos a los radios de envío
+document.querySelectorAll('input[name="metodo_envio"]').forEach(radio => {
+    const label = radio.nextElementSibling;
+    const costoText = label.querySelector('.text-success').textContent;
+    const costo = parseFloat(costoText.replace('$', ''));
+    radio.dataset.costo = costo;
+});
+</script>
+{% endblock %}

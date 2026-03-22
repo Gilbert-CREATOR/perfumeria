@@ -1,0 +1,186 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ producto.nombre }}</title>
+
+  <link rel="stylesheet" href="{% static 'detalle.css' %}">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <nav class="nav-left">
+      <a href="/">CATALOG</a>
+      <a href="#">BLOG</a>
+      <a href="#">CONTACTS</a>
+    </nav>
+
+    <div class="brand">D.A.R.C.Y.</div>
+
+    <nav class="nav-right">
+      <a href="#">ACCOUNT</a>
+      <a href="#">
+        CART 
+        <span>({{ carrito_total|default:0 }})</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main class="product-page">
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      HOME / CATALOG / {{ producto.nombre|upper }}
+    </div>
+
+    <!-- PRODUCT -->
+    <section class="product-hero">
+
+      <h1>{{ producto.nombre }}</h1>
+
+      <div class="product-stage">
+        <button class="arrow arrow-left">←</button>
+
+        <div class="product-image-wrap">
+          <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        </div>
+
+        <button class="arrow arrow-right">→</button>
+      </div>
+
+      <!-- INFO + COMPRA -->
+      <div class="product-info-row">
+
+        <!-- BUY BOX -->
+        <div class="buy-box">
+
+          <div class="buy-top">
+            <div class="qty-box">− <span>1</span> +</div>
+
+            <div class="color-swatches">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <!-- BOTÓN FUNCIONAL -->
+          <form action="{% url 'agregar_al_carrito' producto.id %}" method="POST">
+            {% csrf_token %}
+            <button class="buy-btn">
+              ADD TO CART <span>|</span> ${{ producto.precio }}
+            </button>
+          </form>
+
+          <p class="buy-note">
+            STOCK: {{ producto.stock }}
+          </p>
+
+          <div class="buy-links">
+            <a href="#">CHECK IN-STORE STOCK</a>
+            <a href="#">ADD GIFT WRAPPING +</a>
+          </div>
+
+        </div>
+
+        <!-- ACORDEÓN -->
+        <div class="accordion-box">
+
+          <div class="acc-item">
+            <span>PRODUCT DETAILS</span>
+            <span>+</span>
+          </div>
+          <p>
+            Marca: {{ producto.marca }} <br>
+            Tipo: {{ producto.tipo }} <br>
+            Tamaño: {{ producto.tamano_ml }} ml
+          </p>
+
+          <div class="acc-item">
+            <span>DESCRIPTION</span>
+            <span>+</span>
+          </div>
+          <p>{{ producto.descripcion }}</p>
+
+          <div class="acc-item">
+            <span>FRAGRANCE NOTES</span>
+            <span>+</span>
+          </div>
+          <p><strong>Top:</strong> {{ producto.notas_salida }}</p>
+          <p><strong>Heart:</strong> {{ producto.notas_corazon }}</p>
+          <p><strong>Base:</strong> {{ producto.notas_fondo }}</p>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- REVIEWS (ESTÁTICO POR AHORA) -->
+    <section class="reviews-section">
+      <h2>REVIEWS</h2>
+      <div class="rating-line">★★★★★ 4.9 (47)</div>
+
+      <div class="review-item">
+        <div class="review-author">
+          <h3>CLIENTE</h3>
+          <div class="stars">★★★★★</div>
+          <span>Verified Purchase</span>
+        </div>
+        <div class="review-content">
+          <h4>EXCELENTE PRODUCTO</h4>
+          <p>Muy buena calidad y presentación.</p>
+        </div>
+      </div>
+
+      <div class="load-more-wrap">
+        <button>LOAD MORE</button>
+      </div>
+    </section>
+
+    <!-- RELACIONADOS (ESTÁTICO POR AHORA) -->
+    <section class="related-section">
+      <h2>CUSTOMERS ALSO VIEWED</h2>
+
+      <div class="related-grid">
+        <article class="related-card">
+          <h3>PRODUCTO</h3>
+          <p class="price">$0.00</p>
+        </article>
+      </div>
+
+      <div class="slider-line"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-col">
+      <h4>CONTACT</h4>
+      <a href="#">Tu tienda</a>
+      <a href="#">info@email.com</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>FOLLOW</h4>
+      <a href="#">INSTAGRAM</a>
+      <a href="#">FACEBOOK</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>INFORMATION</h4>
+      <a href="#">DELIVERY & RETURNS</a>
+      <a href="#">ACCOUNT</a>
+    </div>
+
+    <div class="footer-col newsletter">
+      <h4>NEWSLETTER</h4>
+      <input type="email" placeholder="EMAIL ADDRESS">
+      <button>SUBSCRIBE</button>
+    </div>
+  </footer>
+
+</body>
+</html>

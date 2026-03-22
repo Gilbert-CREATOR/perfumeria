@@ -1,0 +1,119 @@
+{% extends 'base_moderno.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>➕ Agregar Dirección</h1>
+                <a href="{% url 'perfil' %}" class="btn btn-secondary">← Volver</a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo de Dirección</label>
+                                    {{ form.tipo }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">Nombre Completo *</label>
+                                    {{ form.nombre_completo }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono *</label>
+                                    {{ form.telefono }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.direccion.id_for_label }}" class="form-label">Dirección *</label>
+                                    {{ form.direccion }}
+                                    <small class="form-text text-muted">
+                                        Ej: Calle Principal #123, Apt 4A
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.ciudad.id_for_label }}" class="form-label">Ciudad *</label>
+                                    {{ form.ciudad }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.provincia.id_for_label }}" class="form-label">Provincia *</label>
+                                    {{ form.provincia }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.codigo_postal.id_for_label }}" class="form-label">Código Postal *</label>
+                                    {{ form.codigo_postal }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.pais.id_for_label }}" class="form-label">País</label>
+                                    {{ form.pais }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.es_predeterminada }}
+                                        <label for="{{ form.es_predeterminada.id_for_label }}" class="form-check-label">
+                                            {{ form.es_predeterminada.label }}
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Esta será tu dirección predeterminada para envíos
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'perfil' %}" class="btn btn-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                💾 Guardar Dirección
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ℹ️ Información de Envío -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6>ℹ️ Información de Envío</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>📦 Zonas de Envío</h6>
+                            <ul class="small">
+                                <li>Santo Domingo: 2-3 días hábiles</li>
+                                <li>Santiago: 3-4 días hábiles</li>
+                                <li>Resto del país: 4-5 días hábiles</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>💰 Costos de Envío</h6>
+                            <ul class="small">
+                                <li>Estándar: $5.00</li>
+                                <li>Express: $15.00</li>
+                                <li>Gratis en compras mayores a $50</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

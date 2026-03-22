@@ -1,0 +1,456 @@
+<!-- Modal Quick Preview -->
+<div id="quickPreviewModal" class="quick-preview-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeQuickPreview()"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeQuickPreview()">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="modal-body">
+            <div class="modal-grid">
+                <!-- Columna Izquierda - Imagen -->
+                <div class="modal-image-column">
+                    <div class="modal-image-container">
+                        <img id="modalImage" src="" alt="" class="modal-image">
+                        <div class="modal-image-placeholder" id="modalImagePlaceholder" style="display: none;">
+                            <i class="fas fa-spray-can fa-3x"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Miniaturas -->
+                    <div class="modal-thumbnails" id="modalThumbnails">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+                
+                <!-- Columna Derecha - Información -->
+                <div class="modal-info-column">
+                    <div class="modal-header">
+                        <h2 id="modalTitle" class="modal-title"></h2>
+                        <p id="modalBrand" class="modal-brand"></p>
+                        
+                        <!-- Rating -->
+                        <div class="modal-rating">
+                            <div class="stars" id="modalStars"></div>
+                            <span id="modalRating"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Precio -->
+                    <div class="modal-price">
+                        <span id="modalPrice" class="price"></span>
+                        <span class="price-unit">/ <span id="modalSize"></span>ml</span>
+                    </div>
+                    
+                    <!-- Stock -->
+                    <div class="modal-stock" id="modalStock"></div>
+                    
+                    <!-- Descripción -->
+                    <div class="modal-description">
+                        <p id="modalDescription"></p>
+                    </div>
+                    
+                    <!-- Detalles -->
+                    <div class="modal-details">
+                        <div class="detail-row">
+                            <span class="label">Tipo:</span>
+                            <span id="modalType"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Temporada:</span>
+                            <span id="modalSeason"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Código:</span>
+                            <span id="modalCode"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Acciones -->
+                    <div class="modal-actions">
+                        <div class="quantity-selector">
+                            <button type="button" id="modalDecrease">−</button>
+                            <input type="number" id="modalQuantity" value="1" min="1">
+                            <button type="button" id="modalIncrease">+</button>
+                        </div>
+                        <button class="add-to-cart-btn" id="modalAddToCart">
+                            <i class="fas fa-cart-plus"></i> Agregar
+                        </button>
+                        <button class="view-details-btn" id="modalViewDetails">
+                            <i class="fas fa-eye"></i> Ver detalles
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Quick Preview */
+.quick-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 85vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.quick-preview-modal.show .modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-body {
+    padding: 40px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+/* Columna Imagen */
+.modal-image-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-image-container {
+    aspect-ratio: 1;
+    background: #f8f8f8;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.modal-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modal-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+}
+
+.modal-thumbnails {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.modal-thumbnail:hover,
+.modal-thumbnail.active {
+    border-color: #000;
+}
+
+.modal-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Columna Información */
+.modal-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 2rem;
+    font-weight: 300;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.modal-brand {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0 0 16px 0;
+}
+
+.modal-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stars {
+    color: #ffc107;
+}
+
+.modal-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.price {
+    font-size: 2rem;
+    font-weight: 500;
+    color: #000;
+}
+
+.price-unit {
+    color: #666;
+    font-size: 1rem;
+}
+
+.modal-stock {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.modal-stock.in-stock {
+    background: #d4edda;
+    color: #155724;
+}
+
+.modal-stock.low-stock {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.modal-stock.out-of-stock {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.modal-description {
+    color: #666;
+    line-height: 1.6;
+}
+
+.modal-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 0;
+    border-top: 1px solid #eee;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.detail-row .label {
+    font-weight: 500;
+    color: #000;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 200px;
+}
+
+.quantity-selector button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f8f8f8;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.quantity-selector button:hover {
+    background: #e9e9e9;
+}
+
+.quantity-selector input {
+    width: 60px;
+    height: 40px;
+    border: none;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.add-to-cart-btn {
+    width: 100%;
+    height: 48px;
+    background: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.add-to-cart-btn:hover {
+    background: #333;
+}
+
+.add-to-cart-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.view-details-btn {
+    width: 100%;
+    height: 48px;
+    background: white;
+    color: #000;
+    border: 1px solid #000;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.view-details-btn:hover {
+    background: #000;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        margin: 20px;
+    }
+    
+    .modal-body {
+        padding: 30px 20px;
+    }
+    
+    .modal-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .modal-image-column {
+        order: -1;
+    }
+    
+    .modal-title {
+        font-size: 1.5rem;
+    }
+    
+    .price {
+        font-size: 1.5rem;
+    }
+    
+    .modal-actions {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-body {
+        padding: 20px 15px;
+    }
+    
+    .modal-title {
+        font-size: 1.3rem;
+    }
+    
+    .price {
+        font-size: 1.3rem;
+    }
+    
+    .quantity-selector {
+        max-width: 100%;
+    }
+}
+</style>

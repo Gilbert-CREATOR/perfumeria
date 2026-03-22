@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}D.A.R.C.Y. - Perfumería Premium{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/catalogo.css' %}" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-left">
+      <a href="{% url 'home' %}">HOME</a>
+      <a href="{% url 'catalogo' %}">CATALOG</a>
+      <a href="#">BLOG</a>
+      <a href="{% url 'contacto' %}">CONTACTS</a>
+    </nav>
+
+    <div class="brand">D.A.R.C.Y.</div>
+
+    <nav class="nav-right">
+      {% if user.is_authenticated and user.is_staff %}
+        <a href="/admin/panel/" style="color: #ff6b35; font-weight: bold;">ADMIN</a>
+      {% endif %}
+      {% if user.is_authenticated %}
+        <a href="{% url 'perfil' %}">ACCOUNT</a>
+      {% else %}
+        <a href="{% url 'login' %}">ACCOUNT</a>
+      {% endif %}
+      <a href="{% url 'ver_carrito' %}">CART <span class="cart-count">({{ carrito_count|default:0 }})</span></a>
+    </nav>
+  </header>
+
+  <main class="catalog-page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-col">
+      <h4>CONTACT</h4>
+      <a href="#">CLEVENKA 33 DK-34600</a>
+      <a href="#">KHARKIV UK</a>
+      <a href="#">INFO@MNMLIST.COM</a>
+      <a href="#">+380983212003</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>FOLLOW</h4>
+      <a href="#">INSTAGRAM</a>
+      <a href="#">FACEBOOK</a>
+      <a href="#">TWITTER</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>INFORMATION</h4>
+      <a href="{% url 'nosotros' %}">DELIVERY & RETURNS</a>
+      <a href="{% url 'login' %}">ACCOUNT</a>
+      <a href="{% url 'faq' %}">TERMS & CONDITION</a>
+    </div>
+
+    <div class="footer-col newsletter">
+      <h4>NEWSLETTER</h4>
+      <input type="email" placeholder="EMAIL ADDRESS">
+      <button>SUBSCRIBE</button>
+    </div>
+  </footer>
+
+  {% block extra_js %}
+  <script>
+  // Actualizar contador del carrito al cargar la página
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCartCount();
+  });
+
+  // Función para actualizar el contador del carrito
+  function updateCartCount() {
+    fetch('/carrito/api/count/')
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        var cartElements = document.querySelectorAll('.cart-count');
+        cartElements.forEach(function(element) {
+          element.textContent = '(' + (data.count || 0) + ')';
+        });
+      })
+      .catch(function(error) {
+        console.error('Error updating cart count:', error);
+      });
+  }
+  </script>
+  {% endblock %}
+</body>
+</html>

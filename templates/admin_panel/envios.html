@@ -1,0 +1,115 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Envíos{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Logística</p>
+        <h1>Gestión de envíos</h1>
+        <p class="admin-subtitle">Controla seguimientos, estados de tránsito y pedidos que todavía no tienen envío.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_metodos_envio' %}" class="btn btn-outline-dark">Métodos de envío</a>
+    </div>
+</section>
+
+<section class="admin-panel-card mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                {% for estado, label in estado_envio_choices %}
+                    <option value="{{ estado }}" {% if estado_actual == estado %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Buscar</label>
+            <input type="text" name="q" class="form-control" value="{{ busqueda }}" placeholder="Pedido, cliente o número de seguimiento">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</section>
+
+<section class="admin-mini-stats">
+    <article><strong>{{ envios|length }}</strong><span>Resultados</span></article>
+    <article><strong>{{ envio_counts.preparando }}</strong><span>Preparando</span></article>
+    <article><strong>{{ envio_counts.despachado }}</strong><span>Despachados</span></article>
+    <article><strong>{{ envio_counts.en_transito }}</strong><span>En tránsito</span></article>
+    <article><strong>{{ envio_counts.entregado }}</strong><span>Entregados</span></article>
+    <article><strong>{{ envio_counts.devuelto }}</strong><span>Devueltos</span></article>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="admin-panel-card">
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Método</th>
+                            <th>Seguimiento</th>
+                            <th>Estado</th>
+                            <th>Entrega estimada</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for envio in envios %}
+                            <tr>
+                                <td>#{{ envio.pedido.id }}</td>
+                                <td>
+                                    <strong>{{ envio.pedido.usuario.username }}</strong>
+                                    <small>{{ envio.pedido.usuario.email|default:"Sin correo" }}</small>
+                                </td>
+                                <td>{{ envio.metodo_envio.nombre }}</td>
+                                <td>{{ envio.numero_seguimiento|default:"Sin asignar" }}</td>
+                                <td><span class="admin-badge {{ envio.estado }}">{{ envio.get_estado_display }}</span></td>
+                                <td>{{ envio.fecha_entrega_estimada|date:"d/m/Y"|default:"No definida" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'admin_detalle_envio' envio.id %}" class="btn btn-sm btn-outline-dark">Abrir</a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">No se encontraron envíos con esos filtros.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Pedidos sin envío</h2>
+                    <p>Órdenes cobradas o enviadas que aún no tienen control logístico.</p>
+                </div>
+            </div>
+
+            <div class="admin-list-stack">
+                {% for pedido in pedidos_sin_envio %}
+                    <div class="admin-list-row">
+                        <div>
+                            <strong>Pedido #{{ pedido.id }}</strong>
+                            <small>{{ pedido.usuario.username }} · {{ pedido.get_estado_display }}</small>
+                        </div>
+                        <a href="{% url 'admin_detalle_pedido' pedido.id %}" class="btn btn-sm btn-outline-dark">Crear</a>
+                    </div>
+                {% empty %}
+                    <p class="text-muted mb-0">Todos los pedidos listos ya tienen envío.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envío Despachado - Perfumería Premium</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2c3e50; margin: 0;">
+                <i class="fas fa-spray-can"></i> Perfumería Premium
+            </h1>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+            <h2 style="color: #27ae60; margin-top: 0;">
+                <i class="fas fa-shipping-fast"></i> ¡Tu Pedido Ha Sido Despachado!
+            </h2>
+            
+            <p>Hola {{ nombre_cliente }},</p>
+            
+            <p>Tu pedido #{{ pedido_id }} ha sido despachado y está en camino a tu dirección.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Información de Envío:</h3>
+                <p><strong>Número de Seguimiento:</strong> {{ numero_seguimiento }}</p>
+                <p><strong>Transportista:</strong> {{ transportista|default:"Por confirmar" }}</p>
+                <p><strong>Fecha de Despacho:</strong> {{ fecha_despacho|date:"d/m/Y" }}</p>
+            </div>
+            
+            <p>Puedes seguir tu pedido en tiempo real usando el número de seguimiento proporcionado.</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <p style="color: #666; margin-bottom: 0;">
+                Gracias por tu compra en Perfumería Premium<br>
+                <small>© 2024 Perfumería Premium. Todos los derechos reservados.</small>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

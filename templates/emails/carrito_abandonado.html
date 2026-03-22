@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito Abandonado - Perfumería Premium</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2c3e50; margin: 0;">
+                <i class="fas fa-spray-can"></i> Perfumería Premium
+            </h1>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+            <h2 style="color: #e74c3c; margin-top: 0;">
+                <i class="fas fa-shopping-cart"></i> ¿Olvidaste Algo?
+            </h2>
+            
+            <p>Hola {{ nombre_cliente }},</p>
+            
+            <p>Notamos que tienes productos en tu carrito que no has comprado aún. ¡No te los pierdas!</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Tu Carrito:</h3>
+                {% for producto in productos %}
+                <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                    <strong>{{ producto.nombre }}</strong><br>
+                    <small>Cantidad: {{ producto.cantidad }} | Precio: ${{ producto.precio|floatformat:2 }}</small>
+                </div>
+                {% endfor %}
+                <div style="margin-top: 15px; text-align: right;">
+                    <strong>Total: ${{ total|floatformat:2 }}</strong>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="#" style="background: #e74c3c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    <i class="fas fa-shopping-cart"></i> Completar mi Compra
+                </a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px;">
+                Este es un recordatorio automático. Si ya completaste tu compra, por favor ignora este correo.
+            </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <p style="color: #666; margin-bottom: 0;">
+                Perfumería Premium - Tus fragancias favoritas<br>
+                <small>© 2024 Perfumería Premium. Todos los derechos reservados.</small>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

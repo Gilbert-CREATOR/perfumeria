@@ -1,0 +1,129 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Análisis{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Reportes</p>
+        <h1>Análisis comercial</h1>
+        <p class="admin-subtitle">Resumen de ventas, estados de pedidos y productos con mejor salida.</p>
+    </div>
+</section>
+
+<section class="admin-stat-grid">
+    <article class="admin-stat">
+        <span class="admin-stat-label">Ingresos acumulados</span>
+        <strong>${{ resumen.ingresos_totales|floatformat:2 }}</strong>
+        <small>Pedidos cobrados, enviados o entregados</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Clientes únicos</span>
+        <strong>{{ resumen.clientes_unicos }}</strong>
+        <small>Con al menos un pedido</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Productos vendidos</span>
+        <strong>{{ resumen.productos_vendidos }}</strong>
+        <small>Unidades totales</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Ticket promedio</span>
+        <strong>${{ resumen.ticket_promedio|floatformat:2 }}</strong>
+        <small>Promedio por pedido cobrado</small>
+    </article>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-7">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Últimos 6 meses</h2>
+                    <p>Comparativo mensual de pedidos e ingresos.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Pedidos</th>
+                            <th>Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for estadistica in estadisticas_mensuales %}
+                            <tr>
+                                <td>{{ estadistica.mes }}</td>
+                                <td>{{ estadistica.pedidos }}</td>
+                                <td>${{ estadistica.ingresos|floatformat:2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-5">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Estados de pedidos</h2>
+                    <p>Distribución general de la operación.</p>
+                </div>
+            </div>
+
+            <div class="admin-list-stack">
+                {% for estado in distribucion_estados %}
+                    <div class="admin-list-row">
+                        <div>
+                            <strong>{{ estado.label }}</strong>
+                            <small>{{ estado.cantidad }} pedidos</small>
+                        </div>
+                        <span class="admin-badge info">{{ estado.cantidad }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<section class="admin-panel-card mt-4">
+    <div class="admin-section-head">
+        <div>
+            <h2>Productos más vendidos</h2>
+            <p>Ranking por unidades despachadas.</p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Marca</th>
+                    <th>Unidades</th>
+                    <th>Ingresos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in top_productos %}
+                    <tr>
+                        <td>{{ producto.producto__nombre }}</td>
+                        <td>{{ producto.producto__marca }}</td>
+                        <td>{{ producto.total_vendido }}</td>
+                        <td>${{ producto.ingresos|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">Todavía no hay ventas registradas para mostrar analíticas.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Página No Encontrada - Perfumería Premium{% endblock %}
+{% block meta_description %}La página que buscas no existe. Explora nuestro catálogo de perfumes premium.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center">
+                <!-- 🎯 ERROR 404 -->
+                <div class="error-404 mb-5">
+                    <h1 class="display-1 font-display text-primary mb-3">404</h1>
+                    <h2 class="mb-3">Página No Encontrada</h2>
+                    <p class="lead text-muted mb-4">
+                        Ups! La página que estás buscando no existe o ha sido movida.
+                    </p>
+                </div>
+                
+                <!-- 🔍 BÚSQUEDA -->
+                <div class="search-section mb-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <form action="/catalogo/" method="GET" class="d-flex">
+                                <input type="text" name="q" class="form-control form-control-lg" 
+                                       placeholder="¿Qué estás buscando?">
+                                <button type="submit" class="btn btn-primary btn-lg ms-2">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 🎯 ACCIONES -->
+                <div class="actions-section mb-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="d-grid gap-2">
+                                <a href="/" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-home me-2"></i> Ir al Inicio
+                                </a>
+                                <a href="/catalogo/" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-shopping-bag me-2"></i> Ver Catálogo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 💡 SUGERENCIAS -->
+                <div class="suggestions-section">
+                    <h4 class="mb-4">Quizás estabas buscando:</h4>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="/catalogo/?temporada=summer" class="text-decoration-none">
+                                <div class="card h-100 text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-sun fa-2x text-warning mb-2"></i>
+                                        <h6>Colección Summer</h6>
+                                        <small class="text-muted">Fragancias frescas</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/catalogo/?sort=popularidad" class="text-decoration-none">
+                                <div class="card h-100 text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-star fa-2x text-primary mb-2"></i>
+                                        <h6>Más Populares</h6>
+                                        <small class="text-muted">Los favoritos</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/carrito/" class="text-decoration-none">
+                                <div class="card h-100 text-center">
+                                    <div class="card-body">
+                                        <i class="fas fa-shopping-cart fa-2x text-success mb-2"></i>
+                                        <h6>Mi Carrito</h6>
+                                        <small class="text-muted">Tus productos</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 📞 AYUDA -->
+                <div class="help-section mt-5">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <i class="fas fa-headset fa-3x text-primary mb-3"></i>
+                            <h5 class="mb-3">¿Necesitas Ayuda?</h5>
+                            <p class="text-muted mb-4">
+                                Nuestro equipo de soporte está listo para ayudarte a encontrar lo que buscas.
+                            </p>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <a href="/contacto/" class="btn btn-primary">
+                                    <i class="fas fa-envelope me-2"></i> Contactar
+                                </a>
+                                <a href="tel:+18091234567" class="btn btn-outline-primary">
+                                    <i class="fas fa-phone me-2"></i> Llamar
+                                </a>
+                                <a href="https://wa.me/18091234567" class="btn btn-success">
+                                    <i class="fab fa-whatsapp me-2"></i> WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-404 {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.search-section,
+.actions-section,
+.suggestions-section {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.help-section {
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+{% endblock %}

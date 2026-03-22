@@ -1,0 +1,522 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos Minimalistas */
+.product-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 80px;
+    align-items: start;
+    min-height: calc(100vh - 200px);
+}
+
+/* Columna Izquierda - Información */
+.product-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding-top: 20px;
+}
+
+.product-title {
+    font-size: 3.5rem;
+    font-weight: 300;
+    line-height: 1.1;
+    margin: 0;
+    color: #000;
+    letter-spacing: -0.02em;
+}
+
+.product-code {
+    font-size: 0.875rem;
+    color: #666;
+    margin: 8px 0 0 0;
+    font-family: 'Courier New', monospace;
+}
+
+.product-price {
+    font-size: 2.25rem;
+    font-weight: 400;
+    margin: 0;
+    color: #000;
+}
+
+.product-description {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.product-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.product-details-list li {
+    display: flex;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.product-details-list .label {
+    font-weight: 500;
+    min-width: 100px;
+    color: #000;
+}
+
+.product-details-list .value {
+    color: #666;
+    flex: 1;
+}
+
+.product-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.quantity-selector button {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+}
+
+.quantity-selector button:hover {
+    background: #f5f5f5;
+}
+
+.quantity-selector input {
+    width: 60px;
+    height: 44px;
+    border: none;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.add-to-cart-btn {
+    flex: 1;
+    height: 44px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.add-to-cart-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+.add-to-cart-btn:disabled {
+    background: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Columna Derecha - Imagen */
+.product-image-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.product-image-container {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+    border: 1px solid #eee;
+}
+
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-detail-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 40px 20px;
+    }
+    
+    .product-image-column {
+        order: -1;
+        padding: 20px;
+    }
+    
+    .product-title {
+        font-size: 2.5rem;
+    }
+    
+    .product-price {
+        font-size: 1.875rem;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .quantity-selector {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .add-to-cart-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-detail-container {
+        padding: 30px 15px;
+        gap: 30px;
+    }
+    
+    .product-title {
+        font-size: 2rem;
+    }
+    
+    .product-price {
+        font-size: 1.5rem;
+    }
+    
+    .product-info-column {
+        gap: 30px;
+    }
+}
+
+/* Estados de stock */
+.stock-info {
+    font-size: 0.875rem;
+    margin-top: 8px;
+}
+
+.stock-info.in-stock {
+    color: #2f7d52;
+}
+
+.stock-info.low-stock {
+    color: #b7791f;
+}
+
+.stock-info.out-of-stock {
+    color: #b33d34;
+}
+
+/* Breadcrumb minimalista */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 40px;
+    padding: 0;
+}
+
+.breadcrumb a {
+    color: #666;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: #000;
+}
+
+.breadcrumb .separator {
+    color: #999;
+}
+
+.breadcrumb .current {
+    color: #000;
+    font-weight: 500;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Minimalista -->
+<nav class="breadcrumb">
+    <a href="/">Inicio</a>
+    <span class="separator">/</span>
+    <a href="/catalogo/">Catálogo</a>
+    <span class="separator">/</span>
+    <span class="current">{{ producto.nombre }}</span>
+</nav>
+
+<!-- Contenedor Principal -->
+<div class="product-detail-container">
+    
+    <!-- Columna Izquierda - Información -->
+    <div class="product-info-column">
+        
+        <!-- Título del Producto -->
+        <div>
+            <h1 class="product-title">{{ producto.nombre }}</h1>
+            <p class="product-code">PRD-{{ producto.id|stringformat:"06d" }}</p>
+        </div>
+        
+        <!-- Precio -->
+        <div class="product-price">${{ producto.precio|floatformat:0 }}</div>
+        
+        <!-- Descripción -->
+        <p class="product-description">{{ producto.descripcion }}</p>
+        
+        <!-- Detalles del Producto -->
+        <ul class="product-details-list">
+            <li>
+                <span class="label">Marca:</span>
+                <span class="value">{{ producto.marca }}</span>
+            </li>
+            <li>
+                <span class="label">Tipo:</span>
+                <span class="value">{{ producto.get_tipo_display }}</span>
+            </li>
+            <li>
+                <span class="label">Tamaño:</span>
+                <span class="value">{{ producto.tamano_ml }}ml</span>
+            </li>
+            <li>
+                <span class="label">Temporada:</span>
+                <span class="value">{{ producto.get_temporada_display|default:"Todas" }}</span>
+            </li>
+            <li>
+                <span class="label">Disponibilidad:</span>
+                <span class="value">
+                    {% if producto.stock > 0 %}
+                        {% if producto.stock < 5 %}
+                            Últimos {{ producto.stock }} unidades
+                        {% else %}
+                            En stock
+                        {% endif %}
+                    {% else %}
+                        Agotado
+                    {% endif %}
+                </span>
+            </li>
+        </ul>
+        
+        <!-- Selector de Cantidad y Botón -->
+        <div>
+            <div class="product-actions">
+                <div class="quantity-selector">
+                    <button type="button" id="decreaseBtn">−</button>
+                    <input type="number" id="quantity" value="1" min="1" max="{{ producto.stock|default:1 }}">
+                    <button type="button" id="increaseBtn">+</button>
+                </div>
+                <button class="add-to-cart-btn" 
+                        id="addToCartBtn"
+                        {% if not producto.stock %}disabled{% endif %}
+                        onclick="addToCart('{{ producto.id }}')">
+                    {% if producto.stock %}
+                        Agregar al carrito
+                    {% else %}
+                        Agotado
+                    {% endif %}
+                </button>
+            </div>
+            
+            {% if producto.stock > 0 %}
+                <div class="stock-info in-stock">
+                    {% if producto.stock < 5 %}
+                        ¡Últimas {{ producto.stock }} unidades disponibles!
+                    {% else %}
+                        {{ producto.stock }} unidades en stock
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="stock-info out-of-stock">
+                    Producto temporalmente agotado
+                </div>
+            {% endif %}
+        </div>
+        
+    </div>
+    
+    <!-- Columna Derecha - Imagen -->
+    <div class="product-image-column">
+        <div class="product-image-container">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" 
+                     alt="{{ producto.nombre }}"
+                     id="mainProductImage">
+            {% else %}
+                <div class="product-image-placeholder">
+                    <i class="fas fa-spray-can"></i>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var decreaseBtn = document.getElementById('decreaseBtn');
+    var increaseBtn = document.getElementById('increaseBtn');
+    var quantityInput = document.getElementById('quantity');
+    var maxStock = {{ producto.stock|default:0 }};
+    
+    // Control de cantidad
+    decreaseBtn.addEventListener('click', function() {
+        var currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    });
+    
+    increaseBtn.addEventListener('click', function() {
+        var currentValue = parseInt(quantityInput.value);
+        if (maxStock > 0 && currentValue < maxStock) {
+            quantityInput.value = currentValue + 1;
+        }
+    });
+    
+    quantityInput.addEventListener('change', function() {
+        var value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+            this.value = 1;
+        } else if (maxStock > 0 && value > maxStock) {
+            this.value = maxStock;
+        }
+    });
+});
+
+// Agregar al carrito
+function addToCart(productId) {
+    var quantity = document.getElementById('quantity').value;
+    
+    fetch('/carrito/agregar/' + productId + '/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            cantidad: quantity
+        })
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            showNotification('Producto agregado al carrito', 'success');
+            updateCartCount();
+        } else {
+            showNotification(data.error || 'Error al agregar producto', 'error');
+        }
+    })
+    .catch(function(error) {
+        showNotification('Error de conexión', 'error');
+    });
+}
+
+// Actualizar contador del carrito
+function updateCartCount() {
+    fetch('/carrito/api/count/')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            var cartElements = document.querySelectorAll('.cart-count');
+            cartElements.forEach(function(element) {
+                element.textContent = data.count || 0;
+            });
+        });
+}
+
+// Notificaciones minimalistas
+function showNotification(message, type) {
+    var notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: ' + (type === 'success' ? '#000' : '#d32f2f') + '; color: white; padding: 16px 24px; border-radius: 0; font-size: 0.875rem; z-index: 9999; opacity: 0; transform: translateY(-20px); transition: all 0.3s ease;';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(function() {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // Remover después de 3 segundos
+    setTimeout(function() {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+        setTimeout(function() {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+// CSRF Token
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

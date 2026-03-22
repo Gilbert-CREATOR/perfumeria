@@ -1,0 +1,28 @@
+{% extends 'base_moderno.html' %}
+
+{% block content %}
+
+<h2>Finalizar compra</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Método de pago:</label>
+    <select name="metodo_pago" class="form-control">
+
+        <option value="contra_entrega">Contra entrega</option>
+        <option value="transferencia">Transferencia bancaria</option>
+        <option value="paypal">PayPal</option>
+        <option value="stripe">Tarjeta (Stripe)</option>
+        <option value="azul">Tarjeta local (Azul)</option>
+
+    </select>
+
+    <br>
+
+    <button type="submit" class="btn btn-success">
+        Confirmar pedido
+    </button>
+</form>
+
+{% endblock %}

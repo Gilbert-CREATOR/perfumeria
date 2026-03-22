@@ -1,0 +1,91 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Producto</p>
+        <h1>{{ titulo }}</h1>
+        <p class="admin-subtitle">{{ descripcion }}</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_productos' %}" class="btn btn-outline-dark">Volver a productos</a>
+    </div>
+</section>
+
+<section class="admin-panel-card">
+    <form method="post" enctype="multipart/form-data" class="admin-form-grid">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-0 admin-form-span-2">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div>
+            <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre</label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}
+                <div class="text-danger small mt-1">{{ form.nombre.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.marca.id_for_label }}">Marca</label>
+            {{ form.marca }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.precio.id_for_label }}">Precio</label>
+            {{ form.precio }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.tamano_ml.id_for_label }}">Tamaño (ml)</label>
+            {{ form.tamano_ml }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.tipo.id_for_label }}">Tipo</label>
+            {{ form.tipo }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.temporada.id_for_label }}">Temporada</label>
+            {{ form.temporada }}
+        </div>
+
+        <div>
+            <label class="form-label" for="{{ form.stock.id_for_label }}">Stock</label>
+            {{ form.stock }}
+        </div>
+
+        <div class="d-flex align-items-end">
+            <div class="form-check">
+                {{ form.disponible }}
+                <label class="form-check-label" for="{{ form.disponible.id_for_label }}">Disponible para la tienda</label>
+            </div>
+        </div>
+
+        <div class="admin-form-span-2">
+            <label class="form-label" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+            {{ form.descripcion }}
+        </div>
+
+        <div class="admin-form-span-2">
+            <label class="form-label" for="{{ form.imagen.id_for_label }}">Imagen</label>
+            {{ form.imagen }}
+            {% if producto and producto.imagen %}
+                <div class="admin-current-image">
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                    <span>Imagen actual</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="admin-form-span-2 d-flex justify-content-end">
+            <button type="submit" class="btn btn-dark">Guardar producto</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

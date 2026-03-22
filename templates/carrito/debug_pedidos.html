@@ -1,0 +1,79 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}🔍 Debug Pedidos (Admin Only) - D.A.R.C.Y.{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 20px; background: white; border: 1px solid #e0e0e0;">
+    <!-- Admin Alert -->
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+        <strong>🔐 Acceso de Administrador:</strong> Esta página está restringida solo para personal administrativo.
+    </div>
+    
+    <h1>🔍 Debug de Pedidos</h1>
+    
+    <div style="margin-bottom: 40px;">
+        <h2>Usuario Actual</h2>
+        <p><strong>Username:</strong> {{ usuario_actual.username }}</p>
+        <p><strong>ID:</strong> {{ usuario_actual.id }}</p>
+        <p><strong>Email:</strong> {{ usuario_actual.email }}</p>
+        <p><strong>Staff:</strong> {{ usuario_actual.is_staff }}</p>
+    </div>
+    
+    <div style="margin-bottom: 40px;">
+        <h2>Todos los Usuarios ({{ usuarios.count }})</h2>
+        {% for user in usuarios %}
+        <div style="padding: 10px; border: 1px solid #f0f0f0; margin-bottom: 5px;">
+            <strong>{{ user.username }}</strong> (ID: {{ user.id }}) - Staff: {{ user.is_staff }}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-bottom: 40px;">
+        <h2>Todos los Pedidos en DB ({{ todos_los_pedidos.count }})</h2>
+        {% for pedido in todos_los_pedidos %}
+        <div style="padding: 15px; border: 1px solid #e0e0e0; margin-bottom: 10px;">
+            <strong>Pedido #{{ pedido.id }}</strong><br>
+            Usuario: {{ pedido.usuario.username }} (ID: {{ pedido.usuario.id }})<br>
+            Estado: {{ pedido.get_estado_display }}<br>
+            Total: ${{ pedido.total }}<br>
+            Fecha: {{ pedido.creado|date:"d/m/Y H:i" }}<br>
+            Items: {{ pedido.items.count }}<br>
+            Método Pago: {{ pedido.metodo_pago|default:"No especificado" }}
+        </div>
+        {% empty %}
+        <p>No hay pedidos en la base de datos</p>
+        {% endfor %}
+    </div>
+    
+    <div>
+        <h2>Pedidos de {{ usuario_actual.username }} ({{ pedidos_usuario.count }})</h2>
+        {% for pedido in pedidos_usuario %}
+        <div style="padding: 15px; border: 2px solid #000; margin-bottom: 10px; background: #f8f8f8;">
+            <strong>Pedido #{{ pedido.id }}</strong><br>
+            Estado: {{ pedido.get_estado_display }}<br>
+            Total: ${{ pedido.total }}<br>
+            Fecha: {{ pedido.creado|date:"d/m/Y H:i" }}<br>
+            Items: {{ pedido.items.count }}
+            
+            {% if pedido.items.exists %}
+            <h4>Productos:</h4>
+            {% for item in pedido.items.all %}
+            <div style="margin-left: 20px;">
+                - {{ item.producto.nombre }} x{{ item.cantidad }} = ${{ item.subtotal }}
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="color: red;">No tienes pedidos</p>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 40px;">
+        <a href="{% url 'historial_pedidos' %}" style="padding: 10px 20px; background: #000; color: white; text-decoration: none;">
+            Volver al Historial
+        </a>
+    </div>
+</div>
+{% endblock %}

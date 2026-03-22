@@ -1,0 +1,31 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Pago Exitoso - Perfumería Premium{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="mb-3">¡Pago Procesado Exitosamente!</h2>
+                <p class="text-muted mb-4">
+                    Tu pago ha sido procesado correctamente. Tu pedido está siendo preparado.
+                </p>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'historial_pedidos' %}" class="btn btn-primary">
+                        <i class="fas fa-history me-2"></i> Ver Mis Pedidos
+                    </a>
+                    <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-shopping-bag me-2"></i> Seguir Comprando
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

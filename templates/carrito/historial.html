@@ -1,0 +1,54 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Historial de Pedidos - Perfumería Premium{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">
+        <i class="fas fa-history me-2"></i> Mi Historial de Pedidos
+    </h2>
+    
+    {% if pedidos %}
+        <div class="row">
+            {% for pedido in pedidos %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="card-title mb-1">Pedido #{{ pedido.id }}</h6>
+                                    <small class="text-muted">{{ pedido.creado|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <span class="badge bg-{{ pedido.estado_color }}">
+                                    {{ pedido.get_estado_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Total: ${{ pedido.total|floatformat:2 }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ pedido.items.count }} productos</small>
+                                </div>
+                                <a href="{% url 'detalle_pedido' pedido.id %}" class="btn btn-sm btn-outline-primary">
+                                    Ver Detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+            <h4>No tienes pedidos aún</h4>
+            <p class="text-muted">Comienza a comprar para ver tu historial aquí</p>
+            <a href="{% url 'catalogo' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-bag me-2"></i> Ver Catálogo
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

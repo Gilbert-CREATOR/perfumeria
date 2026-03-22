@@ -1,0 +1,106 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}FAQ - D.A.R.C.Y.{% endblock %}
+
+{% block content %}
+<p class="breadcrumb">Home Page / FAQ</p>
+
+<section class="catalog-hero">
+  <h1>FAQ</h1>
+  <div class="hero-links">
+    <a href="{% url 'home' %}">HOME</a>
+    <a href="{% url 'catalogo' %}">CATALOG</a>
+    <a href="{% url 'nosotros' %}">ABOUT</a>
+    <a href="#" class="active">FAQ</a>
+  </div>
+</section>
+
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="background: var(--card); padding: 60px 40px; border-radius: 8px; margin-bottom: 40px;">
+    <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 40px; text-align: center;">Frequently Asked Questions</h2>
+    
+    <div style="space-y: 20px;">
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">What makes D.A.R.C.Y. different?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          We focus on minimalist design principles in perfumery, creating scents that are simple yet sophisticated, 
+          removing the unnecessary to reveal the true essence of each fragrance.
+        </p>
+      </div>
+      
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">How long do your fragrances last?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          Our fragrances typically last 6-8 hours on skin and up to 24 hours on clothing. 
+          Longevity varies depending on the specific scent and your body chemistry.
+        </p>
+      </div>
+      
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">Are your products cruelty-free?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          Yes, we are committed to ethical practices. None of our products are tested on animals, 
+          and we use only cruelty-free ingredients.
+        </p>
+      </div>
+      
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">What is your return policy?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          We offer a 30-day return policy for unused products in their original packaging. 
+          Please contact our customer service team to initiate a return.
+        </p>
+      </div>
+      
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">Do you offer international shipping?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          Yes, we ship worldwide. Shipping costs and delivery times vary by location. 
+          International orders typically arrive within 7-14 business days.
+        </p>
+      </div>
+      
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">How should I store my fragrances?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          Store your fragrances in a cool, dry place away from direct sunlight and heat. 
+          Avoid storing them in bathrooms as humidity can affect the scent quality.
+        </p>
+      </div>
+      
+      <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">Can I create a custom fragrance?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          Yes, we offer custom fragrance creation services. Contact our studio to schedule a consultation 
+          with our perfumers to create your unique signature scent.
+        </p>
+      </div>
+      
+      <div style="padding-bottom: 20px;">
+        <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">What payment methods do you accept?</h3>
+        <p style="color: #666; line-height: 1.6;">
+          We accept all major credit cards, PayPal, and various digital payment methods. 
+          All transactions are secure and encrypted.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <div style="background: var(--card); padding: 40px; border-radius: 8px; text-align: center;">
+    <h3 style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">Still have questions?</h3>
+    <p style="color: #666; margin-bottom: 30px;">
+      Can't find the answer you're looking for? Our customer service team is here to help.
+    </p>
+    
+    <div style="display: flex; gap: 20px; justify-content: center;">
+      <a href="{% url 'contacto' %}" class="view-more" style="display: inline-block; text-decoration: none;">
+        CONTACT US
+      </a>
+      <a href="tel:+380983212003" class="view-more" style="display: inline-block; text-decoration: none; background: transparent; color: #000; border: 2px solid #000;">
+        CALL US
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+<hr>
+
+<h3>⭐ Reseñas</h3>
+
+{% if resenas %}
+    {% for r in resenas %}
+        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+            <strong>{{ r.usuario.username }}</strong>
+            <p>⭐ {{ r.estrellas }}/5</p>
+            <p>{{ r.comentario }}</p>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No hay reseñas aún</p>
+{% endif %}
+
+<hr>
+
+{% if user.is_authenticated %}
+    <h4>Dejar reseña</h4>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">
+            Enviar reseña
+        </button>
+    </form>
+{% else %}
+    <p>
+        <a href="/usuarios/login/">Inicia sesión</a> para comentar
+    </p>
+{% endif %}

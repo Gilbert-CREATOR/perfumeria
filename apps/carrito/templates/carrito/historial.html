@@ -1,0 +1,23 @@
+<h1>Mis pedidos</h1>
+
+{% if pedidos %}
+    {% for pedido in pedidos %}
+        <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+            <h3>Pedido #{{ pedido.id }}</h3>
+            <p>Fecha: {{ pedido.creado }}</p>
+            <p>Total: ${{ pedido.total }}</p>
+
+            <ul>
+                {% for item in pedido.items.all %}
+                    <li>
+                        {{ item.producto.nombre }} -
+                        Cantidad: {{ item.cantidad }} -
+                        ${{ item.precio }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No tienes pedidos aún</p>
+{% endif %}

@@ -1,0 +1,318 @@
+/* Pedido Exitoso - Estilo Minimalista D.A.R.C.Y. */
+.pedido-exito-container {
+    min-height: 100vh;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.exito-card {
+    background: white;
+    border-radius: 0;
+    max-width: 600px;
+    width: 100%;
+    padding: 80px 60px;
+    text-align: center;
+    position: relative;
+    border: 1px solid #e0e0e0;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 40px;
+    background: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    animation: scaleIn 0.5s ease-out 0.2s both;
+}
+
+.success-icon::before {
+    content: '✓';
+    font-weight: 300;
+}
+
+.exito-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: #000;
+    margin-bottom: 20px;
+    line-height: 1.2;
+    letter-spacing: -1px;
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.exito-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 50px;
+    font-weight: 400;
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pedido-info {
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    padding: 30px;
+    margin-bottom: 50px;
+    text-align: left;
+    animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+.pedido-number {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.pedido-number strong {
+    color: #000;
+    font-weight: 600;
+}
+
+.pedido-message {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.5;
+    font-weight: 400;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.btn-exito {
+    padding: 18px 40px;
+    border: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+    justify-content: center;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.btn-primary {
+    background: #000;
+    color: white;
+    border: 1px solid #000;
+}
+
+.btn-primary:hover {
+    background: #333;
+    border-color: #333;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: white;
+    color: #000;
+    border: 1px solid #000;
+}
+
+.btn-secondary:hover {
+    background: #000;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Minimalist decorative line */
+.exito-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: #000;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .pedido-exito-container {
+        padding: 40px 15px;
+    }
+    
+    .exito-card {
+        padding: 60px 40px;
+        margin: 10px;
+    }
+    
+    .exito-title {
+        font-size: 2rem;
+    }
+    
+    .exito-subtitle {
+        font-size: 1rem;
+        margin-bottom: 40px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-exito {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .pedido-info {
+        padding: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .exito-card {
+        padding: 40px 30px;
+    }
+    
+    .success-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+    
+    .exito-title {
+        font-size: 1.5rem;
+    }
+    
+    .exito-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 30px;
+    }
+    
+    .btn-exito {
+        padding: 15px 30px;
+        font-size: 0.85rem;
+        min-width: 250px;
+    }
+    
+    .pedido-info {
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+}
+
+/* Subtle hover effects */
+.btn-exito {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-exito::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-exito:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Success checkmark animation */
+@keyframes checkmark {
+    0% {
+        stroke-dashoffset: 100;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Minimalist status indicator */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #333;
+    margin-bottom: 30px;
+    animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #000;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

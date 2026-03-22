@@ -1,0 +1,47 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Pago con Stripe - Perfumería Premium{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Pagar con Stripe</h4>
+                    
+                    <div class="mb-4">
+                        <p class="text-center">Pedido #{{ pedido_id }}</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Serás redirigido a la página segura de Stripe para completar el pago.
+                        </div>
+                    </div>
+                    
+                    <form id="payment-form">
+                        <div id="card-element" class="form-control mb-3">
+                            <!-- Stripe Element se insertará aquí -->
+                        </div>
+                        
+                        <div id="card-errors" class="text-danger mb-3" role="alert"></div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-lock me-2"></i> Pagar Seguramente
+                        </button>
+                        
+                        <a href="{% url 'ver_carrito' %}" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="fas fa-arrow-left me-2"></i> Volver al Carrito
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+// Aquí iría la integración con Stripe
+</script>
+{% endblock %}

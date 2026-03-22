@@ -1,0 +1,215 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="admin-hero">
+    <div>
+        <p class="admin-kicker">Panel central</p>
+        <h1>Control total de la tienda</h1>
+        <p class="admin-subtitle">Gestiona productos, pedidos, envíos y stock desde páginas HTML propias del proyecto.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_producto_crear' %}" class="btn btn-dark">
+            <i class="fa-solid fa-plus"></i> Nuevo producto
+        </a>
+        <a href="{% url 'admin_pedidos' %}" class="btn btn-outline-dark">
+            <i class="fa-solid fa-bag-shopping"></i> Ver pedidos
+        </a>
+    </div>
+</section>
+
+<section class="admin-stat-grid">
+    <article class="admin-stat">
+        <span class="admin-stat-label">Pedidos totales</span>
+        <strong>{{ stats.total_pedidos }}</strong>
+        <small>{{ stats.pedidos_hoy }} hoy</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Ingresos del mes</span>
+        <strong>${{ stats.ingresos_mes|floatformat:2 }}</strong>
+        <small>{{ stats.pedidos_mes }} pedidos este mes</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Pendientes</span>
+        <strong>{{ stats.pedidos_pendientes }}</strong>
+        <small>Necesitan revisión</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Productos activos</span>
+        <strong>{{ stats.productos_activos }}</strong>
+        <small>{{ stats.agotados }} agotados</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Stock bajo</span>
+        <strong>{{ stats.stock_bajo }}</strong>
+        <small>Menos de 5 unidades</small>
+    </article>
+    <article class="admin-stat">
+        <span class="admin-stat-label">Envíos activos</span>
+        <strong>{{ stats.envios_activos }}</strong>
+        <small>En preparación o tránsito</small>
+    </article>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Pedidos recientes</h2>
+                    <p>Últimos movimientos registrados en la tienda.</p>
+                </div>
+                <a href="{% url 'admin_pedidos' %}" class="btn btn-sm btn-outline-dark">Ver todos</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos_recientes %}
+                            <tr>
+                                <td>#{{ pedido.id }}</td>
+                                <td>{{ pedido.usuario.username }}</td>
+                                <td>${{ pedido.total }}</td>
+                                <td><span class="admin-badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></td>
+                                <td>{{ pedido.creado|date:"d/m/Y H:i" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'admin_detalle_pedido' pedido.id %}" class="btn btn-sm btn-outline-dark">Abrir</a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No hay pedidos recientes.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="admin-panel-card mb-4">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Accesos rápidos</h2>
+                    <p>Entradas directas al panel.</p>
+                </div>
+            </div>
+            <div class="admin-quick-links">
+                <a href="{% url 'admin_productos' %}" class="admin-quick-link">
+                    <i class="fa-solid fa-spray-can-sparkles"></i>
+                    <span>Gestionar productos</span>
+                </a>
+                <a href="{% url 'admin_stock' %}" class="admin-quick-link">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Actualizar stock</span>
+                </a>
+                <a href="{% url 'admin_envios' %}" class="admin-quick-link">
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span>Controlar envíos</span>
+                </a>
+                <a href="{% url 'admin_metodos_envio' %}" class="admin-quick-link">
+                    <i class="fa-solid fa-route"></i>
+                    <span>Métodos de envío</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Alertas de operación</h2>
+                    <p>Lo que conviene resolver primero.</p>
+                </div>
+            </div>
+
+            <div class="admin-alert-list">
+                {% if productos_bajo_stock %}
+                    <div class="admin-inline-alert warning">
+                        <strong>Stock bajo</strong>
+                        <span>{{ stats.stock_bajo }} productos con inventario corto.</span>
+                        <a href="{% url 'admin_stock' %}">Revisar</a>
+                    </div>
+                {% endif %}
+
+                {% if pedidos_sin_envio %}
+                    <div class="admin-inline-alert info">
+                        <strong>Pedidos sin envío</strong>
+                        <span>{{ pedidos_sin_envio|length }} pedidos listos sin guía creada.</span>
+                        <a href="{% url 'admin_envios' %}">Abrir envíos</a>
+                    </div>
+                {% endif %}
+
+                {% if not productos_bajo_stock and not pedidos_sin_envio %}
+                    <div class="admin-inline-alert success">
+                        <strong>Todo al día</strong>
+                        <span>No hay alertas operativas críticas ahora mismo.</span>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Productos con stock bajo</h2>
+                    <p>Los siguientes artículos requieren reposición.</p>
+                </div>
+                <a href="{% url 'admin_stock' %}" class="btn btn-sm btn-outline-dark">Ir a stock</a>
+            </div>
+            <div class="admin-list-stack">
+                {% for producto in productos_bajo_stock %}
+                    <div class="admin-list-row">
+                        <div>
+                            <strong>{{ producto.nombre }}</strong>
+                            <small>{{ producto.marca }}</small>
+                        </div>
+                        <span class="admin-badge warning">{{ producto.stock }} unidades</span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted mb-0">No hay productos con stock bajo.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Pedidos esperando envío</h2>
+                    <p>Listos para que generes el control logístico.</p>
+                </div>
+            </div>
+            <div class="admin-list-stack">
+                {% for pedido in pedidos_sin_envio %}
+                    <div class="admin-list-row">
+                        <div>
+                            <strong>Pedido #{{ pedido.id }}</strong>
+                            <small>{{ pedido.usuario.username }} · {{ pedido.creado|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <a href="{% url 'admin_detalle_pedido' pedido.id %}" class="btn btn-sm btn-outline-dark">Crear envío</a>
+                    </div>
+                {% empty %}
+                    <p class="text-muted mb-0">Todos los pedidos procesables ya tienen envío.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

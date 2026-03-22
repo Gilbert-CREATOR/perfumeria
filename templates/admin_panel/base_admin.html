@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} | Perfumería</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="admin-brand">
+                <a href="{% url 'admin_panel' %}" class="admin-brand-link">
+                    <span class="admin-brand-mark">D</span>
+                    <div>
+                        <strong>D.A.R.C.Y.</strong>
+                        <small>Panel administrativo</small>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="admin-nav">
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}" href="{% url 'admin_panel' %}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_productos' or request.resolver_match.url_name == 'admin_producto_crear' or request.resolver_match.url_name == 'admin_producto_editar' %}active{% endif %}" href="{% url 'admin_productos' %}">
+                    <i class="fa-solid fa-spray-can-sparkles"></i>
+                    <span>Productos</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_stock' %}active{% endif %}" href="{% url 'admin_stock' %}">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Stock</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_pedidos' or request.resolver_match.url_name == 'admin_detalle_pedido' %}active{% endif %}" href="{% url 'admin_pedidos' %}">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span>Pedidos</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_facturacion' or request.resolver_match.url_name == 'admin_exportar_facturacion_csv' %}active{% endif %}" href="{% url 'admin_facturacion' %}">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Facturación</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_envios' or request.resolver_match.url_name == 'admin_detalle_envio' %}active{% endif %}" href="{% url 'admin_envios' %}">
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span>Envíos</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_metodos_envio' or request.resolver_match.url_name == 'admin_metodo_envio_editar' %}active{% endif %}" href="{% url 'admin_metodos_envio' %}">
+                    <i class="fa-solid fa-route"></i>
+                    <span>Métodos de envío</span>
+                </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_analytics' %}active{% endif %}" href="{% url 'admin_analytics' %}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Análisis</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <a class="admin-nav-link" href="/">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Ver tienda</span>
+                </a>
+                <a class="admin-nav-link" href="{% url 'logout' %}">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="admin-content">
+            <header class="admin-topbar">
+                <button class="admin-menu-toggle" type="button" id="adminMenuToggle" aria-label="Abrir menú">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="admin-topbar-meta">
+                    <div class="admin-topbar-user">
+                        <span class="admin-avatar">{{ user.username|first|upper }}</span>
+                        <div>
+                            <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            <small>Administrador</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {% if messages %}
+                <section class="admin-messages">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            <main class="admin-page">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebar = document.getElementById('adminSidebar');
+        const toggleButton = document.getElementById('adminMenuToggle');
+
+        if (toggleButton && sidebar) {
+            toggleButton.addEventListener('click', () => {
+                sidebar.classList.toggle('is-open');
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

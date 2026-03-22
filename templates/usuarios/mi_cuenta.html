@@ -1,0 +1,96 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Mi Cuenta - Perfumería Premium{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                    </div>
+                    <h5>{{ user.username }}</h5>
+                    <p class="text-muted">{{ user.email }}</p>
+                    
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'perfil' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user me-2"></i> Editar Perfil
+                        </a>
+                        <a href="{% url 'historial_pedidos' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i> Mis Pedidos
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-heart me-2"></i> Favoritos
+                            <span class="badge bg-primary float-end">{{ total_favoritos }}</span>
+                        </a>
+                        <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-tachometer-alt me-2"></i> Resumen de Cuenta
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h3 class="text-primary">{{ total_pedidos }}</h3>
+                                <p class="text-muted">Pedidos Realizados</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h3 class="text-success">{{ total_favoritos }}</h3>
+                                <p class="text-muted">Favoritos</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h3 class="text-warning">{{ total_gastado|floatformat:0 }}</h3>
+                                <p class="text-muted">Total Gastado</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="mb-3">Productos Favoritos Recientes</h6>
+                    {% if favoritos %}
+                        <div class="row">
+                            {% for producto in favoritos %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        {% if producto.imagen %}
+                                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                        {% else %}
+                                            <div class="me-3 bg-light d-flex align-items-center justify-content-center rounded" style="width: 60px; height: 60px;">
+                                                <i class="fas fa-spray-can text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-1">{{ producto.nombre }}</h6>
+                                            <small class="text-muted">${{ producto.precio|floatformat:2 }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No tienes productos favoritos aún.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

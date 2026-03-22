@@ -1,0 +1,86 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Pedido Exitoso - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pedido_exito_minimalista.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pedido-exito-container">
+    <div class="exito-card">
+        <div class="success-icon"></div>
+        
+        <h1 class="exito-title">¡Pedido Realizado con Éxito!</h1>
+        
+        <p class="exito-subtitle">
+            Tu pedido ha sido procesado correctamente. Recibirás un correo de confirmación con los detalles.
+        </p>
+        
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Confirmado</span>
+        </div>
+        
+        {% if pedido_id %}
+        <div class="pedido-info">
+            <div class="pedido-number">
+                <strong>Número de Pedido:</strong> #{{ pedido_id }}
+            </div>
+            <div class="pedido-message">
+                Hemos recibido tu pedido y estamos preparándolo con mucho cuidado. Te notificaremos cuando sea despachado.
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="action-buttons">
+            <a href="{% url 'catalogo' %}" class="btn-exito btn-primary">
+                Seguir Comprando
+            </a>
+            
+            <a href="{% url 'historial_pedidos' %}" class="btn-exito btn-secondary">
+                Ver Mis Pedidos
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update cart count to 0 since order was completed
+    updateCartCount();
+    
+    function updateCartCount() {
+        fetch('/carrito/api/count/')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                var cartElements = document.querySelectorAll('.cart-count');
+                cartElements.forEach(function(element) {
+                    element.textContent = '(' + (data.count || 0) + ')';
+                });
+            })
+            .catch(function(error) {
+                console.log('Error updating cart count:', error);
+            });
+    }
+    
+    // Add subtle interactive effects
+    const buttons = document.querySelectorAll('.btn-exito');
+    
+    buttons.forEach(function(button) {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Cart - D.A.R.C.Y.{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for message in messages %}
+    <div style="background: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; 
+                color: {% if message.tags == 'success' %}#155724{% elif message.tags == 'error' %}#721c24{% else %}#0c5460{% endif %}; 
+                padding: 12px 16px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; text-align: center;">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<p class="breadcrumb">Home Page / Cart</p>
+
+<section class="catalog-hero">
+  <h1>CART</h1>
+  <div class="hero-links">
+    <a href="{% url 'home' %}">HOME</a>
+    <a href="{% url 'catalogo' %}">CATALOG</a>
+    <a href="#" class="active">CART</a>
+    <a href="{% url 'contacto' %}">CONTACT</a>
+  </div>
+</section>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-bottom: 60px;">
+  <!-- Cart Items -->
+  <div>
+    {% if productos %}
+      {% for item in productos %}
+      <div style="background: var(--card); padding: 30px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: 20px; align-items: center;">
+          <!-- Product Image -->
+          <div>
+            {% if item.producto.imagen %}
+              <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}" 
+                   style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+            {% else %}
+              <div style="width: 100px; height: 100px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 10px;">
+                PERFUME
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Product Info -->
+          <div>
+            <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 8px;">{{ item.producto.nombre|upper }}</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">${{ item.producto.precio|floatformat:2 }}</p>
+            
+            <!-- Quantity Controls -->
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <span style="font-size: 12px; font-weight: 600;">QUANTITY:</span>
+              <div style="display: flex; align-items: center; border: 1px solid #ddd;">
+                <form method="POST" action="{% url 'disminuir_cantidad' item.id %}" style="display: flex; align-items: center; border: none;">
+                  {% csrf_token %}
+                  <button type="submit" 
+                          style="width: 30px; height: 30px; border: none; background: white; cursor: pointer; font-size: 16px;">-</button>
+                </form>
+                <span style="padding: 0 15px; font-size: 14px; font-weight: 600;">{{ item.cantidad }}</span>
+                <form method="POST" action="{% url 'agregar_al_carrito' item.producto.id %}" style="display: flex; align-items: center; border: none;">
+                  {% csrf_token %}
+                  <button type="submit" 
+                          style="width: 30px; height: 30px; border: none; background: white; cursor: pointer; font-size: 16px;">+</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Price and Remove -->
+          <div style="text-align: right;">
+            <div style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">
+              ${{ item.subtotal|floatformat:2 }}
+            </div>
+            <form method="POST" action="{% url 'eliminar_del_carrito' item.id %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" 
+                      style="background: none; border: none; color: #666; cursor: pointer; font-size: 12px; text-decoration: underline;">
+                REMOVE
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="background: var(--card); padding: 60px 40px; border-radius: 8px; text-align: center;">
+        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">Your cart is empty</h2>
+        <p style="color: #666; margin-bottom: 30px;">Add some products to get started</p>
+        <a href="{% url 'catalogo' %}" class="view-more" style="display: inline-block; text-decoration: none;">
+          CONTINUE SHOPPING
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  
+  <!-- Cart Summary -->
+  <div>
+    <div style="background: var(--card); padding: 40px; border-radius: 8px;">
+      <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 30px;">Order Summary</h2>
+      
+      <div style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+          <span style="color: #666;">Subtotal</span>
+          <span>${{ total|floatformat:2 }}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+          <span style="color: #666;">Shipping</span>
+          <span>FREE</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 900;">
+          <span>Total</span>
+          <span>${{ total|floatformat:2 }}</span>
+        </div>
+      </div>
+      
+      {% if productos %}
+        <button onclick="window.location.href='{% url 'checkout' %}'" 
+                style="width: 100%; height: 54px; background: #000; color: white; border: none; font-size: 11px; font-weight: 800; cursor: pointer; margin-bottom: 15px;">
+          PROCEED TO CHECKOUT
+        </button>
+        
+        <a href="{% url 'catalogo' %}" style="display: block; text-align: center; color: #666; font-size: 12px; text-decoration: underline;">
+          Continue Shopping
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if productos %}
+<!-- Related Products -->
+<div style="margin-bottom: 60px;">
+  <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 40px; text-align: center;">You might also like</h2>
+  
+  <div class="products-grid">
+    {% for producto in productos_relacionados %}
+    <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
+      <h2>{{ producto.nombre|upper }}</h2>
+      <div class="price">${{ producto.precio|floatformat:2 }}</div>
+      <div class="author">
+        {% if producto.temporada == 'summer' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+        {% if producto.temporada == 'winter' %}BY HELEN SANDR<br>& MINIMALIST{% endif %}
+        {% if producto.temporada == 'night' %}BY ANN KODOR<br>& MINIMALIST{% endif %}
+        {% if producto.temporada == 'day' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+        {% if producto.temporada == 'special' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+      </div>
+      {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+      {% else %}
+        <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}">
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

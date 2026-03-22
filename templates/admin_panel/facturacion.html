@@ -1,0 +1,225 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Facturación{% endblock %}
+
+{% block content %}
+<div class="admin-hero">
+    <div>
+        <p class="admin-kicker">Facturación</p>
+        <h1>Reporte de Ventas</h1>
+        <p class="admin-subtitle">Pedidos pagados y finalizados listos para facturación</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_exportar_facturacion_csv' %}" class="btn btn-success">
+            <i class="fa-solid fa-file-csv"></i>
+            Exportar CSV
+        </a>
+    </div>
+</div>
+
+<div class="admin-panel-card">
+    <div class="admin-section-head">
+        <div>
+            <h2>Resumen de Ventas</h2>
+            <p>Estadísticas generales de pedidos facturados</p>
+        </div>
+    </div>
+
+    <div class="admin-stat-grid">
+        <div class="admin-stat">
+            <small class="admin-stat-label">Total Pedidos</small>
+            <strong>{{ total_pedidos }}</strong>
+        </div>
+        <div class="admin-stat">
+            <small class="admin-stat-label">Ingresos Totales</small>
+            <strong>${{ total_ingresos|floatformat:2 }}</strong>
+        </div>
+        <div class="admin-stat">
+            <small class="admin-stat-label">Promedio por Pedido</small>
+            <strong>${{ promedio_pedido|floatformat:2 }}</strong>
+        </div>
+        <div class="admin-stat">
+            <small class="admin-stat-label">Pedidos Pagados</small>
+            <strong>{{ pedidos|length }}</strong>
+        </div>
+    </div>
+</div>
+
+<div class="admin-panel-card">
+    <div class="admin-section-head">
+        <div>
+            <h2>Lista de Pedidos Facturados</h2>
+            <p>Detalles completos de todos los pedidos pagados y entregados</p>
+        </div>
+    </div>
+
+    {% if pedidos %}
+        <div class="table-responsive">
+            <table class="table admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Método Pago</th>
+                        <th>Total</th>
+                        <th>Productos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos %}
+                    <tr>
+                        <td>
+                            <strong>#{{ pedido.id }}</strong>
+                        </td>
+                        <td>
+                            {{ pedido.creado|date:"d/m/Y" }}
+                            <br>
+                            <small>{{ pedido.creado|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="admin-product-cell">
+                                <div>
+                                    <strong>{{ pedido.nombre_completo|default:pedido.usuario.get_full_name|default:pedido.usuario.username }}</strong>
+                                    <small>{{ pedido.usuario.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="mailto:{{ pedido.usuario.email }}" class="text-decoration-none">
+                                {{ pedido.usuario.email }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if pedido.estado == 'pagado' %}
+                                <span class="admin-badge success">Pagado</span>
+                            {% elif pedido.estado == 'entregado' %}
+                                <span class="admin-badge success">Entregado</span>
+                            {% else %}
+                                <span class="admin-badge">{{ pedido.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ pedido.get_metodo_pago_display|default:'N/A' }}
+                        </td>
+                        <td>
+                            <strong>${{ pedido.total|floatformat:2 }}</strong>
+                        </td>
+                        <td>
+                            <div class="admin-mini-product-list">
+                                {% for item in pedido.items.all %}
+                                    <div class="admin-mini-product-item">
+                                        <strong>{{ item.producto.nombre }}</strong>
+                                        <small>x{{ item.cantidad }} (${{ item.subtotal|floatformat:2 }})</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="admin-table-actions">
+                                <a href="{% url 'admin_detalle_pedido' pedido.id %}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Ver detalles">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="admin-product-placeholder" style="width: 80px; height: 80px; margin: 0 auto 1rem;">
+                <i class="fa-solid fa-file-invoice" style="font-size: 2rem;"></i>
+            </div>
+            <h4>No hay pedidos facturados</h4>
+            <p class="text-muted">No se encontraron pedidos con estado "pagado" o "entregado".</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.admin-mini-product-list {
+    max-width: 300px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.admin-mini-product-item {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(214, 200, 186, 0.3);
+}
+
+.admin-mini-product-item:last-child {
+    border-bottom: none;
+}
+
+.admin-mini-product-item strong {
+    display: block;
+    font-size: 0.85rem;
+}
+
+.admin-mini-product-item small {
+    color: var(--admin-muted);
+    font-size: 0.75rem;
+}
+
+.btn-success {
+    background: var(--admin-success);
+    border-color: var(--admin-success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #25633d;
+    border-color: #25633d;
+    color: white;
+}
+
+.table-responsive {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.admin-table {
+    margin-bottom: 0;
+}
+
+.admin-table th {
+    background: rgba(246, 242, 236, 0.8);
+    font-weight: 600;
+    border-bottom: 2px solid var(--admin-line);
+}
+
+.admin-table td {
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(214, 200, 186, 0.6);
+}
+
+.admin-table tr:hover td {
+    background: rgba(246, 242, 236, 0.3);
+}
+
+@media (max-width: 768px) {
+    .admin-mini-product-list {
+        max-width: 200px;
+        max-height: 80px;
+    }
+    
+    .admin-hero-actions {
+        width: 100%;
+    }
+    
+    .admin-hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Mi Historial de Pedidos - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/historial_pedidos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="historial-container">
+    <!-- Header -->
+    <div class="historial-header">
+        <h1 class="historial-title">Mi Historial de Pedidos</h1>
+        <p class="historial-subtitle">Revisa el estado y detalles de todos tus pedidos</p>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <div class="filter-group">
+            <label class="filter-label">Filtrar por estado:</label>
+            <select class="filter-select" id="estadoFilter">
+                <option value="">Todos los pedidos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagado">Pagado</option>
+                <option value="enviado">Enviado</option>
+                <option value="entregado">Entregado</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
+        </div>
+        
+        <div class="results-count">
+            {% if pedidos %}
+                {{ pedidos.count }} pedido{{ pedidos.count|pluralize }}
+            {% else %}
+                No hay pedidos
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pedidos Grid -->
+    <div class="pedidos-grid">
+        {% for pedido in pedidos %}
+        <div class="pedido-card" data-estado="{{ pedido.estado }}">
+            <div class="pedido-info">
+                <div class="pedido-header">
+                    <div class="pedido-number">Pedido #{{ pedido.id }}</div>
+                    <div class="pedido-date">{{ pedido.creado|date:"d/m/Y H:i" }}</div>
+                </div>
+                
+                <div class="pedido-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Estado</span>
+                        <div class="estado-badge estado-{{ pedido.estado }}">
+                            <div class="estado-dot"></div>
+                            <span>{{ pedido.get_estado_display }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <span class="meta-label">Total</span>
+                        <div class="meta-value">${{ pedido.total|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <span class="meta-label">Productos</span>
+                        <div class="meta-value">{{ pedido.items.count }} producto{{ pedido.items.count|pluralize }}</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <span class="meta-label">Método de Pago</span>
+                        <div class="meta-value">{{ pedido.get_metodo_pago_display|default:"N/A" }}</div>
+                    </div>
+                </div>
+                
+                <!-- Lista de productos (resumen) -->
+                {% if pedido.items.exists %}
+                <div class="productos-resumen">
+                    <span class="meta-label">Productos:</span>
+                    <div class="productos-lista">
+                        {% for item in pedido.items.all %}
+                        <div class="producto-item">
+                            {{ item.producto.nombre }} x{{ item.cantidad }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="pedido-action">
+                <div class="pedido-total">${{ pedido.total|floatformat:2 }}</div>
+                <div class="pedido-productos">{{ pedido.items.count }} producto{{ pedido.items.count|pluralize }}</div>
+                <a href="{% url 'detalle_pedido' pedido.id %}" class="btn-detalles">
+                    Ver Detalles
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <h2 class="empty-title">No tienes pedidos aún</h2>
+            <p class="empty-text">
+                Parece que aún no has realizado ninguna compra. 
+                Explora nuestro catálogo y encuentra tu perfume perfecto.
+            </p>
+            <a href="{% url 'catalogo' %}" class="empty-action">
+                Explorar Catálogo
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Debug Information -->
+    {% if debug %}
+    <div style="background: #f0f0f0; padding: 20px; margin: 20px auto; max-width: 1000px; border-radius: 0;">
+        <h3>Debug Information</h3>
+        <p><strong>Usuario:</strong> {{ user.username }}</p>
+        <p><strong>Total de pedidos:</strong> {{ pedidos.count }}</p>
+        {% for pedido in pedidos %}
+        <p><strong>Pedido #{{ pedido.id }}:</strong> {{ pedido.estado }} - ${{ pedido.total }} - {{ pedido.creado|date:"d/m/Y H:i" }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const estadoFilter = document.getElementById('estadoFilter');
+    const pedidosCards = document.querySelectorAll('.pedido-card');
+    const resultsCount = document.querySelector('.results-count');
+    
+    if (estadoFilter) {
+        estadoFilter.addEventListener('change', function() {
+            const selectedEstado = this.value.toLowerCase();
+            let visibleCount = 0;
+            
+            pedidosCards.forEach(function(card) {
+                const cardEstado = card.dataset.estado;
+                
+                if (selectedEstado === '' || cardEstado === selectedEstado) {
+                    card.style.display = 'grid';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Update results count
+            if (resultsCount) {
+                if (visibleCount > 0) {
+                    resultsCount.textContent = visibleCount + ' pedido' + (visibleCount !== 1 ? 's' : '');
+                } else {
+                    resultsCount.textContent = 'No hay pedidos';
+                }
+            }
+        });
+    }
+    
+    // Add hover effects
+    pedidosCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add click feedback
+    pedidosCards.forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking on the button
+            if (e.target.classList.contains('btn-detalles') || e.target.closest('.btn-detalles')) {
+                return;
+            }
+            
+            // Add subtle click effect
+            this.style.transform = 'translateY(0)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px)';
+            }, 100);
+        });
+    });
+});
+</script>
+{% endblock %}

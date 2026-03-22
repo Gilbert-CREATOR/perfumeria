@@ -1,0 +1,125 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Productos{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Catálogo</p>
+        <h1>Gestión de productos</h1>
+        <p class="admin-subtitle">Administra el catálogo con formularios HTML propios para crear, editar, activar o retirar productos.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_producto_crear' %}" class="btn btn-dark">Nuevo producto</a>
+        <a href="{% url 'admin_stock' %}" class="btn btn-outline-dark">Ir a stock</a>
+    </div>
+</section>
+
+<section class="admin-mini-stats">
+    <article><strong>{{ producto_stats.total }}</strong><span>Resultados</span></article>
+    <article><strong>{{ producto_stats.activos }}</strong><span>Activos</span></article>
+    <article><strong>{{ producto_stats.inactivos }}</strong><span>Inactivos</span></article>
+    <article><strong>{{ producto_stats.bajo_stock }}</strong><span>Stock bajo</span></article>
+    <article><strong>{{ producto_stats.agotados }}</strong><span>Agotados</span></article>
+</section>
+
+<section class="admin-panel-card mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label">Buscar</label>
+            <input type="text" name="q" class="form-control" value="{{ busqueda }}" placeholder="Nombre, marca o descripción">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Tipo</label>
+            <select name="tipo" class="form-select">
+                <option value="">Todos</option>
+                {% for value, label in tipos_producto %}
+                    <option value="{{ value }}" {% if tipo_actual == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="activos" {% if estado_actual == 'activos' %}selected{% endif %}>Activos</option>
+                <option value="inactivos" {% if estado_actual == 'inactivos' %}selected{% endif %}>Inactivos</option>
+                <option value="bajo_stock" {% if estado_actual == 'bajo_stock' %}selected{% endif %}>Stock bajo</option>
+                <option value="agotados" {% if estado_actual == 'agotados' %}selected{% endif %}>Agotados</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</section>
+
+<section class="admin-panel-card">
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Tipo</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Temporada</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                    <tr>
+                        <td>
+                            <div class="admin-product-cell">
+                                {% if producto.imagen %}
+                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                {% else %}
+                                    <div class="admin-product-placeholder">
+                                        <i class="fa-solid fa-spray-can-sparkles"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ producto.nombre }}</strong>
+                                    <small>{{ producto.marca }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ producto.get_tipo_display }}</td>
+                        <td>${{ producto.precio }}</td>
+                        <td>{{ producto.stock }}</td>
+                        <td>{{ producto.get_temporada_display|default:"-" }}</td>
+                        <td>
+                            {% if producto.disponible %}
+                                <span class="admin-badge entregado">Activo</span>
+                            {% else %}
+                                <span class="admin-badge cancelado">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="admin-table-actions">
+                                <a href="{% url 'admin_producto_editar' producto.id %}" class="btn btn-sm btn-outline-dark">Editar</a>
+                                <form method="post" action="{% url 'admin_producto_toggle_disponibilidad' producto.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        {% if producto.disponible %}Desactivar{% else %}Activar{% endif %}
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'admin_producto_eliminar' producto.id %}" onsubmit="return confirm('¿Eliminar o desactivar este producto?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">No hay productos para mostrar con esos filtros.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load pedido_filters %}
+
+{% block title %}Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Pedido #{{ pedido.id }}</p>
+        <h1>Detalle del pedido</h1>
+        <p class="admin-subtitle">Consulta la compra, actualiza el estado y crea el envío sin salir del panel.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_pedidos' %}" class="btn btn-outline-dark">Volver a pedidos</a>
+        {% if envio %}
+            <a href="{% url 'admin_detalle_envio' envio.id %}" class="btn btn-dark">Abrir envío</a>
+        {% endif %}
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <section class="admin-panel-card mb-4">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Resumen general</h2>
+                    <p>Información principal del pedido y del cliente.</p>
+                </div>
+                <span class="admin-badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="admin-data-list">
+                        <div><span>Cliente</span><strong>{{ pedido.usuario.username }}</strong></div>
+                        <div><span>Correo</span><strong>{{ pedido.usuario.email|default:"Sin correo" }}</strong></div>
+                        <div><span>Fecha</span><strong>{{ pedido.creado|date:"d/m/Y H:i" }}</strong></div>
+                        <div><span>Método de pago</span><strong>{{ pedido.get_metodo_pago_display|default:"No definido" }}</strong></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="admin-data-list">
+                        <div><span>Subtotal</span><strong>${{ pedido.subtotal|default:pedido.total }}</strong></div>
+                        <div><span>Envío</span><strong>${{ pedido.costo_envio|default:"0.00" }}</strong></div>
+                        <div><span>Total</span><strong>${{ pedido.total }}</strong></div>
+                        <div><span>Estado</span><strong>{{ pedido.get_estado_display }}</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-panel-card mb-4">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Dirección de entrega</h2>
+                    <p>Datos usados en el checkout.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="admin-data-list">
+                        <div><span>Nombre completo</span><strong>{{ pedido.nombre_completo|default:"No especificado" }}</strong></div>
+                        <div><span>Teléfono</span><strong>{{ pedido.telefono|default:"No especificado" }}</strong></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="admin-data-list">
+                        <div><span>Dirección</span><strong>{{ pedido.direccion|default:"No especificada" }}</strong></div>
+                        <div><span>Ciudad / Provincia</span><strong>{{ pedido.ciudad|default:"-" }}, {{ pedido.provincia|default:"-" }}</strong></div>
+                        <div><span>Código postal</span><strong>{{ pedido.codigo_postal|default:"No especificado" }}</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Productos del pedido</h2>
+                    <p>Detalle de los artículos incluidos.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Marca</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>
+                                    <div class="admin-product-cell">
+                                        {% if item.producto.imagen %}
+                                            <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}">
+                                        {% else %}
+                                            <div class="admin-product-placeholder">
+                                                <i class="fa-solid fa-spray-can-sparkles"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ item.producto.nombre }}</strong>
+                                            <small>{{ item.producto.tamano_ml }} ml</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.producto.marca }}</td>
+                                <td>{{ item.cantidad }}</td>
+                                <td>${{ item.precio }}</td>
+                                <td>${{ item.precio|mul:item.cantidad }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="admin-panel-card mb-4">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Actualizar pedido</h2>
+                    <p>Cambia estado o método de pago.</p>
+                </div>
+            </div>
+
+            <form method="post" class="admin-form-stack">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="actualizar_pedido">
+
+                {% if pedido_form.non_field_errors %}
+                    <div class="alert alert-danger mb-0">{{ pedido_form.non_field_errors }}</div>
+                {% endif %}
+
+                <div>
+                    <label class="form-label" for="{{ pedido_form.estado.id_for_label }}">Estado</label>
+                    {{ pedido_form.estado }}
+                    {% if pedido_form.estado.errors %}
+                        <div class="text-danger small mt-1">{{ pedido_form.estado.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="form-label" for="{{ pedido_form.metodo_pago.id_for_label }}">Método de pago</label>
+                    {{ pedido_form.metodo_pago }}
+                    {% if pedido_form.metodo_pago.errors %}
+                        <div class="text-danger small mt-1">{{ pedido_form.metodo_pago.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-dark w-100">Guardar cambios</button>
+            </form>
+        </section>
+
+        <section class="admin-panel-card">
+            <div class="admin-section-head">
+                <div>
+                    <h2>Control de envío</h2>
+                    <p>{% if envio %}El pedido ya tiene un envío creado.{% else %}Genera el envío desde aquí.{% endif %}</p>
+                </div>
+            </div>
+
+            {% if envio %}
+                <div class="admin-data-list mb-3">
+                    <div><span>Estado</span><strong>{{ envio.get_estado_display }}</strong></div>
+                    <div><span>Método</span><strong>{{ envio.metodo_envio.nombre }}</strong></div>
+                    <div><span>Seguimiento</span><strong>{{ envio.numero_seguimiento|default:"Sin asignar" }}</strong></div>
+                    <div><span>Entrega estimada</span><strong>{{ envio.fecha_entrega_estimada|date:"d/m/Y"|default:"No definida" }}</strong></div>
+                </div>
+                <a href="{% url 'admin_detalle_envio' envio.id %}" class="btn btn-outline-dark w-100">Gestionar envío</a>
+            {% else %}
+                {% if not metodos_activos %}
+                    <div class="admin-inline-alert warning">
+                        <strong>Sin métodos activos</strong>
+                        <span>Activa o crea uno antes de generar el envío.</span>
+                        <a href="{% url 'admin_metodos_envio' %}">Ir a métodos</a>
+                    </div>
+                {% else %}
+                    <form method="post" class="admin-form-stack">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="crear_envio">
+
+                        {% if envio_form.non_field_errors %}
+                            <div class="alert alert-danger mb-0">{{ envio_form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div>
+                            <label class="form-label" for="{{ envio_form.metodo_envio.id_for_label }}">Método de envío</label>
+                            {{ envio_form.metodo_envio }}
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="{{ envio_form.numero_seguimiento.id_for_label }}">Número de seguimiento</label>
+                            {{ envio_form.numero_seguimiento }}
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="{{ envio_form.estado.id_for_label }}">Estado inicial</label>
+                            {{ envio_form.estado }}
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="{{ envio_form.fecha_entrega_estimada.id_for_label }}">Entrega estimada</label>
+                            {{ envio_form.fecha_entrega_estimada }}
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="{{ envio_form.notas.id_for_label }}">Notas</label>
+                            {{ envio_form.notas }}
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100">Crear envío</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

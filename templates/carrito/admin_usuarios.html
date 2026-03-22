@@ -1,0 +1,214 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}👥 Usuarios Registrados (Admin) - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_usuarios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-usuarios-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <h1 class="admin-title">👥 Usuarios Registrados</h1>
+        <p class="admin-subtitle">Gestiona y visualiza todos los usuarios del sistema</p>
+    </div>
+
+    <!-- Admin Alert -->
+    <div class="admin-alert">
+        <strong>🔐 Acceso de Administrador:</strong> Esta página está restringida solo para personal administrativo.
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ usuarios.count }}</div>
+            <div class="stat-label">Total Usuarios</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ usuarios_staff.count }}</div>
+            <div class="stat-label">Administradores</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ usuarios_clientes.count }}</div>
+            <div class="stat-label">Clientes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ usuarios_activos.count }}</div>
+            <div class="stat-label">Usuarios Activos</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="usuarios-controls">
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o email...">
+        </div>
+        
+        <div class="filter-group">
+            <label class="filter-label">Filtrar:</label>
+            <select class="filter-select" id="roleFilter">
+                <option value="">Todos los usuarios</option>
+                <option value="staff">Administradores</option>
+                <option value="clientes">Clientes</option>
+                <option value="activos">Usuarios Activos</option>
+            </select>
+        </div>
+        
+        <div class="results-info">
+            <span id="resultsCount">{{ usuarios.count }} usuario{{ usuarios.count|pluralize }}</span>
+        </div>
+    </div>
+
+    <!-- Usuarios Grid -->
+    <div class="usuarios-grid" id="usuariosGrid">
+        {% for usuario in usuarios %}
+        <div class="usuario-card" 
+             data-nombre="{{ usuario.username|lower }}" 
+             data-email="{{ usuario.email|lower }}"
+             data-role="{% if usuario.is_staff %}staff{% else %}clientes{% endif %}"
+             data-activo="{% if usuario.last_login %}activos{% else %}inactivos{% endif %}">
+            
+            <!-- Avatar -->
+            <div class="usuario-avatar">
+                {{ usuario.username.0|upper }}
+            </div>
+            
+            <!-- Info -->
+            <div class="usuario-info">
+                <div class="usuario-nombre">{{ usuario.username }}</div>
+                <div class="usuario-email">{{ usuario.email|default:"Sin email" }}</div>
+                
+                <div class="usuario-meta">
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span>{{ usuario.date_joined|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <span>🕐</span>
+                        <span>{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</span>
+                    </div>
+                    
+                    {% if usuario.is_staff %}
+                    <div class="staff-badge">
+                        <span>⭐</span>
+                        <span>Admin</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="usuario-actions">
+                <a href="{% url 'admin_usuario_pedidos' usuario.id %}" class="btn-admin">
+                    Ver Pedidos
+                </a>
+                <a href="/admin/auth/user/{{ usuario.id }}/change/" class="btn-admin btn-secondary" target="_blank">
+                    Editar
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h2 class="empty-title">No hay usuarios registrados</h2>
+            <p class="empty-text">
+                No se encontraron usuarios en el sistema. 
+                Los usuarios aparecerán aquí cuando se registren.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const usuariosGrid = document.getElementById('usuariosGrid');
+    const usuarioCards = document.querySelectorAll('.usuario-card');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    function filterUsuarios() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedRole = roleFilter.value.toLowerCase();
+        let visibleCount = 0;
+        
+        usuarioCards.forEach(function(card) {
+            const nombre = card.dataset.nombre;
+            const email = card.dataset.email;
+            const role = card.dataset.role;
+            const activo = card.dataset.activo;
+            
+            // Check if card matches search
+            const matchesSearch = searchTerm === '' || 
+                                nombre.includes(searchTerm) || 
+                                email.includes(searchTerm);
+            
+            // Check if card matches role filter
+            const matchesRole = selectedRole === '' || 
+                              role === selectedRole || 
+                              (selectedRole === 'activos' && activo === 'activos');
+            
+            // Show or hide card
+            if (matchesSearch && matchesRole) {
+                card.style.display = 'grid';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update results count
+        if (resultsCount) {
+            if (visibleCount > 0) {
+                resultsCount.textContent = visibleCount + ' usuario' + (visibleCount !== 1 ? 's' : '');
+            } else {
+                resultsCount.textContent = 'No hay usuarios';
+            }
+        }
+    }
+    
+    // Event listeners
+    if (searchInput) {
+        searchInput.addEventListener('input', filterUsuarios);
+    }
+    
+    if (roleFilter) {
+        roleFilter.addEventListener('change', filterUsuarios);
+    }
+    
+    // Add hover effects
+    usuarioCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add click feedback
+    usuarioCards.forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking on buttons
+            if (e.target.classList.contains('btn-admin') || e.target.closest('.btn-admin')) {
+                return;
+            }
+            
+            // Add subtle click effect
+            this.style.transform = 'translateY(0)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px)';
+            }, 100);
+        });
+    });
+});
+</script>
+{% endblock %}

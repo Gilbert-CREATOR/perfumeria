@@ -1,0 +1,501 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Checkout - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <!-- Header -->
+    <div class="checkout-header">
+        <h1>Checkout</h1>
+        <p>Completa tu pedido de forma segura y rápida</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="checkout-grid">
+        <!-- Main Content -->
+        <div class="checkout-main">
+            <!-- Dirección de Envío -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <div class="section-icon address">📍</div>
+                    <h2 class="section-title">Dirección de Envío</h2>
+                </div>
+                
+                <form id="checkoutForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                Nombre Completo <span class="required">*</span>
+                            </label>
+                            <input type="text" name="nombre_completo" class="form-input" required 
+                                   placeholder="Juan Pérez" value="{{ user.get_full_name|default:user.username }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Teléfono <span class="required">*</span>
+                            </label>
+                            <input type="tel" name="telefono" class="form-input" required 
+                                   placeholder="809-123-4567">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Código Postal <span class="required">*</span>
+                            </label>
+                            <input type="text" name="codigo_postal" class="form-input" required 
+                                   placeholder="10101">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                Dirección <span class="required">*</span>
+                            </label>
+                            <input type="text" name="direccion" class="form-input" required 
+                                   placeholder="Calle Principal #123, Apt 4B">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Ciudad <span class="required">*</span>
+                            </label>
+                            <input type="text" name="ciudad" class="form-input" required 
+                                   placeholder="Santo Domingo">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Provincia <span class="required">*</span>
+                            </label>
+                            <select name="provincia" class="form-input" required>
+                                <option value="">Selecciona una provincia</option>
+                                <option value="santo_domingo">Santo Domingo</option>
+                                <option value="santiago">Santiago</option>
+                                <option value="la_vega">La Vega</option>
+                                <option value="san_pedro">San Pedro de Macorís</option>
+                                <option value="la_romana">La Romana</option>
+                                <option value="san_cristobal">San Cristóbal</option>
+                                <option value="puerto_plata">Puerto Plata</option>
+                                <option value="duarte">Duarte</option>
+                                <option value="san_juan">San Juan</option>
+                                <option value="azua">Azua</option>
+                                <option value="barahona">Barahona</option>
+                                <option value="peravia">Peravia</option>
+                                <option value="seibo">El Seibo</option>
+                                <option value="elias_piña">Elías Piña</option>
+                                <option value="hato_mayor">Hato Mayor</option>
+                                <option value="independencia">Independencia</option>
+                                <option value="la_altagracia">La Altagracia</option>
+                                <option value="monte_cristi">Monte Cristi</option>
+                                <option value="monte_plata">Monte Plata</option>
+                                <option value="pedernales">Pedernales</option>
+                                <option value="peravia">Peravia</option>
+                                <option value="sanchez_ramirez">Sánchez Ramírez</option>
+                                <option value="santiago_rodriguez">Santiago Rodríguez</option>
+                                <option val="valverde">Valverde</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Método de Envío -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <div class="section-icon shipping">📦</div>
+                    <h2 class="section-title">Método de Envío</h2>
+                </div>
+                
+                <div class="shipping-options">
+                    <label class="shipping-option selected">
+                        <input type="radio" name="metodo_envio" value="estandar" checked>
+                        <div class="shipping-option-content">
+                            <div class="shipping-radio"></div>
+                            <div class="shipping-info">
+                                <div class="shipping-name">Envío Estándar</div>
+                                <div class="shipping-description">Entrega regular en todo el país</div>
+                                <div class="shipping-time">
+                                    <span>⏱️</span> 3-5 días hábiles
+                                </div>
+                            </div>
+                            <div class="shipping-price">$5.00</div>
+                        </div>
+                    </label>
+                    
+                    <label class="shipping-option">
+                        <input type="radio" name="metodo_envio" value="express">
+                        <div class="shipping-option-content">
+                            <div class="shipping-radio"></div>
+                            <div class="shipping-info">
+                                <div class="shipping-name">Envío Express</div>
+                                <div class="shipping-description">Entrega rápida prioritaria</div>
+                                <div class="shipping-time">
+                                    <span>⏱️</span> 1-2 días hábiles
+                                </div>
+                            </div>
+                            <div class="shipping-price">$15.00</div>
+                        </div>
+                    </label>
+                    
+                    <label class="shipping-option">
+                        <input type="radio" name="metodo_envio" value="tienda">
+                        <div class="shipping-option-content">
+                            <div class="shipping-radio"></div>
+                            <div class="shipping-info">
+                                <div class="shipping-name">Recoger en Tienda</div>
+                                <div class="shipping-description">Recoge tu pedido sin costo</div>
+                                <div class="shipping-time">
+                                    <span>⏱️</span> Mismo día
+                                </div>
+                            </div>
+                            <div class="shipping-price">$0.00</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Método de Pago -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <div class="section-icon payment">💳</div>
+                    <h2 class="section-title">Método de Pago</h2>
+                </div>
+                
+                <div class="payment-methods">
+                    <label class="payment-method selected">
+                        <input type="radio" name="metodo_pago" value="paypal" checked>
+                        <div class="payment-icon">💳</div>
+                        <div class="payment-name">PayPal</div>
+                    </label>
+                    
+                    <label class="payment-method">
+                        <input type="radio" name="metodo_pago" value="tarjeta">
+                        <div class="payment-icon">💳</div>
+                        <div class="payment-name">Tarjeta</div>
+                    </label>
+                    
+                    <label class="payment-method">
+                        <input type="radio" name="metodo_pago" value="transferencia">
+                        <div class="payment-icon">🏦</div>
+                        <div class="payment-name">Transferencia</div>
+                    </label>
+                    
+                    <label class="payment-method">
+                        <input type="radio" name="metodo_pago" value="efectivo">
+                        <div class="payment-icon">💵</div>
+                        <div class="payment-name">Efectivo</div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="checkout-sidebar">
+            <div class="order-summary">
+                <h3 class="summary-header">🛒 Resumen del Pedido</h3>
+                
+                <div class="order-items">
+                    {% for item in productos %}
+                    <div class="order-item">
+                        <div class="item-name">{{ item.producto.nombre }}</div>
+                        <div class="item-quantity">{{ item.cantidad }}</div>
+                        <div class="item-price">${{ item.producto.precio|floatformat:2 }}</div>
+                        <div class="item-subtotal">${{ item.subtotal|floatformat:2 }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="order-item">
+                        <div class="item-name">No hay productos</div>
+                        <div class="item-quantity">0</div>
+                        <div class="item-price">$0.00</div>
+                        <div class="item-subtotal">$0.00</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-totals">
+                    <div class="total-row subtotal">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">${{ subtotal|floatformat:2 }}</span>
+                    </div>
+                    <div class="total-row shipping">
+                        <span>Envío:</span>
+                        <span id="shippingCost">$5.00</span>
+                    </div>
+                    <div class="total-row total">
+                        <span>Total:</span>
+                        <span id="total">${{ total|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
+                <button type="submit" form="checkoutForm" class="confirm-button">
+                    <span>🛒</span>
+                    <span>Confirmar Pedido</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Section -->
+    <div class="info-section">
+        <h3 class="info-header">
+            <span>ℹ️</span>
+            Información Importante
+        </h3>
+        
+        <div class="info-grid">
+            <div class="info-block">
+                <h4>📦 Envíos</h4>
+                <p>Los envíos se procesan en 24-48 horas hábiles. Recibirás un número de seguimiento cuando tu pedido sea despachado.</p>
+            </div>
+            
+            <div class="info-block">
+                <h4>💰 Pagos</h4>
+                <p>Aceptamos PayPal, tarjetas de crédito/débito y transferencias bancarias. Todos los pagos son seguros y encriptados.</p>
+            </div>
+            
+            <div class="info-block">
+                <h4>🔄 Devoluciones</h4>
+                <p>Tienes 30 días para devolver productos en su estado original. Los costos de envío no son reembolsables.</p>
+            </div>
+            
+            <div class="info-block">
+                <h4>📞 Ayuda</h4>
+                <p>¿Necesitas ayuda? Contacta nuestro soporte:</p>
+                <div class="info-contact">
+                    <div class="contact-item">
+                        <span>📧</span> ayuda@perfumeria.com
+                    </div>
+                    <div class="contact-item">
+                        <span>📞</span> +1 (809) 123-4567
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Shipping options
+    var shippingOptions = document.querySelectorAll('.shipping-option');
+    var shippingCostElement = document.getElementById('shippingCost');
+    var totalElement = document.getElementById('total');
+    var subtotalElement = document.getElementById('subtotal');
+    
+    shippingOptions.forEach(function(option) {
+        option.addEventListener('click', function() {
+            // Remove selected from all options
+            shippingOptions.forEach(function(opt) {
+                opt.classList.remove('selected');
+            });
+            // Add selected to clicked option
+            this.classList.add('selected');
+            
+            // Update shipping cost
+            var shippingCost = this.querySelector('.shipping-price').textContent;
+            shippingCostElement.textContent = shippingCost;
+            
+            // Update total
+            updateTotal();
+        });
+    });
+    
+    // Payment methods
+    var paymentMethods = document.querySelectorAll('.payment-method');
+    paymentMethods.forEach(function(method) {
+        method.addEventListener('click', function() {
+            paymentMethods.forEach(function(m) {
+                m.classList.remove('selected');
+            });
+            this.classList.add('selected');
+        });
+    });
+    
+    function updateTotal() {
+        var subtotal = parseFloat(subtotalElement.textContent.replace('$', ''));
+        var shippingCost = parseFloat(shippingCostElement.textContent.replace('$', ''));
+        var total = subtotal + shippingCost;
+        totalElement.textContent = '$' + total.toFixed(2);
+    }
+    
+    // Form validation
+    var form = document.getElementById('checkoutForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted');
+            
+            // Basic validation
+            var requiredFields = form.querySelectorAll('[required]');
+            var isValid = true;
+            
+            requiredFields.forEach(function(field) {
+                if (!field.value.trim()) {
+                    field.classList.add('error');
+                    isValid = false;
+                    console.log('Field missing:', field.name);
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+            
+            console.log('Form valid:', isValid);
+            
+            if (isValid) {
+                // Show loading state
+                var submitBtn = document.querySelector('.confirm-button'); // Buscar en todo el documento
+                console.log('Submit button found:', submitBtn);
+                
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('loading');
+                    submitBtn.innerHTML = '<span>⏳</span><span>Procesando...</span>';
+                } else {
+                    console.error('Submit button not found!');
+                    showNotification('Error: No se encontró el botón de envío', 'error');
+                    return;
+                }
+                
+                console.log('Starting form submission...');
+                
+                // Create form data
+                var formData = new FormData(form);
+                
+                // Add shipping and payment methods
+                var selectedShipping = document.querySelector('input[name="metodo_envio"]:checked');
+                var selectedPayment = document.querySelector('input[name="metodo_pago"]:checked');
+                
+                console.log('Selected shipping:', selectedShipping ? selectedShipping.value : 'none');
+                console.log('Selected payment:', selectedPayment ? selectedPayment.value : 'none');
+                
+                if (selectedShipping) {
+                    formData.set('metodo_envio', selectedShipping.value);
+                }
+                if (selectedPayment) {
+                    formData.set('metodo_pago', selectedPayment.value);
+                }
+                
+                // Submit via POST
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(function(response) {
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+                    console.log('Response redirected:', response.redirected);
+                    
+                    if (response.ok) {
+                        // Si la respuesta es exitosa, verificar si es una redirección
+                        if (response.redirected) {
+                            console.log('Redirecting to:', response.url);
+                            window.location.href = response.url;
+                        } else {
+                            // Si no es redirección, verificar el contenido
+                            return response.text().then(function(html) {
+                                console.log('Response HTML length:', html.length);
+                                // Si el HTML contiene mensajes de error, mostrarlos
+                                if (html.includes('alert alert-danger')) {
+                                    console.log('Error detected in response');
+                                    // Recargar la página para mostrar los errores
+                                    window.location.reload();
+                                } else {
+                                    console.log('Reloading page');
+                                    window.location.reload();
+                                }
+                            });
+                        }
+                    } else {
+                        // Si hay error HTTP, mostrar mensaje
+                        console.log('HTTP Error:', response.status);
+                        var submitBtn = document.querySelector('.confirm-button');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove('loading');
+                            submitBtn.innerHTML = '<span>🛒</span><span>Confirmar Pedido</span>';
+                        }
+                        showNotification('Error al procesar el pedido. Por favor, verifica los datos.', 'error');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Fetch Error:', error);
+                    var submitBtn = document.querySelector('.confirm-button');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('loading');
+                        submitBtn.innerHTML = '<span>🛒</span><span>Confirmar Pedido</span>';
+                    }
+                    showNotification('Error de conexión. Por favor, intenta nuevamente.', 'error');
+                });
+            } else {
+                showNotification('Por favor, completa todos los campos requeridos.', 'error');
+            }
+        });
+    } else {
+        console.error('Form not found!');
+    }
+    
+    // Remove error on input
+    if (form) {
+        form.querySelectorAll('.form-input').forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.classList.remove('error');
+            });
+        });
+    }
+    
+    // CSRF Token function
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Simple notification function
+    function showNotification(message, type) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: ' + (type === 'success' ? '#28a745' : '#dc3545') + '; color: white; padding: 16px 24px; border-radius: 8px; font-size: 0.875rem; z-index: 10000; opacity: 0; transform: translateY(-20px); transition: all 0.3s ease;';
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(function() {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
+        }, 100);
+        
+        setTimeout(function() {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateY(-20px)';
+            setTimeout(function() {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}

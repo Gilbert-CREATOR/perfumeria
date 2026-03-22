@@ -1,0 +1,39 @@
+{% extends 'base_moderno.html' %}
+
+{% block content %}
+
+<h2>❤️ Mis favoritos</h2>
+
+{% if favoritos %}
+    <div class="row">
+        {% for fav in favoritos %}
+            <div class="col-md-4">
+                <div class="card mb-3">
+
+                    {% if fav.producto.imagen %}
+                        <img src="{{ fav.producto.imagen.url }}" class="card-img-top">
+                    {% endif %}
+
+                    <div class="card-body">
+                        <h5>{{ fav.producto.nombre }}</h5>
+                        <p>${{ fav.producto.precio }}</p>
+
+                        <a href="{% url 'toggle_favorito' fav.producto.id %}" class="btn btn-danger">
+                            Quitar ❤️
+                        </a>
+
+                        <button onclick="agregarAlCarrito({{ fav.producto.id }})" class="btn btn-primary">
+                            Agregar al carrito
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No tienes favoritos</p>
+{% endif %}
+
+{% endblock %}

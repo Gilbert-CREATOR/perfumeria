@@ -1,0 +1,123 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Stock{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Inventario</p>
+        <h1>Control de stock</h1>
+        <p class="admin-subtitle">Ajusta unidades y disponibilidad sin depender del admin de Django.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_productos' %}" class="btn btn-outline-dark">Ver productos</a>
+    </div>
+</section>
+
+<section class="admin-mini-stats">
+    <article><strong>{{ productos|length }}</strong><span>Resultados</span></article>
+    <article><strong>{{ bajo_stock.count }}</strong><span>Stock bajo</span></article>
+    <article><strong>{{ agotados.count }}</strong><span>Agotados</span></article>
+</section>
+
+<section class="admin-panel-card mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label">Buscar</label>
+            <input type="text" name="q" class="form-control" value="{{ busqueda }}" placeholder="Producto o marca">
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="disponible" {% if estado_actual == 'disponible' %}selected{% endif %}>Disponible</option>
+                <option value="bajo_stock" {% if estado_actual == 'bajo_stock' %}selected{% endif %}>Stock bajo</option>
+                <option value="agotado" {% if estado_actual == 'agotado' %}selected{% endif %}>Agotado</option>
+                <option value="inactivo" {% if estado_actual == 'inactivo' %}selected{% endif %}>Inactivo</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</section>
+
+<section class="admin-panel-card">
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Precio</th>
+                    <th>Tipo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                    <tr>
+                        <td>
+                            <div class="admin-product-cell">
+                                {% if producto.imagen %}
+                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                {% else %}
+                                    <div class="admin-product-placeholder">
+                                        <i class="fa-solid fa-spray-can-sparkles"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ producto.nombre }}</strong>
+                                    <small>{{ producto.marca }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <form method="post" class="admin-inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="actualizar_stock">
+                                <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                                <input type="number" name="stock" class="form-control form-control-sm" value="{{ producto.stock }}" min="0">
+                                <input type="hidden" name="disponible" value="{% if producto.disponible %}true{% else %}false{% endif %}">
+                                <button type="submit" class="btn btn-sm btn-dark">Guardar</button>
+                            </form>
+                        </td>
+                        <td>
+                            {% if producto.stock == 0 %}
+                                <span class="admin-badge cancelado">Agotado</span>
+                            {% elif producto.stock < 5 %}
+                                <span class="admin-badge pendiente">Stock bajo</span>
+                            {% else %}
+                                <span class="admin-badge entregado">Disponible</span>
+                            {% endif %}
+                            {% if not producto.disponible %}
+                                <span class="admin-badge cancelado ms-1">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ producto.precio }}</td>
+                        <td>{{ producto.get_tipo_display }}</td>
+                        <td class="text-end">
+                            <div class="admin-table-actions">
+                                <form method="post" action="{% url 'admin_stock' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="accion" value="toggle_disponibilidad">
+                                    <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        {% if producto.disponible %}Desactivar{% else %}Activar{% endif %}
+                                    </button>
+                                </form>
+                                <a href="{% url 'admin_producto_editar' producto.id %}" class="btn btn-sm btn-outline-dark">Editar</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">No se encontraron productos para este filtro.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

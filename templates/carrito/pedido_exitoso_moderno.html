@@ -1,0 +1,150 @@
+{% extends 'base_moderno.html' %}
+{% load static %}
+
+{% block title %}Pedido Exitoso - D.A.R.C.Y.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pedido_exito.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pedido-exito-container">
+    <!-- Confetti Animation -->
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    
+    <div class="exito-card">
+        <div class="success-icon"></div>
+        
+        <h1 class="exito-title">¡Pedido Realizado con Éxito!</h1>
+        
+        <p class="exito-subtitle">
+            Tu pedido ha sido procesado correctamente. Recibirás un correo de confirmación con los detalles.
+        </p>
+        
+        {% if pedido_id %}
+        <div class="pedido-info">
+            <div class="pedido-number">
+                <strong>Número de Pedido:</strong> #{{ pedido_id }}
+            </div>
+            <div class="pedido-message">
+                Hemos recibido tu pedido y estamos preparándolo con mucho cuidado. Te notificaremos cuando sea despachado.
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="action-buttons">
+            <a href="{% url 'catalogo' %}" class="btn-exito btn-primary">
+                <i class="fas fa-shopping-bag"></i>
+                Seguir Comprando
+            </a>
+            
+            <a href="{% url 'historial_pedidos' %}" class="btn-exito btn-secondary">
+                <i class="fas fa-list-alt"></i>
+                Ver Mis Pedidos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Background decoration -->
+<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1;">
+    <div style="position: absolute; top: 10%; left: 10%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+    <div style="position: absolute; top: 60%; right: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+    <div style="position: absolute; bottom: 20%; left: 30%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(40, 167, 69, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some interactive effects
+    const card = document.querySelector('.exito-card');
+    const buttons = document.querySelectorAll('.btn-exito');
+    
+    // Card entrance effect
+    setTimeout(function() {
+        card.style.transform = 'scale(1.02)';
+        setTimeout(function() {
+            card.style.transform = 'scale(1)';
+        }, 200);
+    }, 1000);
+    
+    // Button hover effects
+    buttons.forEach(function(button) {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px) scale(1.05)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(-2px) scale(1)';
+        });
+    });
+    
+    // Create floating particles
+    function createParticle() {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            left: ${Math.random() * 100}%;
+            top: 100%;
+            animation: float-up 3s linear forwards;
+        `;
+        
+        document.body.appendChild(particle);
+        
+        setTimeout(function() {
+            particle.remove();
+        }, 3000);
+    }
+    
+    // Create particles periodically
+    setInterval(createParticle, 500);
+    
+    // Add CSS animation for floating particles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes float-up {
+            to {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Update cart count to 0
+    updateCartCount();
+    
+    function updateCartCount() {
+        fetch('/carrito/api/count/')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                var cartElements = document.querySelectorAll('.cart-count');
+                cartElements.forEach(function(element) {
+                    element.textContent = '(' + (data.count || 0) + ')';
+                });
+            })
+            .catch(function(error) {
+                console.log('Error updating cart count:', error);
+            });
+    }
+});
+</script>
+{% endblock %}

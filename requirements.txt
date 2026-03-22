@@ -1,65 +1,40 @@
-aiohappyeyeballs==2.6.1
-aiohttp==3.13.3
-aiohttp-retry==2.9.1
-aiosignal==1.4.0
-altgraph @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/altgraph-0.17.2-py2.py3-none-any.whl
-amqp==5.3.1
-asgiref==3.11.0
-async-timeout==5.0.1
-attrs==25.4.0
-billiard==4.2.4
-celery==5.3.4
-certifi==2026.1.4
-cffi==2.0.0
-charset-normalizer==3.4.4
-click==8.1.8
-click-didyoumean==0.3.1
-click-plugins==1.1.1.2
-click-repl==0.3.0
-cryptography==46.0.5
-defusedxml==0.7.1
-dj-database-url==3.0.1
+# Core Django
 Django==4.2.27
-django-cors-headers==4.3.1
-django-filter==23.5
-django-templated-mail==1.1.1
-djangorestframework==3.14.0
-djangorestframework-simplejwt==5.3.0
-djoser==2.2.2
-frozenlist==1.8.0
-future @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/future-0.18.2-py3-none-any.whl
-gunicorn==21.2.0
-idna==3.11
-kombu==5.6.2
-macholib @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/macholib-1.15.2-py3-none-any.whl
-multidict==6.7.0
-oauthlib==3.3.1
-packaging==26.0
-Pillow==10.1.0
-paypalrestsdk==1.13.3
-prompt_toolkit==3.0.52
-propcache==0.4.1
-psycopg2-binary==2.9.9
-pycparser==2.23
-PyJWT==2.10.1
-python-dateutil==2.9.0.post0
-python-decouple==3.8
-python-dotenv==1.2.1
-python3-openid==3.2.0
-pytz==2026.1.post1
-redis==5.0.1
-requests==2.32.5
-requests-oauthlib==2.0.0
-six @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/six-1.15.0-py3-none-any.whl
-social-auth-app-django==5.4.3
-social-auth-core==4.7.0
+asgiref==3.11.0
 sqlparse==0.5.5
-twilio==9.9.1
-typing_extensions==4.15.0
-tzdata==2025.3
-urllib3==2.6.3
-vboxapi==1.0
-vine==5.1.0
-wcwidth==0.6.0
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==3.0.1
+
+# Web Server
+gunicorn==21.2.0
 whitenoise==6.6.0
-yarl==1.22.0
+
+# Email
+python-decouple==3.8
+
+# PayPal
+paypalrestsdk==1.13.3
+
+# Security
+cryptography==46.0.5
+
+# HTTP Requests
+requests==2.32.5
+urllib3==2.6.3
+
+# Image Processing
+Pillow==10.1.0
+
+# Environment
+python-dotenv==1.2.1
+
+# Date/Time
+python-dateutil==2.9.0.post0
+pytz==2026.1.post1
+
+# Utilities
+typing_extensions==4.15.0
+packaging==26.0
+attrs==25.4.0

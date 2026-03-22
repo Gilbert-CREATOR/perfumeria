@@ -9,6 +9,7 @@ from .models import Carrito, ItemCarrito, Pedido, ItemPedido, MetodoEnvio
 from apps.productos.models import Producto
 import paypalrestsdk
 from django.conf import settings
+from django.contrib.auth.decorators import user_passes_test
 
 paypalrestsdk.configure({
     "mode": "sandbox",  # cambiar a "live" en producción

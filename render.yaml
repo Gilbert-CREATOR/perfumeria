@@ -58,3 +58,4 @@ services:
         fromDatabase:
           name: perfumeria-db
           property: connectionString
+          

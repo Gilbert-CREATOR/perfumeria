@@ -1,0 +1,48 @@
+services:
+  # Web Service
+  - type: web
+    name: perfumeria-darcy
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn perfumeria.wsgi:application
+    autoDeploy: true
+    
+    # Environment Variables
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: DJANGO_SETTINGS_MODULE
+        value: perfumeria.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+    
+    # Health Check
+    healthCheckPath: /
+    
+    # Static Files
+    staticDir: staticfiles
+    mountPath: /static
+
+  # Database (PostgreSQL)
+  - type: pserv
+    name: perfumeria-db
+    plan: free
+    env: postgres
+    
+    # Database Environment Variables
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: perfumeria-db
+          property: connectionString
+
+# Build Configuration
+build:
+  commands:
+    - python manage.py collectstatic --noinput
+    - python manage.py migrate

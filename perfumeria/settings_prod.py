@@ -10,18 +10,14 @@ import os
 
 # 🔥 SEGURIDAD - PRODUCCIÓN
 DEBUG = False
-ALLOWED_HOSTS = ['perfumeria-tu-dominio.com', 'www.perfumeria-tu-dominio.com', 'localhost']
+ALLOWED_HOSTS = ['perfumeria-darcy.onrender.com', 'www.perfumeria-darcy.onrender.com', '.onrender.com']
 
-# 🗄️ BASE DE DATOS - POSTGRESQL
+# 🗄️ BASE DE DATOS - POSTGRESQL (Render)
+import dj_database_url
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'perfumeria_prod'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:password@localhost:5432/perfumeria_prod'
+    )
 }
 
 # 🔐 SEGURIDAD
@@ -38,14 +34,14 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# 📧 EMAIL - PRODUCCIÓN
+# 📧 EMAIL - PRODUCCIÓN (Configurado)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@perfumeria.com')
+EMAIL_HOST_USER = 'gilbertandeliz04@gmail.com'
+EMAIL_HOST_PASSWORD = 'gvwa fiqu giim fyiw'
+DEFAULT_FROM_EMAIL = 'noreply@perfumeria.com'
 
 # 📁 ARCHIVOS ESTÁTICOS - PRODUCCIÓN
 STATIC_URL = '/static/'
@@ -107,17 +103,15 @@ LOGGING = {
 # 🚀 PERFORMANCE
 CONN_MAX_AGE = 60  # Conexiones persistentes a DB
 
-# 📦 PAYPAL - PRODUCCIÓN
-PAYPAL_MODE = 'live'  # Cambiar a 'live' en producción real
+# 📦 PAYPAL - PRODUCCIÓN (Render)
+PAYPAL_MODE = 'sandbox'  # 'sandbox' para pruebas, 'live' para producción real
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', '')
 PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET', '')
 
-# 🌍 VARIABLES DE ENTORNO REQUERIDAS
+# 🌍 VARIABLES DE ENTORNO REQUERIDAS (Render)
 ENV_VARS_REQUIRED = [
     'SECRET_KEY',
-    'DB_NAME',
-    'DB_USER', 
-    'DB_PASSWORD',
+    'DATABASE_URL',  # Render usa DATABASE_URL directamente
     'PAYPAL_CLIENT_ID',
     'PAYPAL_SECRET',
 ]

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test de Pedido - Perfumería D.A.R.C.Y.</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fafafa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 0;
+            overflow: hidden;
+        }
+        .header {
+            background: #000;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .order-info {
+            background: #f8f8f8;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #000;
+        }
+        .order-info h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .product-list {
+            margin: 20px 0;
+        }
+        .product-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .footer {
+            background: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .test-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PERFUMERÍA D.A.R.C.Y.</h1>
+        </div>
+        
+        <div class="content">
+            <div class="test-badge">🧪 EMAIL DE PRUEBA</div>
+            
+            <h2>¡Pedido Confirmado!</h2>
+            <p>Este es un email de prueba para verificar que el sistema de notificaciones funciona correctamente.</p>
+            
+            <div class="order-info">
+                <h2>📋 Detalles del Pedido</h2>
+                <p><strong>Número de Pedido:</strong> #{{ pedido_id }}</p>
+                <p><strong>Cliente:</strong> {{ cliente_nombre }}</p>
+                <p><strong>Total:</strong> ${{ total|floatformat:2 }}</p>
+            </div>
+            
+            <div class="product-list">
+                <h3>📦 Productos:</h3>
+                {% for producto in productos %}
+                <div class="product-item">
+                    • {{ producto }}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <p><strong>✅ Si recibes este email, la configuración SMTP funciona correctamente.</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 Perfumería D.A.R.C.Y. - Todos los derechos reservados</p>
+            <p>Este es un email de prueba automatizado</p>
+        </div>
+    </div>
+</body>
+</html>

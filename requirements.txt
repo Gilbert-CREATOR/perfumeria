@@ -31,11 +31,12 @@ future @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7
 gunicorn==21.2.0
 idna==3.11
 kombu==5.6.2
-macholib @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/macholib-1.15.2-py2.py3-none-any.whl
+macholib @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/macholib-1.15.2-py3-none-any.whl
 multidict==6.7.0
 oauthlib==3.3.1
 packaging==26.0
 Pillow==10.1.0
+paypalrestsdk==1.13.3
 prompt_toolkit==3.0.52
 propcache==0.4.1
 psycopg2-binary==2.9.9
@@ -49,7 +50,7 @@ pytz==2026.1.post1
 redis==5.0.1
 requests==2.32.5
 requests-oauthlib==2.0.0
-six @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/six-1.15.0-py2.py3-none-any.whl
+six @ file:///AppleInternal/Library/BuildRoots/4~CGYkugDNMJDPussZJfa8Q7q7wDj7yZMIh_VI6H4/Library/Caches/com.apple.xbs/Sources/python3/six-1.15.0-py3-none-any.whl
 social-auth-app-django==5.4.3
 social-auth-core==4.7.0
 sqlparse==0.5.5

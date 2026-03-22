@@ -322,6 +322,17 @@ def detalle_pedido(request, pedido_id):
 
 @login_required
 def pago_paypal(request, pedido_id):
+    # Configurar PayPal
+    from .paypal_config import configure_paypal, is_paypal_configured
+    
+    if not is_paypal_configured():
+        messages.error(request, 'PayPal no está configurado. Contacta al administrador.')
+        return redirect('detalle_pedido', pedido_id=pedido_id)
+    
+    if not configure_paypal():
+        messages.error(request, 'Error al configurar PayPal. Intenta nuevamente.')
+        return redirect('detalle_pedido', pedido_id=pedido_id)
+    
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
     
     # Verificación adicional de seguridad
@@ -386,6 +397,17 @@ def api_cart_count(request):
 @user_passes_test(lambda u: u.is_staff, login_url='/admin/login/')
 def paypal_exito(request):
     """Procesar éxito de PayPal (solo admin)"""
+    # Configurar PayPal
+    from .paypal_config import configure_paypal, is_paypal_configured
+    
+    if not is_paypal_configured():
+        messages.error(request, 'PayPal no está configurado. Contacta al administrador.')
+        return redirect('historial_pedidos')
+    
+    if not configure_paypal():
+        messages.error(request, 'Error al configurar PayPal. Intenta nuevamente.')
+        return redirect('historial_pedidos')
+    
     pedido_id = request.GET.get('pedido_id')
     payment_id = request.GET.get('paymentId')
     payer_id = request.GET.get('PayerID')

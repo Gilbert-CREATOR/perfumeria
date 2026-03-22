@@ -4,7 +4,7 @@ services:
     name: perfumeria-darcy
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: ./build.sh
     startCommand: gunicorn perfumeria.wsgi:application
     autoDeploy: true
     
@@ -13,13 +13,31 @@ services:
       - key: PYTHON_VERSION
         value: 3.11
       - key: DJANGO_SETTINGS_MODULE
-        value: perfumeria.settings
+        value: perfumeria.settings_prod
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: false
       - key: ALLOWED_HOSTS
         value: .onrender.com
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: true
+      - key: EMAIL_HOST_USER
+        value: gilbertandeliz04@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        value: gvwa fiqu giim fyiw
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@perfumeria.com
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_SECRET
+        sync: false
     
     # Health Check
     healthCheckPath: /
@@ -44,5 +62,6 @@ services:
 # Build Configuration
 build:
   commands:
+    - pip install -r requirements.txt
     - python manage.py collectstatic --noinput
     - python manage.py migrate

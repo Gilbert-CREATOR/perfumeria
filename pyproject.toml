@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "perfumeria"
+version = "1.0.0"
+description = "Perfumería D.A.R.C.Y. - E-commerce System"
+authors = ["Gilbert-CREATOR"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Django = "4.2.27"
+gunicorn = "21.2.0"
+psycopg2-binary = "2.9.9"
+dj-database-url = "3.0.1"
+whitenoise = "6.6.0"
+paypalrestsdk = "1.13.3"
+python-decouple = "3.8"
+Pillow = "10.1.0"
+python-dotenv = "1.2.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

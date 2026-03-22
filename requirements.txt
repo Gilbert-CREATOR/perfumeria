@@ -1,45 +1,6 @@
-# Core Django
 Django==4.2.27
-asgiref==3.11.0
-sqlparse==0.5.5
-
-# Database
-psycopg2-binary==2.9.9
-dj-database-url==3.0.1
-
-# Web Server
 gunicorn==21.2.0
+psycopg2-binary==2.9.9
 whitenoise==6.6.0
-
-# Email
-python-decouple==3.8
-
-# PayPal
 paypalrestsdk==1.13.3
-
-# Security
-cryptography==46.0.5
-
-# HTTP Requests
-requests==2.32.5
-urllib3==2.6.3
-
-# Image Processing
-Pillow==10.1.0
-
-# Environment
-python-dotenv==1.2.1
-
-# Date/Time
-python-dateutil==2.9.0.post0
-pytz==2026.1.post1
-
-# Utilities
-typing_extensions==4.15.0
-packaging==26.0
-attrs==25.4.0
-
-# Additional dependencies for Render
-certifi==2026.1.4
-charset-normalizer==3.4.4
-idna==3.11
+python-decouple==3.8

@@ -4,7 +4,16 @@
 
 echo "🌸 Iniciando build de Perfumería D.A.R.C.Y..."
 
-# Instalar dependencias
+# Activar virtual environment
+if [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+else
+    echo "⚠️ No se encontró el virtualenv, creando uno..."
+    python3 -m venv .venv
+    source .venv/bin/activate
+fi
+
+# Actualizar pip e instalar dependencias
 echo "📦 Instalando dependencias..."
 pip install --upgrade pip
 pip install -r requirements.txt

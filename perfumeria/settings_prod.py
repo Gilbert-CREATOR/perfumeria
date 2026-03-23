@@ -21,12 +21,22 @@ ALLOWED_HOSTS = [
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # 🗄️ BASE DE DATOS - POSTGRESQL (Render)
-DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=60,
-        ssl_require=True
-    )
-}
+import dj_database_url
+import os
+
+# Si DATABASE_URL está configurada (Render), úsala
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(default='sqlite:///db.sqlite3')
+    }
+else:
+    # Fallback a SQLite para desarrollo local
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # 🔐 SEGURIDAD HTTPS
 SECURE_SSL_REDIRECT = True

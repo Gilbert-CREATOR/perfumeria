@@ -8,13 +8,13 @@ export DJANGO_SETTINGS_MODULE=perfumeria.settings_prod
 from .settings import *
 import os
 import dj_database_url
+from decouple import config
 
 # 🔥 SEGURIDAD - PRODUCCIÓN
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'perfumeria-darcy.onrender.com',
-    '.onrender.com'
+    '*'
 ]
 
 # 🔐 SECRET KEY (desde Render)
@@ -25,10 +25,7 @@ import os
 
 # Usar SQLite para plan free de Render
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.config(default=config('DATABASE_URL'))
 }
 
 # 🔐 SEGURIDAD HTTPS

@@ -23,9 +23,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # 🗄️ BASE DE DATOS - SQLITE (Render Free Plan)
 import os
 
-# Usar SQLite para plan free de Render
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URL'))
+    'default': dj_database_url.
+    config('DATABASE_URL', default='')
 }
 
 # 🔐 SEGURIDAD HTTPS

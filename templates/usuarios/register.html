@@ -1,363 +1,106 @@
 {% extends 'base_moderno.html' %}
 {% load static %}
 
-{% block title %}Registrarse - Perfumería Premium{% endblock %}
-{% block meta_description %}Crea tu cuenta en Perfumería Premium para disfrutar de beneficios exclusivos y gestionar tus pedidos.{% endblock %}
-
-{% block hero_section %}
-<section class="hero-section">
-    <div class="container">
-        <div class="hero-content text-center">
-            <h1 class="hero-title font-display">Crear Cuenta</h1>
-            <p class="hero-subtitle">Únete a nuestra comunidad y disfruta de beneficios exclusivos</p>
-        </div>
-    </div>
-</section>
-{% endblock %}
+{% block title %}Register - D.A.R.C.Y.{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="checkout-section">
-                <div class="checkout-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-plus me-2"></i> Registro de Usuario
-                    </h4>
-                </div>
-                
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <label for="username" class="form-label fw-bold">
-                                <i class="fas fa-user me-1"></i> Nombre de Usuario *
-                            </label>
-                            <input type="text" class="form-control" id="username" name="username" 
-                                   placeholder="Elige un nombre de usuario" required>
-                            <small class="text-muted">Mínimo 3 caracteres, solo letras y números</small>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="email" class="form-label fw-bold">
-                                <i class="fas fa-envelope me-1"></i> Email *
-                            </label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="tu@email.com" required>
-                            <small class="text-muted">Requerido para confirmar tu cuenta</small>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="password" class="form-label fw-bold">
-                                <i class="fas fa-lock me-1"></i> Contraseña *
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       placeholder="Crea una contraseña segura" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted">Mínimo 6 caracteres</small>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="password_confirm" class="form-label fw-bold">
-                                <i class="fas fa-lock me-1"></i> Confirmar Contraseña *
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" 
-                                       placeholder="Repite tu contraseña" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePasswordConfirm">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4 form-check">
-                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
-                            <label class="form-check-label" for="terms">
-                                Acepto los <a href="/terminos/" class="text-primary">términos y condiciones</a> 
-                                y la <a href="/privacidad/" class="text-primary">política de privacidad</a>
-                            </label>
-                        </div>
-                        
-                        <div class="mb-4 form-check">
-                            <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter" checked>
-                            <label class="form-check-label" for="newsletter">
-                                Quiero recibir ofertas exclusivas y novedades por email
-                            </label>
-                        </div>
-                        
-                        <div class="d-grid mb-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-user-plus me-2"></i> Crear Cuenta
-                            </button>
-                        </div>
-                        
-                        <div class="text-center">
-                            <p class="mb-0">¿Ya tienes cuenta?</p>
-                            <a href="{% url 'login' %}" class="text-decoration-none">
-                                <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
-                            </a>
-                        </div>
-                    </form>
-                    
-                    <hr class="my-4">
-                    
-                    <!-- 🔐 REGISTRO SOCIAL -->
-                    <div class="social-register">
-                        <div class="text-center mb-3">
-                            <small class="text-muted">O regístrate con:</small>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-primary">
-                                <i class="fab fa-facebook me-2"></i> Facebook
-                            </button>
-                            <button class="btn btn-outline-danger">
-                                <i class="fab fa-google me-2"></i> Google
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 🎯 BENEFICIOS -->
-            <div class="benefits-section mt-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">
-                            <i class="fas fa-gift me-2"></i> Beneficios de tu Cuenta
-                        </h5>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                10% de descuento en tu primera compra
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Acumula puntos con cada compra
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Ofertas exclusivas para miembros
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Seguimiento de pedidos en tiempo real
-                            </li>
-                            <li class="mb-0">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Lista de deseos personalizada
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+<p class="breadcrumb">Home Page / Register</p>
+
+<section class="catalog-hero">
+  <h1>REGISTER</h1>
+  <div class="hero-links">
+    <a href="{% url 'home' %}">HOME</a>
+    <a href="{% url 'catalogo' %}">CATALOG</a>
+    <a href="{% url 'login' %}">LOGIN</a>
+    <a href="#" class="active">REGISTER</a>
+    <a href="{% url 'contacto' %}">CONTACT</a>
+  </div>
+</section>
+
+<div style="max-width: 500px; margin: 0 auto;">
+  <div style="background: var(--card); padding: 60px 40px; border-radius: 8px;">
+    <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 30px; text-align: center;">Create Account</h2>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div style="background: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; 
+                    color: {% if message.tags == 'success' %}#155724{% elif message.tags == 'error' %}#721c24{% else %}#0c5460{% endif %}; 
+                    padding: 12px 16px; margin-bottom: 20px; border-radius: 4px; font-size: 14px;">
+          {{ message }}
         </div>
-        
-        <!-- 📱 INFO APOYO -->
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top: 100px;">
-                <div class="card">
-                    <div class="card-header bg-gradient text-white">
-                        <h6 class="mb-0">
-                            <i class="fas fa-question-circle me-2"></i> ¿Necesitas Ayuda?
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-3">Estamos aquí para ayudarte con cualquier duda sobre tu registro.</p>
-                        
-                        <div class="help-item mb-3">
-                            <h6>
-                                <i class="fas fa-phone text-primary me-2"></i> Teléfono
-                            </h6>
-                            <p class="text-muted small">+1 (809) 123-4567</p>
-                            <p class="text-muted small">Lun-Sáb: 9AM-7PM</p>
-                        </div>
-                        
-                        <div class="help-item mb-3">
-                            <h6>
-                                <i class="fas fa-envelope text-primary me-2"></i> Email
-                            </h6>
-                            <p class="text-muted small">soporte@perfumeria.com</p>
-                            <p class="text-muted small">Respuesta en 24h</p>
-                        </div>
-                        
-                        <div class="help-item mb-3">
-                            <h6>
-                                <i class="fab fa-whatsapp text-success me-2"></i> WhatsApp
-                            </h6>
-                            <p class="text-muted small">+1 (809) 123-4567</p>
-                            <p class="text-muted small">Respuesta inmediata</p>
-                        </div>
-                        
-                        <div class="text-center mt-4">
-                            <a href="/contacto/" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-comments me-2"></i> Chat en Vivo
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 🔒 SEGURIDAD -->
-                <div class="card mt-3">
-                    <div class="card-body text-center">
-                        <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
-                        <h6 class="mb-2">Tus Datos Están Seguros</h6>
-                        <p class="text-muted small">
-                            Protegemos tu información con encriptación SSL de 256 bits y nunca la compartimos.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+      {% endfor %}
+    {% endif %}
+    
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">USERNAME</label>
+        <input type="text" name="username" required 
+               style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
+               placeholder="Choose a username">
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">EMAIL</label>
+        <input type="email" name="email" required 
+               style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
+               placeholder="Enter your email">
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">FIRST NAME</label>
+        <input type="text" name="first_name" required 
+               style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
+               placeholder="Enter your first name">
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">LAST NAME</label>
+        <input type="text" name="last_name" required 
+               style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
+               placeholder="Enter your last name">
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">PASSWORD</label>
+        <input type="password" name="password1" required 
+               style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
+               placeholder="Create a password">
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">CONFIRM PASSWORD</label>
+        <input type="password" name="password2" required 
+               style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
+               placeholder="Confirm your password">
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <label style="display: flex; align-items: center; font-size: 14px;">
+          <input type="checkbox" name="terms_accepted" required style="margin-right: 8px;">
+          I agree to the Terms and Conditions
+        </label>
+      </div>
+      
+      <button type="submit" 
+              style="width: 100%; height: 54px; background: #000; color: white; border: none; font-size: 11px; font-weight: 800; cursor: pointer; margin-bottom: 20px;">
+        CREATE ACCOUNT
+      </button>
+    </form>
+    
+    <div style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd;">
+      <p style="margin-bottom: 15px; font-size: 14px; color: #666;">
+        Already have an account?
+      </p>
+      <a href="{% url 'login' %}" style="color: #000; font-weight: 600; text-decoration: underline;">
+        Sign in
+      </a>
     </div>
+    
+    <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
+      <p>By creating an account, you agree to our Privacy Policy and Terms of Service.</p>
+    </div>
+  </div>
 </div>
-
-<style>
-.help-item {
-    padding: 1rem;
-    border-left: 3px solid var(--primary-color);
-    background: #f8f9fa;
-    border-radius: 0 10px 10px 0;
-}
-
-.help-item h6 {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.help-item p {
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
-}
-
-@media (max-width: 768px) {
-    .sticky-top {
-        position: relative;
-        top: 0;
-    }
-}
-</style>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle password visibility
-    const togglePassword = document.getElementById('togglePassword');
-    const togglePasswordConfirm = document.getElementById('togglePasswordConfirm');
-    const passwordInput = document.getElementById('password');
-    const passwordConfirmInput = document.getElementById('password_confirm');
-    
-    togglePassword.addEventListener('click', function() {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        this.innerHTML = type === 'password' ? 
-            '<i class="fas fa-eye"></i>' : 
-            '<i class="fas fa-eye-slash"></i>';
-    });
-    
-    togglePasswordConfirm.addEventListener('click', function() {
-        const type = passwordConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordConfirmInput.setAttribute('type', type);
-        this.innerHTML = type === 'password' ? 
-            '<i class="fas fa-eye"></i>' : 
-            '<i class="fas fa-eye-slash"></i>';
-    });
-    
-    // Auto-focus on username field
-    document.getElementById('username').focus();
-    
-    // Form validation
-    const form = document.querySelector('form[method="POST"]');
-    form.addEventListener('submit', function(e) {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const passwordConfirm = document.getElementById('password_confirm').value;
-        const terms = document.getElementById('terms').checked;
-        
-        if (!username || !password || !passwordConfirm) {
-            e.preventDefault();
-            showNotification('Por favor, completa todos los campos obligatorios', 'error');
-            return;
-        }
-        
-        if (username.length < 3) {
-            e.preventDefault();
-            showNotification('El nombre de usuario debe tener al menos 3 caracteres', 'error');
-            return;
-        }
-        
-        if (password.length < 6) {
-            e.preventDefault();
-            showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
-            return;
-        }
-        
-        if (password !== passwordConfirm) {
-            e.preventDefault();
-            showNotification('Las contraseñas no coinciden', 'error');
-            return;
-        }
-        
-        if (!terms) {
-            e.preventDefault();
-            showNotification('Debes aceptar los términos y condiciones', 'error');
-            return;
-        }
-        
-        // Show loading state
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Creando cuenta...';
-    });
-    
-    // Real-time password match validation
-    passwordConfirmInput.addEventListener('input', function() {
-        const password = passwordInput.value;
-        const confirm = this.value;
-        
-        if (confirm && password !== confirm) {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-        } else if (confirm && password === confirm) {
-            this.classList.add('is-valid');
-            this.classList.remove('is-invalid');
-        } else {
-            this.classList.remove('is-valid', 'is-invalid');
-        }
-    });
-});
-
-function showNotification(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
-    alertDiv.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
-}
-</script>
 {% endblock %}

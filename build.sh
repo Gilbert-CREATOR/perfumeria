@@ -43,16 +43,22 @@ echo "🌸 Perfumería D.A.R.C.Y. lista para deploy"
 
 echo "👤 Creando superusuario automático..."
 
+# Crear/actualizar superusuario automáticamente
 python manage.py shell << END
 from django.contrib.auth.models import User
 
 username = "admin"
-email = "gilbertandeliz04@gmail.com"
-password = "admin12"
+email = "admin@darcy.com"
+password = "Admin12"
 
-if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username, email, password)
-    print("✅ Superusuario creado")
-else:
-    print("⚠️ El superusuario ya existe")
+# get_or_create asegura que exista
+user, created = User.objects.get_or_create(username=username)
+
+# Siempre actualiza email, contraseña y permisos
+user.email = email
+user.set_password(password)
+user.is_staff = True
+user.is_superuser = True
+user.save()
+print("✅ Superusuario actualizado o creado correctamente")
 END

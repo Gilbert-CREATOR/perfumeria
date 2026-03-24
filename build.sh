@@ -40,3 +40,19 @@ python manage.py check --deploy
 
 echo "✅ Build completado exitosamente!"
 echo "🌸 Perfumería D.A.R.C.Y. lista para deploy"
+
+echo "👤 Creando superusuario automático..."
+
+python manage.py shell << END
+from django.contrib.auth.models import User
+
+username = "admin"
+email = "gilbertandeliz04@gmail.com"
+password = "admin12"
+
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print("✅ Superusuario creado")
+else:
+    print("⚠️ El superusuario ya existe")
+END

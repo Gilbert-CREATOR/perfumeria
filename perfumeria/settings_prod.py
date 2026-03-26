@@ -10,7 +10,7 @@ import os
 import dj_database_url
 
 # 🔥 SEGURIDAD - PRODUCCIÓN
-DEBUG = False
+DEBUG = True
 
 # Hosts permitidos
 ALLOWED_HOSTS = [".onrender.com"]
@@ -103,3 +103,25 @@ for var in REQUIRED_ENV_VARS:
         raise ValueError(f"Falta la variable de entorno: {var}")
 
 print("🚀 Configuración de producción cargada correctamente")
+
+
+
+# al final de settings_prod.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/error.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}

@@ -16,7 +16,9 @@ services:
       - key: DEBUG
         value: false
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_i6j8YoxgGHmT@ep-fancy-bonus-an0glwba-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+        fromDatabase:
+          name: perfumeria-db
+          property: connectionString
       - key: ALLOWED_HOSTS
         value: .onrender.com
       - key: EMAIL_HOST

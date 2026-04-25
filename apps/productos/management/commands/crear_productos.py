@@ -3,10 +3,19 @@ from apps.productos.models import Producto
 from decimal import Decimal
 
 class Command(BaseCommand):
-    help = 'Crear productos de ejemplo para la perfumería'
+    help = 'Crear productos de ejemplo para la perfumería (solo si no hay productos)'
 
     def handle(self, *args, **options):
-        self.stdout.write("🌸 Creando productos para Perfumería D.A.R.C.Y.")
+        # Verificar si ya hay productos
+        productos_existentes = Producto.objects.count()
+        
+        if productos_existentes > 0:
+            self.stdout.write(f"📋 Ya existen {productos_existentes} productos en la base de datos.")
+            self.stdout.write("🚫 No se crearán productos de ejemplo para proteger los datos existentes.")
+            self.stdout.write("=" * 50)
+            return
+        
+        self.stdout.write("🌸 No hay productos en la base de datos. Creando productos de ejemplo...")
         
         # Productos de ejemplo
         productos_data = [

@@ -2,6 +2,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.views.static import serve
 
 urlpatterns = [
     # 🎯 URLs principales
@@ -21,5 +23,11 @@ urlpatterns = [
     path('404/', TemplateView.as_view(template_name='404_moderno.html'), name='404'),
 ]
 
+# 🖼️ Servir media files en desarrollo y producción
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # En producción, servir media files directamente
+    urlpatterns += [
+        path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]

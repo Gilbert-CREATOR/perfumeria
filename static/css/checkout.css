@@ -593,3 +593,281 @@
     font-size: 0.85rem;
     margin-top: 5px;
 }
+
+/* 📱 RESPONSIVE DESIGN - CHECKOUT */
+
+/* 📱 Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .checkout-container {
+    max-width: 95%;
+    padding: 40px 20px;
+  }
+  
+  .checkout-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .order-summary {
+    order: -1;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+/* 📱 Tablets pequeños (600px - 768px) */
+@media (max-width: 768px) {
+  .checkout-container {
+    max-width: 98%;
+    padding: 30px 15px;
+  }
+  
+  .checkout-header h1 {
+    font-size: 28px;
+  }
+  
+  .checkout-grid {
+    gap: 25px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-label {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  .form-input {
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  .shipping-option {
+    padding: 15px;
+  }
+  
+  .shipping-option-content {
+    gap: 12px;
+  }
+  
+  .shipping-info h4 {
+    font-size: 14px;
+  }
+  
+  .shipping-info p {
+    font-size: 12px;
+  }
+  
+  .order-summary {
+    padding: 20px;
+  }
+  
+  .summary-row {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  
+  .summary-total {
+    font-size: 20px;
+    margin-bottom: 25px;
+  }
+  
+  .place-order-btn {
+    height: 50px;
+    font-size: 12px;
+  }
+}
+
+/* 📱 Móviles grandes (480px - 600px) */
+@media (max-width: 600px) {
+  .checkout-container {
+    padding: 20px 12px;
+  }
+  
+  .checkout-header h1 {
+    font-size: 24px;
+  }
+  
+  .progress-bar {
+    margin-bottom: 30px;
+  }
+  
+  .progress-step {
+    font-size: 11px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 18px;
+  }
+  
+  .form-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .form-input {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .shipping-option {
+    padding: 12px;
+  }
+  
+  .shipping-option-content {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .shipping-radio {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .shipping-info h4 {
+    font-size: 13px;
+  }
+  
+  .shipping-info p {
+    font-size: 11px;
+  }
+  
+  .order-summary {
+    padding: 15px;
+  }
+  
+  .summary-row {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .summary-total {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  
+  .place-order-btn {
+    height: 45px;
+    font-size: 11px;
+  }
+}
+
+/* 📱 Móviles (320px - 480px) */
+@media (max-width: 480px) {
+  .checkout-container {
+    padding: 15px 10px;
+  }
+  
+  .checkout-header h1 {
+    font-size: 20px;
+  }
+  
+  .progress-step {
+    font-size: 10px;
+    padding: 8px 12px;
+  }
+  
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-label {
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+  
+  .form-input {
+    padding: 8px;
+    font-size: 12px;
+  }
+  
+  .shipping-option {
+    padding: 10px;
+  }
+  
+  .shipping-info h4 {
+    font-size: 12px;
+  }
+  
+  .shipping-info p {
+    font-size: 10px;
+  }
+  
+  .order-summary {
+    padding: 12px;
+  }
+  
+  .summary-row {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  
+  .summary-total {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  .place-order-btn {
+    height: 40px;
+    font-size: 10px;
+  }
+  
+  .error-message,
+  .success-message {
+    font-size: 0.75rem;
+  }
+}
+
+/* 📱 Móviles muy pequeños (menos de 320px) */
+@media (max-width: 320px) {
+  .checkout-container {
+    padding: 10px 8px;
+  }
+  
+  .checkout-header h1 {
+    font-size: 18px;
+  }
+  
+  .progress-step {
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+  
+  .section-title {
+    font-size: 13px;
+  }
+  
+  .form-label {
+    font-size: 10px;
+  }
+  
+  .form-input {
+    padding: 6px;
+    font-size: 11px;
+  }
+  
+  .place-order-btn {
+    height: 35px;
+    font-size: 9px;
+  }
+}

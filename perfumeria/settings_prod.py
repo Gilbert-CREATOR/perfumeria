@@ -30,13 +30,29 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-# 🔐 SEGURIDAD
-SECURE_SSL_REDIRECT = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# AUTO-CREAR SUPERUSUARIO EN PRIMER DEPLOY
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
-# 📁 STATIC FILES
+# Intentar crear superusuario si no existe
+def create_admin_user():
+    try:
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser(
+                username='admin',
+                email='gilbertandeliz04@gmail.com',
+                password='perfumeria123',
+                first_name='Administrador',
+                last_name='Sistema'
+            )
+            print(" Superusuario admin creado automáticamente")
+    except Exception as e:
+        print(f" Error creando superusuario: {e}")
+
+# Ejecutar después de que las migraciones estén listas
+create_admin_user()
+
+# STATIC FILES
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

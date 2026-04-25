@@ -41,6 +41,8 @@ services:
     healthCheckPath: /
     staticDir: staticfiles
     mountPath: /static
+    mediaDir: media
+    mediaMountPath: /media
 
   # Database (PostgreSQL)
   - type: pserv

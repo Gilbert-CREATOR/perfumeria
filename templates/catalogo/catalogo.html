@@ -1,5 +1,6 @@
 {% extends 'base_moderno.html' %}
 {% load static %}
+{% load producto_filters %}
 
 {% block title %}Catalog - D.A.R.C.Y.{% endblock %}
 
@@ -160,8 +161,20 @@
 <section class="products-grid">
   {% for producto in productos %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
+    <!-- Imagen del producto (arriba) -->
+    {% if producto.imagen %}
+      <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="product-image">
+    {% else %}
+      <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}" class="product-image">
+    {% endif %}
+    
+    <!-- Nombre del producto -->
     <h2>{{ producto.nombre|upper }}</h2>
-    <div class="price">${{ producto.precio|floatformat:2 }}</div>
+    
+    <!-- Precio formateado -->
+    <div class="price">${{ producto.precio|formato_precio }}</div>
+    
+    <!-- Autor/Temporada -->
     <div class="author">
       {% if producto.temporada == 'summer' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
       {% if producto.temporada == 'winter' %}BY HELEN SANDR<br>& MINIMALIST{% endif %}
@@ -169,11 +182,6 @@
       {% if producto.temporada == 'day' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
       {% if producto.temporada == 'special' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
     </div>
-    {% if producto.imagen %}
-      <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-    {% else %}
-      <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}">
-    {% endif %}
     
     <!-- Botón Quick Preview -->
     <button class="quick-preview-btn" onclick="event.stopPropagation(); openQuickPreview('{{ producto.id }}')">

@@ -13,7 +13,7 @@ else
     source .venv/bin/activate
 fi
 
-# 🔹 Actualizar pip e instalar dependencias
+# 🔹 Instalar dependencias
 echo "📦 Instalando dependencias..."
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -22,27 +22,21 @@ pip install -r requirements.txt
 echo "📁 Creando directorios..."
 mkdir -p media logs staticfiles
 
-# 🔹 Collect static files
-echo "🎨 Recolectando archivos estáticos..."
-python manage.py collectstatic --noinput --clear
-
 # 🔹 Migraciones de base de datos
 echo "🗄️ Ejecutando migraciones..."
 python manage.py migrate --noinput
 
-# 🔹 Crear perfiles de usuario existentes
-echo "👥 Creando perfiles de usuario..."
-python manage.py crear_perfiles
+# 🔹 Crear productos de ejemplo
+echo "�️ Creando productos de ejemplo..."
+python manage.py crear_productos
 
-# 🔹 Crear/actualizar superusuario automáticamente
-echo "🔑 Creando/actualizando superusuario..."
-python manage.py shell << END
-from django.contrib.auth.models import User
+# 🔹 Crear superusuario administrador
+echo "� Creando superusuario administrador..."
+python manage.py crear_admin
 
-username = "admin"
-email = "admin@darcy.com"
-password = "Admin123456"
-
+# 🔹 Collect static files
+echo "🎨 Recolectando archivos estáticos..."
+python manage.py collectstatic --noinput --clear
 user, created = User.objects.get_or_create(username=username)
 user.email = email
 user.set_password(password)

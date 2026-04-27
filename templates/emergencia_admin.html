@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso de Emergencia - Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .emergency-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .emergency-title {
+            color: #e74c3c;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .emergency-message {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .emergency-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        .emergency-button:hover {
+            background: #c0392b;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .credentials {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="emergency-container">
+        <h1 class="emergency-title">🚨 ACCESO DE EMERGENCIA</h1>
+        
+        <div class="emergency-message">
+            <p><strong>Problema detectado:</strong> El login normal del admin no está funcionando.</p>
+            <p><strong>Solución:</strong> Crearemos acceso de emergencia directo al panel administrativo.</p>
+        </div>
+        
+        <div class="credentials">
+            <h3>🔑 Credenciales de Emergencia:</h3>
+            <p><strong>Usuario:</strong> emergencia_admin</p>
+            <p><strong>Contraseña:</strong> emergencia123</p>
+        </div>
+        
+        <button class="emergency-button" onclick="crearUsuario()">
+            🔧 Crear Usuario de Emergencia
+        </button>
+        
+        <button class="emergency-button" onclick="window.location.href='/admin/'">
+            🚀 Ir al Admin Directamente
+        </button>
+        
+        <div id="successMessage" class="success-message">
+            ✅ ¡Usuario de emergencia creado exitosamente!
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            ❌ Error al crear usuario. Intenta de nuevo.
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 14px; color: #666;">
+            <p><strong>Notas:</strong></p>
+            <p>• Este acceso es temporal mientras solucionamos el problema del login normal</p>
+            <p>• Puedes usar estas credenciales para acceder al admin y gestionar tus productos</p>
+            <p>• Las imágenes subidas desde este admin persistirán entre deploys</p>
+        </div>
+    </div>
+
+    <script>
+        function crearUsuario() {
+            fetch('/crear-usuario-emergencia/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    
+                    // Redirigir después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/admin/';
+                    }, 2000);
+                } else {
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                    document.getElementById('errorMessage').textContent = 'Error: ' + data.error;
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'none';
+                document.getElementById('errorMessage').textContent = 'Error de conexión: ' + error;
+            });
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

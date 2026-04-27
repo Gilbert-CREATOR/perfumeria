@@ -2,164 +2,32 @@
 {% load static %}
 {% load producto_filters %}
 
-{% block title %}Catalog - D.A.R.C.Y.{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
 {% endblock %}
 
-{% block content %}
-<p class="breadcrumb">Home Page / Catalogue</p>
+{% block title %}Catalog - D.A.R.C.Y.{% endblock %}
 
-{% if request.GET.marca or request.GET.temporada or request.GET.precio_min or request.GET.precio_max or request.GET.sort %}
-<div class="clear-filters-float">
-  <button onclick="clearAllFilters()" class="clear-filters-btn">
-    ✕ CLEAR FILTERS
-  </button>
-</div>
-{% endif %}
+{% block content %}
+
+<p class="breadcrumb">Home Page</p>
 
 <section class="catalog-hero">
-  <h1>CATALOG</h1>
-  <div class="hero-links-carousel">
-    <div class="carousel-item main-item">
-      <a href="?temporada=" {% if not request.GET.temporada %}class="active"{% endif %}>ALL</a>
-      <div class="sub-categories">
-        <a href="?temporada=summer" {% if request.GET.temporada == 'summer' %}class="active"{% endif %}>SUMMER</a>
-        <a href="?temporada=winter" {% if request.GET.temporada == 'winter' %}class="active"{% endif %}>WINTER</a>
-        <a href="?temporada=day" {% if request.GET.temporada == 'day' %}class="active"{% endif %}>DAY</a>
-        <a href="?temporada=night" {% if request.GET.temporada == 'night' %}class="active"{% endif %}>NIGHT</a>
-        <a href="?temporada=special" {% if request.GET.temporada == 'special' %}class="active"{% endif %}>SPECIAL</a>
-      </div>
-    </div>
-    
-    <div class="carousel-item main-item">
-      <a href="?temporada=special" {% if request.GET.temporada == 'special' %}class="active"{% endif %}>NEW COLLECTION</a>
-      <div class="sub-categories">
-        <a href="?temporada=special" {% if request.GET.temporada == 'special' %}class="active"{% endif %}>SPECIAL</a>
-        <a href="?temporada=limited" {% if request.GET.temporada == 'limited' %}class="active"{% endif %}>LIMITED</a>
-        <a href="?temporada=exclusive" {% if request.GET.temporada == 'exclusive' %}class="active"{% endif %}>EXCLUSIVE</a>
-      </div>
-    </div>
-    
-    <div class="carousel-item main-item">
-      <a href="?temporada=day" {% if request.GET.temporada == 'day' %}class="active"{% endif %}>FOR BREAKFAST</a>
-      <div class="sub-categories">
-        <a href="?temporada=day" {% if request.GET.temporada == 'day' %}class="active"{% endif %}>DAY</a>
-        <a href="?temporada=morning" {% if request.GET.temporada == 'morning' %}class="active"{% endif %}>MORNING</a>
-        <a href="?temporada=brunch" {% if request.GET.temporada == 'brunch' %}class="active"{% endif %}>BRUNCH</a>
-      </div>
-    </div>
-    
-    <div class="carousel-item main-item">
-      <a href="?temporada=night" {% if request.GET.temporada == 'night' %}class="active"{% endif %}>FOR DINNER</a>
-      <div class="sub-categories">
-        <a href="?temporada=night" {% if request.GET.temporada == 'night' %}class="active"{% endif %}>NIGHT</a>
-        <a href="?temporada=evening" {% if request.GET.temporada == 'evening' %}class="active"{% endif %}>EVENING</a>
-        <a href="?temporada=late-night" {% if request.GET.temporada == 'late-night' %}class="active"{% endif %}>LATE NIGHT</a>
-      </div>
-    </div>
+  <h1>D.A.R.C.Y.</h1>
+  <div class="hero-links">
+    <a href="{% url 'catalogo' %}">DISCOVER</a>
+    <a href="{% url 'catalogo' %}?temporada=special">NEW COLLECTION</a>
+    <a href="{% url 'nosotros' %}">ABOUT</a>
+    <a href="{% url 'contacto' %}">CONTACT</a>
   </div>
 </section>
 
 <section class="catalog-toolbar">
-  <div class="toolbar-carousel">
-    <div class="carousel-item main-item">
-      <span onclick="toggleFilters()">FILTERS +</span>
-      <div class="sub-categories">
-        <a href="#" onclick="applyFilterBy('marca')">BRAND</a>
-        <a href="#" onclick="applyFilterBy('temporada')">SEASON</a>
-        <a href="#" onclick="applyFilterBy('precio')">PRICE</a>
-        <a href="#" onclick="clearFilters()">CLEAR ALL</a>
-      </div>
-    </div>
-    
-    <div class="carousel-item main-item">
-      <span onclick="toggleSort()">SORT BY +</span>
-      <div class="sub-categories">
-        <a href="#" onclick="applySortBy('nombre')">NAME A-Z</a>
-        <a href="#" onclick="applySortBy('precio_asc')">PRICE LOW-HIGH</a>
-        <a href="#" onclick="applySortBy('precio_desc')">PRICE HIGH-LOW</a>
-        <a href="#" onclick="applySortBy('popularidad')">POPULARITY</a>
-      </div>
-    </div>
-  </div>
+  <!-- TODO tu contenido igual -->
 </section>
 
-<!-- Filtros Ocultos -->
-<div id="filters-panel" style="display: none; background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-  <h3 style="margin-bottom: 15px; font-size: 16px; font-weight: 600;">Filtrar Productos</h3>
-  
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-    <!-- Filtro por Marca -->
-    <div>
-      <label style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">MARCA</label>
-      <select name="marca" onchange="applyFilters()" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-size: 12px;">
-        <option value="">Todas las marcas</option>
-        {% for marca in marcas %}
-        <option value="{{ marca }}" {% if request.GET.marca == marca %}selected{% endif %}>{{ marca }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    
-    <!-- Filtro por Temporada -->
-    <div>
-      <label style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">TEMPORADA</label>
-      <select name="temporada" onchange="applyFilters()" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-size: 12px;">
-        <option value="">Todas las temporadas</option>
-        <option value="summer" {% if request.GET.temporada == 'summer' %}selected{% endif %}>Summer</option>
-        <option value="winter" {% if request.GET.temporada == 'winter' %}selected{% endif %}>Winter</option>
-        <option value="day" {% if request.GET.temporada == 'day' %}selected{% endif %}>Day</option>
-        <option value="night" {% if request.GET.temporada == 'night' %}selected{% endif %}>Night</option>
-        <option value="special" {% if request.GET.temporada == 'special' %}selected{% endif %}>Special</option>
-      </select>
-    </div>
-    
-    <!-- Filtro por Precio Mínimo -->
-    <div>
-      <label style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">PRECIO MÍNIMO</label>
-      <input type="number" name="precio_min" value="{{ request.GET.precio_min }}" onchange="applyFilters()" placeholder="$0" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-size: 12px;">
-    </div>
-    
-    <!-- Filtro por Precio Máximo -->
-    <div>
-      <label style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">PRECIO MÁXIMO</label>
-      <input type="number" name="precio_max" value="{{ request.GET.precio_max }}" onchange="applyFilters()" placeholder="$1000" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-size: 12px;">
-    </div>
-  </div>
-  
-  <div style="margin-top: 15px; text-align: right;">
-    <button onclick="clearFilters()" style="padding: 8px 16px; margin-right: 10px; border: 1px solid #ddd; background: white; font-size: 12px; cursor: pointer;">LIMPIAR</button>
-    <button onclick="toggleFilters()" style="padding: 8px 16px; background: #000; color: white; border: none; font-size: 12px; cursor: pointer;">CERRAR</button>
-  </div>
-</div>
-
-<!-- Panel de Ordenamiento Oculto -->
-<div id="sort-panel" style="display: none; background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-  <h3 style="margin-bottom: 15px; font-size: 16px; font-weight: 600;">Ordenar Productos</h3>
-  
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-    <!-- Opciones de Ordenamiento -->
-    <div>
-      <label style="display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600;">ORDENAR POR</label>
-      <select name="sort" onchange="applySort()" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-size: 12px;">
-        <option value="">Orden por defecto</option>
-        <option value="nombre" {% if request.GET.sort == 'nombre' %}selected{% endif %}>Nombre (A-Z)</option>
-        <option value="precio_asc" {% if request.GET.sort == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
-        <option value="precio_desc" {% if request.GET.sort == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-        <option value="popularidad" {% if request.GET.sort == 'popularidad' %}selected{% endif %}>Más Popular</option>
-      </select>
-    </div>
-  </div>
-  
-  <div style="margin-top: 15px; text-align: right;">
-    <button onclick="clearSort()" style="padding: 8px 16px; margin-right: 10px; border: 1px solid #ddd; background: white; font-size: 12px; cursor: pointer;">RESTABLECER</button>
-    <button onclick="toggleSort()" style="padding: 8px 16px; background: #000; color: white; border: none; font-size: 12px; cursor: pointer;">CERRAR</button>
-  </div>
-</div>
-
 <section class="products-grid">
-  {% for producto in productos %}
+  {% for producto in productos_destacados %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
     <!-- Imagen del producto (arriba) -->
     {% if producto.imagen %}
@@ -194,297 +62,36 @@
     {% elif producto.stock == 0 %}
     <span class="stock-badge out-of-stock">Agotado</span>
     {% endif %}
+    
+    <!-- Botón de WhatsApp -->
+    <button class="whatsapp-btn" onclick="event.stopPropagation(); comprarPorWhatsApp('{{ producto.nombre|escapejs }}', '{{ producto.precio|formato_precio|escapejs }}', {{ producto.stock }})">
+      <i class="fab fa-whatsapp"></i>
+      <span>Comprar por WhatsApp</span>
+    </button>
   </article>
   {% endfor %}
 </section>
 
-{% if productos.has_next %}
 <div class="view-more-wrap">
-  <button class="view-more" onclick="loadMore()">VIEW MORE</button>
+  <a href="{% url 'catalogo' %}" class="view-more">VIEW ALL PRODUCTS</a>
 </div>
-{% endif %}
+
+<style>
+/* TODO tu CSS igual */
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
-<!-- Incluir Quick Preview Modal -->
-{% include 'catalogo/quick_preview_modal.html' %}
-
-<!-- Incluir Filtros Avanzados -->
-{% include 'catalogo/filtros_avanzados.html' %}
-
-<!-- Overlay para filtros -->
-<div class="filters-overlay" onclick="closeAdvancedFilters()"></div>
-
-<!-- Scripts -->
-<script src="{% static 'js/quick_preview.js' %}"></script>
-<script src="{% static 'js/filtros_avanzados.js' %}"></script>
-<script>
-// Carrusel functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const carouselItems = document.querySelectorAll('.carousel-item');
-  
-  carouselItems.forEach(item => {
-    let timeout;
-    
-    item.addEventListener('mouseenter', function() {
-      clearTimeout(timeout);
-      this.classList.add('expanded');
-      
-      // Ocultar otros items expandidos
-      carouselItems.forEach(otherItem => {
-        if (otherItem !== this) {
-          otherItem.classList.remove('expanded');
-        }
-      });
-    });
-    
-    item.addEventListener('mouseleave', function() {
-      timeout = setTimeout(() => {
-        this.classList.remove('expanded');
-      }, 300);
-    });
-    
-    // Para touch devices
-    item.addEventListener('click', function(e) {
-      if (e.target.classList.contains('main-item') || e.target.parentElement.classList.contains('main-item')) {
-        e.preventDefault();
-        this.classList.toggle('expanded');
-        
-        carouselItems.forEach(otherItem => {
-          if (otherItem !== this) {
-            otherItem.classList.remove('expanded');
-          }
-        });
-      }
-    });
-  });
-});
-
-// Nuevas funciones para el toolbar
-function applyFilterBy(type) {
-  event.preventDefault();
-  
-  switch(type) {
-    case 'marca':
-      // Abrir panel de filtros y enfocar marca
-      toggleFilters();
-      setTimeout(() => {
-        const marcaSelect = document.querySelector('select[name="marca"]');
-        if (marcaSelect) marcaSelect.focus();
-      }, 100);
-      break;
-      
-    case 'temporada':
-      // Abrir panel de filtros y enfocar temporada
-      toggleFilters();
-      setTimeout(() => {
-        const temporadaSelect = document.querySelector('select[name="temporada"]');
-        if (temporadaSelect) temporadaSelect.focus();
-      }, 100);
-      break;
-      
-    case 'precio':
-      // Abrir filtros avanzados
-      openAdvancedFilters();
-      break;
-      
-    case 'avanzado':
-      // Abrir todos los filtros avanzados
-      openAdvancedFilters();
-      break;
-  }
-}
-
-function applySortBy(type) {
-  event.preventDefault();
-  
-  const params = new URLSearchParams(window.location.search);
-  
-  switch(type) {
-    case 'nombre':
-      params.set('sort', 'nombre');
-      break;
-    case 'precio_asc':
-      params.set('sort', 'precio_asc');
-      break;
-    case 'precio_desc':
-      params.set('sort', 'precio_desc');
-      break;
-    case 'popularidad':
-      params.set('sort', 'popularidad');
-      break;
-  }
-  
-  window.location.href = '?' + params.toString();
-}
-</script>
-
-<style>
-/* Estilos para Quick Preview */
-.quick-preview-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.3s ease;
-  z-index: 2;
-}
-
-.product-card:hover .quick-preview-btn {
-  opacity: 1;
-}
-
-.quick-preview-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
-}
-
-.stock-badge {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  z-index: 2;
-}
-
-.stock-badge.low-stock {
-  background: #ffc107;
-  color: #000;
-}
-
-.stock-badge.out-of-stock {
-  background: #dc3545;
-  color: white;
-}
-
-/* Botón de filtros avanzados */
-.advanced-filters-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  background: #000;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-  transition: all 0.3s ease;
-}
-
-.advanced-filters-toggle:hover {
-  transform: scale(1.1);
-  background: #333;
-}
-
-@media (max-width: 768px) {
-  .advanced-filters-toggle {
-    bottom: 80px;
-  }
-}
-</style>
-
-<!-- Botón flotante de filtros avanzados -->
-<button class="advanced-filters-toggle" onclick="openAdvancedFilters()" title="Filtros Avanzados">
-  <i class="fas fa-sliders-h"></i>
-</button>
-
 <script>
 function toggleFilters() {
-  var panel = document.getElementById('filters-panel');
-  var sortPanel = document.getElementById('sort-panel');
-  
-  if (panel.style.display === 'none') {
-    panel.style.display = 'block';
-    sortPanel.style.display = 'none';
-  } else {
-    panel.style.display = 'none';
-  }
+  // Redirigir a la página de catálogo con filtros
+  window.location.href = '{% url 'catalogo' %}#filters';
 }
 
 function toggleSort() {
-  var panel = document.getElementById('sort-panel');
-  var filtersPanel = document.getElementById('filters-panel');
-  
-  if (panel.style.display === 'none') {
-    panel.style.display = 'block';
-    filtersPanel.style.display = 'none';
-  } else {
-    panel.style.display = 'none';
-  }
-}
-
-function applyFilters() {
-  var marca = document.querySelector('select[name="marca"]').value;
-  var temporada = document.querySelector('select[name="temporada"]').value;
-  var precio_min = document.querySelector('input[name="precio_min"]').value;
-  var precio_max = document.querySelector('input[name="precio_max"]').value;
-  
-  var params = new URLSearchParams();
-  if (marca) params.append('marca', marca);
-  if (temporada) params.append('temporada', temporada);
-  if (precio_min) params.append('precio_min', precio_min);
-  if (precio_max) params.append('precio_max', precio_max);
-  
-  var currentSort = new URLSearchParams(window.location.search).get('sort');
-  if (currentSort) params.append('sort', currentSort);
-  
-  window.location.href = '?' + params.toString();
-}
-
-function applySort() {
-  var sort = document.querySelector('select[name="sort"]').value;
-  
-  var params = new URLSearchParams(window.location.search);
-  
-  if (sort) {
-    params.set('sort', sort);
-  } else {
-    params.delete('sort');
-  }
-  
-  window.location.href = '?' + params.toString();
-}
-
-function clearAllFilters() {
-  // Limpiar todos los filtros y ordenamiento
-  window.location.href = window.location.pathname;
-}
-
-function clearFilters() {
-  var params = new URLSearchParams(window.location.search);
-  
-  var filtersToRemove = ['marca', 'temporada', 'precio_min', 'precio_max'];
-  filtersToRemove.forEach(function(filter) {
-    params.delete(filter);
-  });
-  
-  window.location.href = '?' + params.toString();
-}
-
-function clearSort() {
-  var params = new URLSearchParams(window.location.search);
-  params.delete('sort');
-  window.location.href = '?' + params.toString();
+  // Redirigir a la página de catálogo con ordenamiento
+  window.location.href = '{% url 'catalogo' %}#sort';
 }
 
 function loadMore() {
@@ -498,6 +105,23 @@ function loadMore() {
   {% endif %}
 }
 
+function comprarPorWhatsApp(nombre, precio, stock) {
+  // Construir mensaje dinámico
+  var mensaje = "Hola, quiero este perfume:\n";
+  mensaje += "Nombre: " + nombre + "\n";
+  mensaje += "Precio: RD$" + precio + "\n";
+  mensaje += "¿Está disponible?";
+  
+  // Número de WhatsApp
+  var numeroWhatsApp = "8097052444";
+  
+  // Construir URL de WhatsApp
+  var urlWhatsApp = "https://wa.me/" + numeroWhatsApp + "?text=" + encodeURIComponent(mensaje);
+  
+  // Abrir WhatsApp
+  window.open(urlWhatsApp, '_blank');
+}
+
 // Carrusel functionality
 document.addEventListener('DOMContentLoaded', function() {
   const carouselItems = document.querySelectorAll('.carousel-item');
@@ -529,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         this.classList.toggle('expanded');
         
+        // Ocultar otros items expandidos
         carouselItems.forEach(otherItem => {
           if (otherItem !== this) {
             otherItem.classList.remove('expanded');
@@ -538,365 +163,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
-
-// Nuevas funciones para el toolbar
-function applyFilterBy(type) {
-  event.preventDefault();
-  
-  switch(type) {
-    case 'marca':
-      // Abrir panel de filtros y enfocar marca
-      toggleFilters();
-      setTimeout(() => {
-        const marcaSelect = document.querySelector('select[name="marca"]');
-        if (marcaSelect) marcaSelect.focus();
-      }, 100);
-      break;
-      
-    case 'temporada':
-      // Abrir panel de filtros y enfocar temporada
-      toggleFilters();
-      setTimeout(() => {
-        const temporadaSelect = document.querySelector('select[name="temporada"]');
-        if (temporadaSelect) temporadaSelect.focus();
-      }, 100);
-      break;
-      
-    case 'precio':
-      // Abrir panel de filtros y enfocar precio
-      toggleFilters();
-      setTimeout(() => {
-        const precioMin = document.querySelector('input[name="precio_min"]');
-        if (precioMin) precioMin.focus();
-      }, 100);
-      break;
-  }
-}
-
-function applySortBy(type) {
-  event.preventDefault();
-  
-  const params = new URLSearchParams(window.location.search);
-  
-  switch(type) {
-    case 'nombre':
-      params.set('sort', 'nombre');
-      break;
-    case 'precio_asc':
-      params.set('sort', 'precio_asc');
-      break;
-    case 'precio_desc':
-      params.set('sort', 'precio_desc');
-      break;
-    case 'popularidad':
-      params.set('sort', 'popularidad');
-      break;
-  }
-  
-  window.location.href = '?' + params.toString();
-}
 </script>
-
-<style>
-.hero-links-carousel {
-  display: flex;
-  justify-content: center;
-  gap: 44px;
-  flex-wrap: wrap;
-  position: relative;
-}
-
-.carousel-item {
-  position: relative;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: center center;
-}
-
-.carousel-item.main-item {
-  perspective: 1000px;
-}
-
-.carousel-item.main-item > a {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 8px 16px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  display: block;
-  position: relative;
-  z-index: 2;
-}
-
-.carousel-item.main-item:hover > a,
-.carousel-item.main-item > a.active {
-  border-color: #000;
-}
-
-.sub-categories {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-20px);
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  padding: 12px 0;
-  min-width: 150px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
-  border: 1px solid #ddd;
-}
-
-.carousel-item.expanded .sub-categories {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(10px);
-}
-
-.sub-categories a {
-  display: block;
-  padding: 8px 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #000;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border: none !important;
-}
-
-.sub-categories a:hover,
-.sub-categories a.active {
-  background: var(--bg);
-  color: #000;
-}
-
-.carousel-item.expanded {
-  transform: scale(1.05) rotateY(5deg);
-}
-
-.carousel-item:not(.expanded) {
-  transform: scale(1) rotateY(0deg);
-}
-
-/* Clear Filters Float Button */
-.clear-filters-float {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.clear-filters-btn {
-  background: #000;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.clear-filters-btn:hover {
-  background: #333;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-}
-
-.clear-filters-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Responsive for clear button */
-@media (max-width: 768px) {
-  .clear-filters-float {
-    top: 15px;
-    right: 15px;
-  }
-  
-  .clear-filters-btn {
-    padding: 10px 16px;
-    font-size: 10px;
-  }
-}
-
-@media (max-width: 640px) {
-  .clear-filters-float {
-    top: 10px;
-    right: 10px;
-  }
-  
-  .clear-filters-btn {
-    padding: 8px 12px;
-    font-size: 9px;
-  }
-}
-
-/* Toolbar Carousel Styles */
-.toolbar-carousel {
-  display: flex;
-  justify-content: center;
-  gap: 60px;
-  margin: 20px 0;
-}
-
-.toolbar-carousel .carousel-item.main-item > span {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 8px 16px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  display: block;
-  position: relative;
-  z-index: 2;
-}
-
-.toolbar-carousel .carousel-item.main-item:hover > span,
-.toolbar-carousel .carousel-item.main-item > span.active {
-  border-color: #000;
-}
-
-.toolbar-carousel .sub-categories {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-20px);
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  padding: 12px 0;
-  min-width: 180px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
-  border: 1px solid #ddd;
-}
-
-.toolbar-carousel .carousel-item.expanded .sub-categories {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(10px);
-}
-
-.toolbar-carousel .sub-categories a {
-  display: block;
-  padding: 10px 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #000;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border: none !important;
-  cursor: pointer;
-}
-
-.toolbar-carousel .sub-categories a:hover,
-.toolbar-carousel .sub-categories a.active {
-  background: var(--bg);
-  color: #000;
-}
-
-.toolbar-carousel .carousel-item.expanded {
-  transform: scale(1.05) rotateY(5deg);
-}
-
-.toolbar-carousel .carousel-item:not(.expanded) {
-  transform: scale(1) rotateY(0deg);
-}
-
-/* Toolbar Responsive */
-@media (max-width: 768px) {
-  .toolbar-carousel {
-    gap: 40px;
-  }
-  
-  .toolbar-carousel .sub-categories {
-    min-width: 150px;
-  }
-  
-  .toolbar-carousel .carousel-item.expanded {
-    transform: scale(1.02) rotateY(2deg);
-  }
-}
-
-@media (max-width: 640px) {
-  .toolbar-carousel {
-    gap: 30px;
-  }
-  
-  .toolbar-carousel .carousel-item.main-item > span {
-    padding: 6px 12px;
-    font-size: 10px;
-  }
-  
-  .toolbar-carousel .sub-categories {
-    min-width: 120px;
-    padding: 8px 0;
-  }
-  
-  .toolbar-carousel .sub-categories a {
-    padding: 8px 15px;
-    font-size: 10px;
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .hero-links-carousel {
-    gap: 20px;
-  }
-  
-  .sub-categories {
-    min-width: 120px;
-  }
-  
-  .carousel-item.expanded {
-    transform: scale(1.02) rotateY(2deg);
-  }
-}
-
-@media (max-width: 640px) {
-  .hero-links-carousel {
-    gap: 15px;
-  }
-  
-  .carousel-item.main-item > a {
-    padding: 6px 12px;
-    font-size: 10px;
-  }
-  
-  .sub-categories {
-    min-width: 100px;
-    padding: 8px 0;
-  }
-  
-  .sub-categories a {
-    padding: 6px 15px;
-    font-size: 10px;
-  }
-}
-</style>
 {% endblock %}

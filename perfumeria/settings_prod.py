@@ -10,15 +10,12 @@ ALLOWED_HOSTS = [".onrender.com"]
 
 SECRET_KEY = config('SECRET_KEY')
 
-# 🗄️ BASE DE DATOS - SQLITE (Render Free Plan)
-import os
+# 🗄️ BASE DE DATOS - POSTGRESQL (Render)
+import dj_database_url
 
-# Usar SQLite para plan free de Render
+# Usar PostgreSQL de Render con DATABASE_URL
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.parse(config('DATABASE_URL'))
 }
 
 #  EMAIL

@@ -10,17 +10,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("🌸 Creando los 3 productos originales del usuario...")
         
-        # Verificar si ya hay productos
-        productos_existentes = Producto.objects.count()
-        
-        if productos_existentes > 0:
-            self.stdout.write(f"📋 Ya existen {productos_existentes} productos en la base de datos.")
-            self.stdout.write("🚫 No se crearán productos de ejemplo para proteger los datos existentes.")
-            self.stdout.write("=" * 50)
-            return
-        
-        self.stdout.write("🌸 No hay productos en la base de datos. Creando productos de ejemplo...")
-        
         # Productos originales del usuario
         productos_originales = [
             {
@@ -33,7 +22,6 @@ class Command(BaseCommand):
                 'stock': 30,
                 'disponible': True,
                 'temporada': 'day',
-                'imagen': 'perfumes/ejemplo.jpg',
             },
             {
                 'nombre': 'Versace Eros',
@@ -45,7 +33,6 @@ class Command(BaseCommand):
                 'stock': 25,
                 'disponible': True,
                 'temporada': 'night',
-                'imagen': 'perfumes/ejemplo.jpg',
             },
             {
                 'nombre': 'Stallion 53',
@@ -57,40 +44,46 @@ class Command(BaseCommand):
                 'stock': 20,
                 'disponible': True,
                 'temporada': 'special',
-                'imagen': 'perfumes/ejemplo.jpg',
             },
         ]
         
         creados = 0
-        existentes = 0
+        actualizados = 0
         
         for prod_data in productos_originales:
-            # Extraer la ruta de la imagen
-            imagen_path = prod_data.pop('imagen', None)
+            nombre = prod_data['nombre']
+            marca = prod_data['marca']
             
-            producto, created = Producto.objects.get_or_create(
-                nombre=prod_data['nombre'],
-                marca=prod_data['marca'],
-                defaults=prod_data
-            )
-            
-            if created:
-                # Asignar imagen si existe
-                if imagen_path and os.path.exists(os.path.join('media', imagen_path)):
-                    with open(os.path.join('media', imagen_path), 'rb') as f:
-                        producto.imagen.save(imagen_path, File(f), save=True)
-                    self.stdout.write(f"✅ Producto creado con imagen: {producto.nombre} - ${producto.precio}")
-                else:
-                    self.stdout.write(f"✅ Producto creado sin imagen: {producto.nombre} - ${producto.precio}")
-                creados += 1
-            else:
+            # Buscar si el producto ya existe
+            producto = None
+            try:
+                producto = Producto.objects.get(nombre=nombre, marca=marca)
                 self.stdout.write(f"📋 Producto ya existe: {producto.nombre}")
-                existentes += 1
+                actualizados += 1
+            except Producto.DoesNotExist:
+                # Crear nuevo producto
+                producto = Producto.objects.create(**prod_data)
+                self.stdout.write(f"✅ Producto creado: {producto.nombre} - ${producto.precio}")
+                creados += 1
+            
+            # Asignar imagen si existe
+            imagen_path = 'perfumes/ejemplo.jpg'
+            ruta_completa = os.path.join('media', imagen_path)
+            
+            if os.path.exists(ruta_completa):
+                try:
+                    with open(ruta_completa, 'rb') as f:
+                        producto.imagen.save(imagen_path, File(f), save=True)
+                    self.stdout.write(f"🖼️  Imagen asignada: {producto.nombre}")
+                except Exception as e:
+                    self.stdout.write(f"⚠️  Error al asignar imagen a {producto.nombre}: {str(e)}")
+            else:
+                self.stdout.write(f"⚠️  Imagen no encontrada: {ruta_completa}")
         
         self.stdout.write("=" * 60)
         self.stdout.write(f"🌸 Resumen:")
         self.stdout.write(f"✅ Creados: {creados} productos")
-        self.stdout.write(f"📋 Ya existían: {existentes} productos")
+        self.stdout.write(f"📋 Actualizados: {actualizados} productos")
         self.stdout.write(f"🛍️ Total productos en BD: {Producto.objects.count()}")
         self.stdout.write("🎉 ¡Tus productos originales están listos!")
         self.stdout.write("=" * 60)

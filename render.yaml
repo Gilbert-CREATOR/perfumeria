@@ -4,7 +4,7 @@ services:
     name: perfumeria-darcy
     plan: free
     runtime: python-3.11
-    buildCommand: "./build.sh && python manage.py crear_admin_definitivo && python manage.py crear_mis_productos"
+    buildCommand: "./build.sh && python manage.py migrate && python manage.py crear_admin && python manage.py crear_mis_productos"
     startCommand: "gunicorn perfumeria.wsgi:application"
     autoDeploy: true
 

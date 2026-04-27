@@ -8,10 +8,10 @@ class Command(BaseCommand):
         self.stdout.write("🔐 Creando superusuario administrador...")
         
         try:
-            # Si el usuario ya existe, eliminarlo y recrearlo
+            # Verificar si ya existe
             if User.objects.filter(username='admin').exists():
-                self.stdout.write(self.style.WARNING('⚠️  El usuario admin ya existe, eliminando y recreando...'))
-                User.objects.filter(username='admin').delete()
+                self.stdout.write(self.style.WARNING('⚠️  El usuario admin ya existe'))
+                return
             
             # Crear superusuario
             admin = User.objects.create_superuser(

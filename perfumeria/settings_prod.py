@@ -6,16 +6,19 @@ from decouple import config
 # 🔥 PRODUCCIÓN
 DEBUG = False
 
-ALLOWED_HOSTS = [".onrender.com"]
+ALLOWED_HOSTS = ["*"]
 
 SECRET_KEY = config('SECRET_KEY')
 
-# 🗄️ BASE DE DATOS - POSTGRESQL (Render)
-import dj_database_url
+# 🗄️ BASE DE DATOS - SQLITE (Render Free Plan)
+import os
 
-# Usar PostgreSQL de Render con DATABASE_URL
+# Usar SQLite para plan free de Render
 DATABASES = {
-    'default': dj_database_url.parse(config('DATABASE_URL'))
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
 }
 
 #  EMAIL

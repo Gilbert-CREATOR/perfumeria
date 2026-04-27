@@ -4,16 +4,7 @@ services:
     name: perfumeria-darcy
     plan: free
     runtime: python-3.11
-    buildCommand: "./build.sh && python manage.py migrate && python manage.py shell << 'EOF'
-from django.contrib.auth.models import User
-try:
-    User.objects.filter(username='admin').delete()
-    User.objects.create_superuser('admin', 'gilbertandeliz04@gmail.com', 'perfumeria123')
-    print('Admin creado exitosamente: admin/perfumeria123')
-except Exception as e:
-    print(f'Error: {e}')
-EOF
-&& python manage.py crear_mis_productos"
+    buildCommand: "./build.sh && python manage.py migrate && python manage.py crear_admin_definitivo_completo && python manage.py crear_mis_productos"
     startCommand: "gunicorn perfumeria.wsgi:application"
     autoDeploy: true
 

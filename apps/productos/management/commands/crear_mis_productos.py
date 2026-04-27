@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
 from apps.productos.models import Producto
 from decimal import Decimal
-from django.core.files import File
-import os
 
 class Command(BaseCommand):
     help = 'Crear los 3 productos originales del usuario'
@@ -65,20 +63,6 @@ class Command(BaseCommand):
                 producto = Producto.objects.create(**prod_data)
                 self.stdout.write(f"✅ Producto creado: {producto.nombre} - ${producto.precio}")
                 creados += 1
-            
-            # Asignar imagen si existe
-            imagen_path = 'perfumes/ejemplo.jpg'
-            ruta_completa = os.path.join('media', imagen_path)
-            
-            if os.path.exists(ruta_completa):
-                try:
-                    with open(ruta_completa, 'rb') as f:
-                        producto.imagen.save(imagen_path, File(f), save=True)
-                    self.stdout.write(f"🖼️  Imagen asignada: {producto.nombre}")
-                except Exception as e:
-                    self.stdout.write(f"⚠️  Error al asignar imagen a {producto.nombre}: {str(e)}")
-            else:
-                self.stdout.write(f"⚠️  Imagen no encontrada: {ruta_completa}")
         
         self.stdout.write("=" * 60)
         self.stdout.write(f"🌸 Resumen:")
@@ -86,4 +70,5 @@ class Command(BaseCommand):
         self.stdout.write(f"📋 Actualizados: {actualizados} productos")
         self.stdout.write(f"🛍️ Total productos en BD: {Producto.objects.count()}")
         self.stdout.write("🎉 ¡Tus productos originales están listos!")
+        self.stdout.write("📝 NOTA: Agrega imágenes desde el panel admin")
         self.stdout.write("=" * 60)

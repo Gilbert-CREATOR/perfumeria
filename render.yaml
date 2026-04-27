@@ -4,7 +4,7 @@ services:
     name: perfumeria-darcy
     plan: free
     runtime: python-3.11
-    buildCommand: "./build.sh && python manage.py migrate && python manage.py createsuperuser --username admin --email gilbertandeliz04@gmail.com --noinput || echo 'Admin already exists' && python manage.py crear_mis_productos"
+    buildCommand: "./build.sh && python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').delete(); User.objects.create_superuser('admin', 'gilbertandeliz04@gmail.com', 'perfumeria123'); print('Admin creado: admin/perfumeria123')\" && python manage.py crear_mis_productos"
     startCommand: "gunicorn perfumeria.wsgi:application"
     autoDeploy: true
 
@@ -15,10 +15,6 @@ services:
         generateValue: true
       - key: DEBUG
         value: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: perfumeria-db
-          property: connectionString
       - key: ALLOWED_HOSTS
         value: .onrender.com
       - key: EMAIL_HOST

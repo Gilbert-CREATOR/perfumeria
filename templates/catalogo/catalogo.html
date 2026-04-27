@@ -27,7 +27,7 @@
 </section>
 
 <section class="products-grid">
-  {% for producto in productos_destacados %}
+  {% for producto in productos %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
     <!-- Imagen del producto (arriba) -->
     {% if producto.imagen %}

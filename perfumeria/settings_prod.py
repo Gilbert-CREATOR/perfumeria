@@ -10,16 +10,30 @@ ALLOWED_HOSTS = ["*"]
 
 SECRET_KEY = config('SECRET_KEY')
 
-# 🗄️ BASE DE DATOS - SQLITE (Render Free Plan)
-import os
+# 🗄️ BASE DE DATOS - POSTGRESQL (Render)
+import dj_database_url
 
-# Usar SQLite para plan free de Render
+# Usar PostgreSQL de Render con DATABASE_URL
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.parse(config('DATABASE_URL'))
 }
+
+# 🔑 Asegurar configuración de autenticación correcta
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# 📝 Configuración de sesión para PostgreSQL
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 86400  # 24 horas
+SESSION_COOKIE_SECURE = False  # En producción con HTTPS debería ser True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# 🔐 Configuración CSRF para PostgreSQL
+CSRF_COOKIE_SECURE = False  # En producción con HTTPS debería ser True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 #  EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

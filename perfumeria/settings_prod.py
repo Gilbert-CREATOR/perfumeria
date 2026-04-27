@@ -54,7 +54,12 @@ CACHES = {
     'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}
 }
 
-# 📝 LOGGING (solo consola)
+# � Configuración de Login (como en SQLite que funcionaba)
+LOGIN_URL = '/usuarios/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# �📝 LOGGING (solo consola)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

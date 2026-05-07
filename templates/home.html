@@ -70,6 +70,20 @@
   <a href="{% url 'catalogo' %}" class="view-more" style="display: flex; align-items: center; justify-content: center; height: 50px;">VIEW ALL PRODUCTS</a>
 </div>
 
+<script>
+// Forzar navegación al catálogo desde el home
+document.addEventListener('DOMContentLoaded', function() {
+    const viewMoreBtn = document.querySelector('.view-more');
+    if (viewMoreBtn) {
+        viewMoreBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Forzar navegación al catálogo
+            window.location.href = '{% url "catalogo" %}';
+        });
+    }
+});
+</script>
+
 <style>
 /* TODO tu CSS igual */
 </style>

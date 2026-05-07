@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+import base64
+import os
 
 class Producto(models.Model):
 
@@ -23,6 +27,11 @@ class Producto(models.Model):
     descripcion = models.TextField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
+    
+    # 🖼️ CAMPOS PARA GUARDAR IMAGEN EN BASE DE DATOS
+    imagen_base64 = models.TextField(blank=True, null=True, help_text="Imagen guardada en base64 para persistencia")
+    imagen_nombre = models.CharField(max_length=255, blank=True, null=True, help_text="Nombre original del archivo de imagen")
+    
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
     tamano_ml = models.IntegerField()
     stock = models.IntegerField()
@@ -31,6 +40,68 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    def save(self, *args, **kwargs):
+        # 🖼️ GUARDAR IMAGEN EN BASE DE DATOS ANTES DE GUARDAR
+        if self.imagen and not self.imagen_base64:
+            try:
+                # Leer el archivo de imagen
+                self.imagen.open('rb')
+                image_data = self.imagen.read()
+                self.imagen.close()
+                
+                # Convertir a base64
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+                self.imagen_base64 = image_base64
+                self.imagen_nombre = self.imagen.name
+                
+                print(f"🖼️ Imagen guardada en base64: {self.imagen.name}")
+            except Exception as e:
+                print(f"❌ Error guardando imagen en base64: {str(e)}")
+        
+        super().save(*args, **kwargs)
+        
+        # 🖼️ DESPUÉS DE GUARDAR, RESTAURAR IMAGEN SI ES BASE64
+        if self.imagen_base64 and not self.imagen:
+            self._restaurar_imagen_desde_base64()
+    
+    def _restaurar_imagen_desde_base64(self):
+        """Restaurar imagen desde base64 al campo imagen"""
+        try:
+            if self.imagen_base64:
+                # Decodificar base64
+                image_data = base64.b64decode(self.imagen_base64)
+                
+                # Crear ContentFile
+                content_file = ContentFile(image_data)
+                
+                # Guardar en el campo imagen
+                nombre_archivo = self.imagen_nombre or f"producto_{self.id}.jpg"
+                self.imagen.save(nombre_archivo, content_file, save=False)
+                
+                print(f"✅ Imagen restaurada desde base64: {nombre_archivo}")
+        except Exception as e:
+            print(f"❌ Error restaurando imagen desde base64: {str(e)}")
+    
+    def get_imagen_url(self):
+        """Obtener URL de la imagen con fallback"""
+        if self.imagen and hasattr(self.imagen, 'url'):
+            return self.imagen.url
+        elif self.imagen_base64:
+            # Si no hay archivo pero hay base64, generar data URL
+            return f"data:image/jpeg;base64,{self.imagen_base64}"
+        else:
+            # Placeholder
+            return "https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME"
+    
+    @property
+    def imagen_url_property(self):
+        """Propiedad para usar en templates"""
+        return self.get_imagen_url()
+    
+    def tiene_imagen(self):
+        """Verificar si tiene imagen (archivo o base64)"""
+        return bool(self.imagen or self.imagen_base64)
     
     def validar_stock(self, cantidad_solicitada=1):
         """Valida si hay stock suficiente"""

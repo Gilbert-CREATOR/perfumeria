@@ -43,7 +43,7 @@ class Producto(models.Model):
     
     def save(self, *args, **kwargs):
         # 🖼️ GUARDAR IMAGEN EN BASE DE DATOS ANTES DE GUARDAR
-        if self.imagen and not self.imagen_base64:
+        if self.imagen and not self.imagen_base64 and not kwargs.get('skip_base64'):
             try:
                 # Leer el archivo de imagen
                 self.imagen.open('rb')
@@ -59,6 +59,7 @@ class Producto(models.Model):
             except Exception as e:
                 print(f"❌ Error guardando imagen en base64: {str(e)}")
         
+        # Guardar normal sin bucle
         super().save(*args, **kwargs)
         
         # 🖼️ DESPUÉS DE GUARDAR, RESTAURAR IMAGEN SI ES BASE64

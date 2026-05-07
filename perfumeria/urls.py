@@ -30,3 +30,9 @@ else:
     # En producción, servir media files con WhiteNoise
     from django.conf.urls.static import static
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+    # 🖼️ Asegurar que media files se sirvan en producción
+    from django.views.static import serve
+    urlpatterns += [
+        path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]

@@ -58,7 +58,7 @@
     
     <!-- Badge de stock -->
     {% if producto.stock < 5 and producto.stock > 0 %}
-    <span class="stock-badge low-stock">Últimos {{ producto.stock }}</span>
+    <span class="stock-badge low-stock">¡Últimas {{ producto.stock }} unidades!</span>
     {% elif producto.stock == 0 %}
     <span class="stock-badge out-of-stock">Agotado</span>
     {% endif %}

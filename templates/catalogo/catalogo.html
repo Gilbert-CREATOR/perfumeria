@@ -30,8 +30,8 @@
   {% for producto in productos %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
     <!-- Imagen del producto (arriba) -->
-    {% if producto.imagen_url_property %}
-      <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}" class="product-image">
+    {% if producto.imagen and producto.imagen.url %}
+      <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="product-image">
     {% else %}
       <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}" class="product-image">
     {% endif %}

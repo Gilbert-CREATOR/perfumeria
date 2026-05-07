@@ -42,29 +42,8 @@ class Producto(models.Model):
         return self.nombre
     
     def save(self, *args, **kwargs):
-        # 🖼️ GUARDAR IMAGEN EN BASE DE DATOS ANTES DE GUARDAR
-        if self.imagen and not self.imagen_base64 and not kwargs.get('skip_base64'):
-            try:
-                # Leer el archivo de imagen
-                self.imagen.open('rb')
-                image_data = self.imagen.read()
-                self.imagen.close()
-                
-                # Convertir a base64
-                image_base64 = base64.b64encode(image_data).decode('utf-8')
-                self.imagen_base64 = image_base64
-                self.imagen_nombre = self.imagen.name
-                
-                print(f"🖼️ Imagen guardada en base64: {self.imagen.name}")
-            except Exception as e:
-                print(f"❌ Error guardando imagen en base64: {str(e)}")
-        
-        # Guardar normal sin bucle
+        # Guardado simple sin bucles - temporalmente desactivado base64
         super().save(*args, **kwargs)
-        
-        # 🖼️ DESPUÉS DE GUARDAR, RESTAURAR IMAGEN SI ES BASE64
-        if self.imagen_base64 and not self.imagen:
-            self._restaurar_imagen_desde_base64()
     
     def _restaurar_imagen_desde_base64(self):
         """Restaurar imagen desde base64 al campo imagen"""

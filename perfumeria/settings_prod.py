@@ -49,6 +49,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# 🖼️ WhiteNoise para media files en producción
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
 # 🧠 CACHE
 CACHES = {
     'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}

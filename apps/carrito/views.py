@@ -39,8 +39,8 @@ def ver_carrito(request):
 def agregar_al_carrito(request, producto_id):
     if not request.user.is_authenticated:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'Debes iniciar sesión'})
-        return redirect('ver_carrito')
+            return JsonResponse({'success': False, 'error': 'Debes iniciar sesión', 'redirect': '/usuarios/login/'})
+        return redirect('/usuarios/login/?next=' + request.path)
 
     producto = get_object_or_404(Producto, id=producto_id)
     

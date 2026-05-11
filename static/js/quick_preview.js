@@ -202,7 +202,13 @@ function addToCartFromModal(productId, quantity) {
         } else {
             addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i> Agregar';
             addToCartBtn.disabled = false;
-            showNotification(data.error || 'Error al agregar producto', 'error');
+            
+            if (data.redirect) {
+                // Redirigir a login si no está autenticado
+                window.location.href = data.redirect;
+            } else {
+                showNotification(data.error || 'Error al agregar producto', 'error');
+            }
         }
     })
     .catch(function(error) {

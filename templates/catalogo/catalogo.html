@@ -91,6 +91,12 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock %}
 
 {% block extra_js %}
+<!-- Quick Preview Modal -->
+{% include 'catalogo/quick_preview_modal.html' %}
+
+<!-- Quick Preview JavaScript -->
+<script src="{% static 'js/quick_preview.js' %}"></script>
+
 <script>
 function toggleFilters() {
   // Redirigir a la página de catálogo con filtros

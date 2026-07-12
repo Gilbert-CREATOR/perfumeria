@@ -39,3 +39,40 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'image/png')
         self.assertEqual(response.content, self.PNG_1X1)
+
+    def test_formulario_permite_eliminar_la_imagen_actual(self):
+        producto = Producto.objects.create(
+            nombre='Con imagen',
+            marca='Darcy',
+            descripcion='Producto para eliminar imagen',
+            precio='1000.00',
+            imagen_base64=base64.b64encode(self.PNG_1X1).decode('ascii'),
+            imagen_nombre='perfume.png',
+            tipo='eau_de_parfum',
+            tamano_ml=100,
+            stock=2,
+            disponible=True,
+            temporada='special',
+        )
+        form = ProductoAdminForm(
+            data={
+                'nombre': producto.nombre,
+                'marca': producto.marca,
+                'descripcion': producto.descripcion,
+                'precio': producto.precio,
+                'tipo': producto.tipo,
+                'tamano_ml': producto.tamano_ml,
+                'stock': producto.stock,
+                'disponible': True,
+                'temporada': producto.temporada,
+                'eliminar_imagen': True,
+            },
+            instance=producto,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        producto.refresh_from_db()
+
+        self.assertFalse(producto.imagen)
+        self.assertIsNone(producto.imagen_base64)
+        self.assertIsNone(producto.imagen_nombre)

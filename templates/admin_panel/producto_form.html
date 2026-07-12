@@ -75,10 +75,21 @@
         <div class="admin-form-span-2">
             <label class="form-label" for="{{ form.imagen.id_for_label }}">Imagen</label>
             {{ form.imagen }}
+            {% if form.imagen.errors %}
+                <div class="text-danger small mt-1">{{ form.imagen.errors|join:", " }}</div>
+            {% endif %}
             {% if producto and producto.tiene_imagen %}
                 <div class="admin-current-image">
                     <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}">
-                    <span>Imagen actual</span>
+                    <div>
+                        <span class="d-block mb-2">Imagen actual</span>
+                        <div class="form-check">
+                            {{ form.eliminar_imagen }}
+                            <label class="form-check-label text-danger" for="{{ form.eliminar_imagen.id_for_label }}">
+                                Eliminar esta imagen al guardar
+                            </label>
+                        </div>
+                    </div>
                 </div>
             {% endif %}
         </div>

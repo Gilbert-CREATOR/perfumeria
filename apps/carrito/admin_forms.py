@@ -5,6 +5,12 @@ from apps.productos.models import Producto
 
 class ProductoAdminForm(forms.ModelForm):
     MAX_IMAGE_SIZE = 5 * 1024 * 1024
+    eliminar_imagen = forms.BooleanField(
+        required=False,
+        label='Eliminar imagen actual',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+
     class Meta:
         model = Producto
         fields = [
@@ -24,7 +30,7 @@ class ProductoAdminForm(forms.ModelForm):
             'marca': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
             'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'imagen': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'imagen': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'tamano_ml': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
@@ -48,7 +54,10 @@ class ProductoAdminForm(forms.ModelForm):
 
     def save(self, commit=True):
         producto = super().save(commit=False)
-        if 'imagen' in self.changed_data and not self.cleaned_data.get('imagen'):
+        if self.cleaned_data.get('eliminar_imagen'):
+            if producto.imagen:
+                producto.imagen.delete(save=False)
+            producto.imagen = None
             producto.imagen_base64 = None
             producto.imagen_nombre = None
         if commit:
@@ -58,6 +67,11 @@ class ProductoAdminForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if cleaned_data.get('eliminar_imagen') and cleaned_data.get('imagen'):
+            self.add_error(
+                'imagen',
+                'No puedes subir y eliminar una imagen al mismo tiempo. Elige una opción.',
+            )
         if cleaned_data.get('stock', 0) == 0:
             cleaned_data['disponible'] = False
         return cleaned_data

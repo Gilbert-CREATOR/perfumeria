@@ -75,11 +75,6 @@
       {% endif %}
     </div>
     
-    <!-- Botón Quick Preview -->
-    <button class="quick-preview-btn" onclick="event.stopPropagation(); openQuickPreview('{{ producto.id }}')">
-      <i class="fas fa-eye"></i>
-    </button>
-    
     <!-- Badge de stock -->
     {% if producto.stock < 5 and producto.stock > 0 %}
     <span class="stock-badge low-stock">¡Últimas {{ producto.stock }} unidades!</span>

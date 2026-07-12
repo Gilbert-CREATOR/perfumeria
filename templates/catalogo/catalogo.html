@@ -10,45 +10,69 @@
 
 {% block content %}
 
-<p class="breadcrumb">Home Page</p>
+<p class="breadcrumb"><a href="{% url 'home' %}">Home Page</a> / Catalogue</p>
 
 <section class="catalog-hero">
-  <h1>D.A.R.C.Y.</h1>
+  <h1>CATALOG</h1>
   <div class="hero-links">
-    <a href="{% url 'catalogo' %}">DISCOVER</a>
-    <a href="{% url 'catalogo' %}?temporada=special">NEW COLLECTION</a>
-    <a href="{% url 'nosotros' %}">ABOUT</a>
-    <a href="{% url 'contacto' %}">CONTACT</a>
+    <a href="{% url 'catalogo' %}"{% if not request.GET.temporada %} class="active"{% endif %}>ALL</a>
+    <a href="{% url 'catalogo' %}?temporada=special"{% if request.GET.temporada == 'special' %} class="active"{% endif %}>NEW COLLECTION</a>
+    <a href="{% url 'catalogo' %}?temporada=day"{% if request.GET.temporada == 'day' %} class="active"{% endif %}>FOR DAY</a>
+    <a href="{% url 'catalogo' %}?temporada=night"{% if request.GET.temporada == 'night' %} class="active"{% endif %}>FOR NIGHT</a>
   </div>
 </section>
 
 <section class="catalog-toolbar">
-  <!-- TODO tu contenido igual -->
+  <details class="catalog-control" id="filters">
+    <summary>FILTERS +</summary>
+    <form method="get" class="filter-panel">
+      <label>
+        BRAND
+        <input type="text" name="marca" value="{{ request.GET.marca }}" placeholder="ALL BRANDS">
+      </label>
+      <label>
+        MIN PRICE
+        <input type="number" name="precio_min" value="{{ request.GET.precio_min }}" min="0">
+      </label>
+      <label>
+        MAX PRICE
+        <input type="number" name="precio_max" value="{{ request.GET.precio_max }}" min="0">
+      </label>
+      {% if request.GET.temporada %}<input type="hidden" name="temporada" value="{{ request.GET.temporada }}">{% endif %}
+      <button type="submit">APPLY</button>
+      <a href="{% url 'catalogo' %}">CLEAR</a>
+    </form>
+  </details>
+  <details class="catalog-control catalog-sort" id="sort">
+    <summary>SORT BY +</summary>
+    <div class="sort-panel">
+      <a href="?sort=nombre">NAME</a>
+      <a href="?sort=precio_asc">PRICE: LOW TO HIGH</a>
+      <a href="?sort=precio_desc">PRICE: HIGH TO LOW</a>
+      <a href="?sort=popularidad">POPULARITY</a>
+    </div>
+  </details>
 </section>
 
 <section class="products-grid">
   {% for producto in productos %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
-    <!-- Imagen del producto (arriba) -->
-    {% if producto.tiene_imagen %}
-      <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}" class="product-image">
-    {% else %}
-      <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}" class="product-image">
-    {% endif %}
-    
-    <!-- Nombre del producto -->
     <h2>{{ producto.nombre|upper }}</h2>
-    
-    <!-- Precio formateado -->
     <div class="price">${{ producto.precio|formato_precio }}</div>
-    
-    <!-- Autor/Temporada -->
     <div class="author">
       {% if producto.temporada == 'summer' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
       {% if producto.temporada == 'winter' %}BY HELEN SANDR<br>& MINIMALIST{% endif %}
       {% if producto.temporada == 'night' %}BY ANN KODOR<br>& MINIMALIST{% endif %}
       {% if producto.temporada == 'day' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
       {% if producto.temporada == 'special' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+    </div>
+
+    <div class="product-visual">
+      {% if producto.tiene_imagen %}
+        <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}" class="product-image">
+      {% else %}
+        <div class="product-placeholder">D.A.R.C.Y.</div>
+      {% endif %}
     </div>
     
     <!-- Botón Quick Preview -->
@@ -66,27 +90,13 @@
   {% endfor %}
 </section>
 
-<div class="view-more-wrap">
-  <a href="{% url 'catalogo' %}" class="view-more" style="display: flex; align-items: center; justify-content: center; height: 50px;">VIEW ALL PRODUCTS</a>
-</div>
-
-<script>
-// Forzar recarga de página al hacer clic en VIEW ALL PRODUCTS
-document.addEventListener('DOMContentLoaded', function() {
-    const viewMoreBtn = document.querySelector('.view-more');
-    if (viewMoreBtn) {
-        viewMoreBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            // Forzar recarga completa de la página de catálogo
-            window.location.href = '{% url "catalogo" %}';
-        });
-    }
-});
-</script>
-
-<style>
-/* TODO tu CSS igual */
-</style>
+{% if productos.has_other_pages %}
+<nav class="catalog-pagination" aria-label="Catalog pages">
+  {% if productos.has_previous %}<a href="?page={{ productos.previous_page_number }}">PREVIOUS</a>{% endif %}
+  <span>{{ productos.number }} / {{ productos.paginator.num_pages }}</span>
+  {% if productos.has_next %}<a href="?page={{ productos.next_page_number }}">NEXT</a>{% endif %}
+</nav>
+{% endif %}
 
 {% endblock %}
 

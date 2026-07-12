@@ -120,7 +120,7 @@ class Envio(models.Model):
                     self.pedido.estado = 'enviado'
                     self.pedido.save()
         
-        super().save(*args, kwargs)
+        super().save(*args, **kwargs)
 
 
 class PerfilUsuario(models.Model):

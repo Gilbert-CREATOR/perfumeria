@@ -3,7 +3,9 @@ from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import base64
+import mimetypes
 import os
+from django.urls import reverse
 
 class Producto(models.Model):
 
@@ -42,7 +44,13 @@ class Producto(models.Model):
         return self.nombre
     
     def save(self, *args, **kwargs):
-        # Guardado simple sin bucles - temporalmente desactivado base64
+        # Render usa un disco efímero. Guardamos una copia de la imagen en la
+        # base de datos antes de que el archivo temporal desaparezca.
+        if self.imagen and not getattr(self.imagen, '_committed', True):
+            self.imagen.seek(0)
+            self.imagen_base64 = base64.b64encode(self.imagen.read()).decode('ascii')
+            self.imagen_nombre = os.path.basename(self.imagen.name)
+            self.imagen.seek(0)
         super().save(*args, **kwargs)
     
     def _restaurar_imagen_desde_base64(self):
@@ -65,11 +73,10 @@ class Producto(models.Model):
     
     def get_imagen_url(self):
         """Obtener URL de la imagen con fallback"""
-        if self.imagen and hasattr(self.imagen, 'url'):
+        if self.imagen_base64:
+            return reverse('producto_imagen', args=[self.pk])
+        elif self.imagen and hasattr(self.imagen, 'url'):
             return self.imagen.url
-        elif self.imagen_base64:
-            # Si no hay archivo pero hay base64, generar data URL
-            return f"data:image/jpeg;base64,{self.imagen_base64}"
         else:
             # Placeholder
             return "https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME"
@@ -82,6 +89,10 @@ class Producto(models.Model):
     def tiene_imagen(self):
         """Verificar si tiene imagen (archivo o base64)"""
         return bool(self.imagen or self.imagen_base64)
+
+    def imagen_content_type(self):
+        content_type, _ = mimetypes.guess_type(self.imagen_nombre or '')
+        return content_type or 'image/jpeg'
     
     def validar_stock(self, cantidad_solicitada=1):
         """Valida si hay stock suficiente"""

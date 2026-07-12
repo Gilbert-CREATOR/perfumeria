@@ -61,7 +61,7 @@
                         <td>
                             <div class="admin-product-cell">
                                 {% if producto.imagen %}
-                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                    <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}">
                                 {% else %}
                                     <div class="admin-product-placeholder">
                                         <i class="fa-solid fa-spray-can-sparkles"></i>

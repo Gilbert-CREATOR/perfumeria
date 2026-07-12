@@ -1,51 +1,25 @@
 #!/bin/bash
 
-# 🚀 Build & Deploy Script para Render - Perfumería D.A.R.C.Y.
+set -euo pipefail
 
 echo "🌸 Iniciando build de Perfumería D.A.R.C.Y..."
 
-# 🔹 Activar virtual environment
-if [ -f ".venv/bin/activate" ]; then
-    source .venv/bin/activate
-else
-    echo "⚠️ No se encontró el virtualenv, creando uno..."
-    python3 -m venv .venv
-    source .venv/bin/activate
-fi
-
-# 🔹 Instalar dependencias
 echo "📦 Instalando dependencias..."
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# 🔹 Crear directorios necesarios
-echo "📁 Creando directorios..."
-mkdir -p media logs staticfiles
+python -m pip install -r requirements.txt
 
 # 🔹 Migraciones de base de datos
 echo "🗄️ Ejecutando migraciones..."
 python manage.py migrate --noinput
 
-# 🔹 Crear productos de ejemplo
-echo "�️ Creando productos de ejemplo..."
-python manage.py crear_productos
+echo "🔐 Sincronizando administrador..."
+python manage.py sync_admin
 
-# 🔹 Crear superusuario administrador
-echo "� Creando superusuario administrador..."
-python manage.py crear_admin
+echo "🛒 Asegurando productos iniciales..."
+python manage.py crear_mis_productos
 
 # 🔹 Collect static files
 echo "🎨 Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput --clear
-user, created = User.objects.get_or_create(username=username)
-user.email = email
-user.set_password(password)
-user.is_staff = True
-user.is_superuser = True
-user.save()
-
-print("✅ Superusuario actualizado o creado correctamente")
-END
 
 # 🔹 Test de configuración
 echo "🧪 Verificando configuración..."

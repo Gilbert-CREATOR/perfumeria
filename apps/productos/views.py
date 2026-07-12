@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+import base64
+import binascii
 from django.db.models import Q, Count
 from .models import Producto, Favorito
 from django.contrib.auth.decorators import login_required
@@ -237,3 +239,20 @@ def buscar_ajax(request):
         })
     
     return JsonResponse({'results': results})
+
+
+def producto_imagen(request, producto_id):
+    """Sirve la copia persistente de la imagen guardada en PostgreSQL."""
+    producto = get_object_or_404(Producto, id=producto_id)
+    if not producto.imagen_base64:
+        return HttpResponse(status=404)
+
+    try:
+        contenido = base64.b64decode(producto.imagen_base64, validate=True)
+    except (ValueError, binascii.Error):
+        return HttpResponse(status=404)
+
+    response = HttpResponse(contenido, content_type=producto.imagen_content_type())
+    response['Cache-Control'] = 'public, max-age=86400'
+    response['Content-Disposition'] = f'inline; filename="{producto.imagen_nombre or "producto.jpg"}"'
+    return response

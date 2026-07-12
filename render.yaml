@@ -4,7 +4,7 @@ services:
     name: perfumeria-darcy
     plan: free
     runtime: python-3.11
-    buildCommand: "./build.sh && python manage.py migrate && python manage.py crear_admin_definitivo_completo && python manage.py crear_mis_productos && python manage.py solucion_imagenes_botones"
+    buildCommand: "./build.sh"
     startCommand: "gunicorn perfumeria.wsgi:application"
     autoDeploy: true
 
@@ -20,7 +20,9 @@ services:
           name: perfumeria-db
           property: connectionString
       - key: ALLOWED_HOSTS
-        value: .onrender.com
+        value: perfumeria-darcy.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://perfumeria-darcy.onrender.com
       - key: EMAIL_HOST
         value: smtp.gmail.com
       - key: EMAIL_PORT
@@ -30,7 +32,7 @@ services:
       - key: EMAIL_HOST_USER
         value: gilbertandeliz04@gmail.com
       - key: EMAIL_HOST_PASSWORD
-        value: gvwa fiqu giim fyiw
+        sync: false
       - key: DEFAULT_FROM_EMAIL
         value: noreply@perfumeria.com
       - key: PAYPAL_MODE
@@ -39,12 +41,16 @@ services:
         sync: false
       - key: PAYPAL_SECRET
         sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: admin
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
 
     healthCheckPath: /
     staticDir: staticfiles
     mountPath: /static
-    mediaDir: media
-    mediaMountPath: /media
 
   # Database (PostgreSQL)
   - type: pserv

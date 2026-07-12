@@ -387,7 +387,7 @@
     <div class="product-image-column">
         <div class="product-image-container">
             {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" 
+                <img src="{{ producto.imagen_url_property }}"
                      alt="{{ producto.nombre }}"
                      id="mainProductImage">
             {% else %}

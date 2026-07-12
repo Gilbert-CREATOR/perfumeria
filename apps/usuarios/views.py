@@ -20,12 +20,8 @@ def login_usuario(request):
 
         # Si el login_field contiene @, es un email
         if '@' in login_field:
-            try:
-                user_obj = User.objects.get(email=login_field)
-                username = user_obj.username
-            except User.DoesNotExist:
-                user = None
-                username = None
+            user_obj = User.objects.filter(email__iexact=login_field).order_by('id').first()
+            username = user_obj.username if user_obj else None
         else:
             username = login_field
 
@@ -73,6 +69,10 @@ def registro_usuario(request):
             
         if User.objects.filter(username=username).exists():
             messages.error(request, 'El usuario ya existe')
+            return render(request, 'usuarios/register.html')
+
+        if email and User.objects.filter(email__iexact=email).exists():
+            messages.error(request, 'Ya existe una cuenta con ese correo electrónico')
             return render(request, 'usuarios/register.html')
         
         user = User.objects.create_user(

@@ -98,7 +98,7 @@
         {% for favorito in favoritos %}
         <div style="text-align: center; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
           {% if favorito.producto.imagen %}
-            <img src="{{ favorito.producto.imagen.url }}" alt="{{ favorito.producto.nombre }}" 
+            <img src="{{ favorito.producto.imagen_url_property }}" alt="{{ favorito.producto.nombre }}"
                  style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 15px;">
           {% else %}
             <div style="width: 100px; height: 100px; background: #f0f0f0; margin: 0 auto 15px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999;">

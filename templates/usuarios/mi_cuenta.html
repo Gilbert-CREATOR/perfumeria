@@ -71,7 +71,7 @@
                                 <div class="col-md-6 mb-3">
                                     <div class="d-flex align-items-center">
                                         {% if producto.imagen %}
-                                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                            <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                         {% else %}
                                             <div class="me-3 bg-light d-flex align-items-center justify-content-center rounded" style="width: 60px; height: 60px;">
                                                 <i class="fas fa-spray-can text-muted"></i>

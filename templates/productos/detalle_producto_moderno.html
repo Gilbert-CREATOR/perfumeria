@@ -25,7 +25,7 @@
             <div class="product-gallery">
                 <div class="main-image mb-3">
                     {% if producto.imagen %}
-                        <img src="{{ producto.imagen.url }}" 
+                        <img src="{{ producto.imagen_url_property }}"
                              class="img-fluid rounded shadow-lg" 
                              alt="{{ producto.nombre }}"
                              id="mainProductImage">
@@ -364,7 +364,7 @@
                 <div class="col-md-3">
                     <div class="card h-100">
                         {% if producto_relacionado.imagen %}
-                            <img src="{{ producto_relacionado.imagen.url }}" class="card-img-top" alt="{{ producto_relacionado.nombre }}">
+                            <img src="{{ producto_relacionado.imagen_url_property }}" class="card-img-top" alt="{{ producto_relacionado.nombre }}">
                         {% else %}
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 150px;">
                                 <i class="fas fa-spray-can fa-2x text-muted"></i>

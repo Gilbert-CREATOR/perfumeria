@@ -4,6 +4,7 @@ from apps.productos.models import Producto
 
 
 class ProductoAdminForm(forms.ModelForm):
+    MAX_IMAGE_SIZE = 5 * 1024 * 1024
     class Meta:
         model = Producto
         fields = [
@@ -36,6 +37,24 @@ class ProductoAdminForm(forms.ModelForm):
         if stock < 0:
             raise forms.ValidationError('El stock no puede ser negativo.')
         return stock
+
+    def clean_imagen(self):
+        imagen = self.cleaned_data.get('imagen')
+        if imagen and getattr(imagen, 'size', 0) > self.MAX_IMAGE_SIZE:
+            raise forms.ValidationError('La imagen no puede superar 5 MB.')
+        if imagen and getattr(imagen, 'content_type', '').split('/')[0] != 'image':
+            raise forms.ValidationError('Selecciona un archivo de imagen válido.')
+        return imagen
+
+    def save(self, commit=True):
+        producto = super().save(commit=False)
+        if 'imagen' in self.changed_data and not self.cleaned_data.get('imagen'):
+            producto.imagen_base64 = None
+            producto.imagen_nombre = None
+        if commit:
+            producto.save()
+            self.save_m2m()
+        return producto
 
     def clean(self):
         cleaned_data = super().clean()

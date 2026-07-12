@@ -1,1 +1,1 @@
-web: gunicorn perfumeria.wsgi:application
+web: python manage.py sync_admin && gunicorn perfumeria.wsgi:application

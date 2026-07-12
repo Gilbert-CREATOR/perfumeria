@@ -5,7 +5,7 @@ services:
     plan: free
     runtime: python-3.11
     buildCommand: "./build.sh"
-    startCommand: "gunicorn perfumeria.wsgi:application"
+    startCommand: "python manage.py sync_admin && gunicorn perfumeria.wsgi:application"
     autoDeploy: true
 
     envVars:

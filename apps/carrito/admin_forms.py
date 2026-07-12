@@ -1,6 +1,7 @@
 from django import forms
 from .models import Pedido, MetodoEnvio, Envio
 from apps.productos.models import Producto
+from apps.productos.image_processing import remove_uniform_background
 
 
 class ProductoAdminForm(forms.ModelForm):
@@ -8,6 +9,12 @@ class ProductoAdminForm(forms.ModelForm):
     eliminar_imagen = forms.BooleanField(
         required=False,
         label='Eliminar imagen actual',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    quitar_fondo = forms.BooleanField(
+        required=False,
+        initial=True,
+        label='Quitar fondo uniforme automáticamente',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
     )
 
@@ -50,6 +57,11 @@ class ProductoAdminForm(forms.ModelForm):
             raise forms.ValidationError('La imagen no puede superar 5 MB.')
         if imagen and getattr(imagen, 'content_type', '').split('/')[0] != 'image':
             raise forms.ValidationError('Selecciona un archivo de imagen válido.')
+        if imagen and self.data.get('quitar_fondo'):
+            try:
+                imagen = remove_uniform_background(imagen)
+            except (OSError, ValueError):
+                raise forms.ValidationError('No se pudo procesar el fondo de esta imagen.')
         return imagen
 
     def save(self, commit=True):

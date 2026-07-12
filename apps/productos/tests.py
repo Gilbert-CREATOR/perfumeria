@@ -1,11 +1,14 @@
 import base64
+from io import BytesIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
 from apps.carrito.admin_forms import ProductoAdminForm
 from .models import Producto
+from .image_processing import remove_uniform_background
 
 
 class ProductoImagenPersistenteTests(TestCase):
@@ -76,3 +79,19 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertFalse(producto.imagen)
         self.assertIsNone(producto.imagen_base64)
         self.assertIsNone(producto.imagen_nombre)
+
+    def test_eliminador_convierte_fondo_blanco_en_transparente(self):
+        source = Image.new('RGB', (40, 40), 'white')
+        for x in range(12, 28):
+            for y in range(8, 34):
+                source.putpixel((x, y), (10, 80, 130))
+        buffer = BytesIO()
+        source.save(buffer, format='JPEG', quality=95)
+        upload = SimpleUploadedFile('perfume.jpg', buffer.getvalue(), content_type='image/jpeg')
+
+        processed = remove_uniform_background(upload)
+        result = Image.open(processed).convert('RGBA')
+
+        self.assertEqual(result.getpixel((0, 0))[3], 0)
+        self.assertGreater(result.getpixel((20, 20))[3], 200)
+        self.assertTrue(processed.name.endswith('_sin_fondo.png'))

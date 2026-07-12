@@ -78,6 +78,13 @@
             {% if form.imagen.errors %}
                 <div class="text-danger small mt-1">{{ form.imagen.errors|join:", " }}</div>
             {% endif %}
+            <div class="form-check mt-3">
+                {{ form.quitar_fondo }}
+                <label class="form-check-label" for="{{ form.quitar_fondo.id_for_label }}">
+                    Quitar fondo blanco, negro o uniforme automáticamente
+                </label>
+                <div class="form-text">El resultado se guardará como PNG transparente.</div>
+            </div>
             {% if producto and producto.tiene_imagen %}
                 <div class="admin-current-image">
                     <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}">

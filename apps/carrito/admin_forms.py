@@ -53,6 +53,11 @@ class ProductoAdminForm(forms.ModelForm):
 
     def clean_imagen(self):
         imagen = self.cleaned_data.get('imagen')
+        # Una imagen ya guardada es un FieldFile. En Render el archivo físico
+        # puede haber desaparecido aunque conservemos la copia en PostgreSQL;
+        # no se debe consultar `.size` en ese caso.
+        if imagen and getattr(imagen, '_committed', False):
+            return imagen
         if imagen and getattr(imagen, 'size', 0) > self.MAX_IMAGE_SIZE:
             raise forms.ValidationError('La imagen no puede superar 5 MB.')
         if imagen and getattr(imagen, 'content_type', '').split('/')[0] != 'image':
@@ -79,7 +84,9 @@ class ProductoAdminForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get('eliminar_imagen') and cleaned_data.get('imagen'):
+        imagen = cleaned_data.get('imagen')
+        imagen_nueva = imagen and not getattr(imagen, '_committed', False)
+        if cleaned_data.get('eliminar_imagen') and imagen_nueva:
             self.add_error(
                 'imagen',
                 'No puedes subir y eliminar una imagen al mismo tiempo. Elige una opción.',

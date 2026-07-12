@@ -49,6 +49,7 @@ class ProductoImagenPersistenteTests(TestCase):
             marca='Darcy',
             descripcion='Producto para eliminar imagen',
             precio='1000.00',
+            imagen='productos/archivo_eliminado_por_render.png',
             imagen_base64=base64.b64encode(self.PNG_1X1).decode('ascii'),
             imagen_nombre='perfume.png',
             tipo='eau_de_parfum',

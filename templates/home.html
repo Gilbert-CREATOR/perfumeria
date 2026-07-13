@@ -42,11 +42,6 @@
     <!-- Precio formateado -->
     <div class="price">${{ producto.precio|formato_precio }}</div>
     
-    <!-- Autor/Temporada -->
-    <div class="author">
-      {{ producto.autor_display|cut:" & MINIMALIST" }}<br>& MINIMALIST
-    </div>
-    
     <!-- Botón Quick Preview -->
     <button class="quick-preview-btn" onclick="event.stopPropagation(); openQuickPreview('{{ producto.id }}')">
       <i class="fas fa-eye"></i>

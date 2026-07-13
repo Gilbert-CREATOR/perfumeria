@@ -55,17 +55,6 @@ class Producto(models.Model):
         labels = dict(self.TEMPORADA_CHOICES)
         return ', '.join(labels.get(value, value) for value in values)
 
-    @property
-    def autor_display(self):
-        values = self.temporada or []
-        if isinstance(values, str):
-            values = [values]
-        if 'winter' in values:
-            return 'BY HELEN SANDR & MINIMALIST'
-        if 'night' in values:
-            return 'BY ANN KODOR & MINIMALIST'
-        return 'BY MARRY VILLANI & MINIMALIST'
-    
     def save(self, *args, **kwargs):
         # Mantener el formato nuevo incluso si algún comando o integración
         # antigua todavía envía una sola temporada como texto.

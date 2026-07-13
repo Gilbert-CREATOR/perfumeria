@@ -83,9 +83,6 @@
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
     <h2>{{ producto.nombre|upper }}</h2>
     <div class="price">${{ producto.precio|formato_precio }}</div>
-    <div class="author">
-      {{ producto.autor_display|cut:" & MINIMALIST" }}<br>& MINIMALIST
-    </div>
 
     <div class="product-visual">
       {% if producto.tiene_imagen %}

@@ -142,9 +142,6 @@
     <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
       <h2>{{ producto.nombre|upper }}</h2>
       <div class="price">${{ producto.precio|floatformat:2 }}</div>
-      <div class="author">
-        {{ producto.autor_display|cut:" & MINIMALIST" }}<br>& MINIMALIST
-      </div>
       {% if producto.imagen %}
         <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}">
       {% else %}

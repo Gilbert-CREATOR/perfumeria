@@ -163,7 +163,6 @@ img { display: block; max-width: 100%; }
 .product-card:hover { transform: translateY(-3px); background: #e9e5e0; }
 .product-card h2 { max-width: 92%; font-size: clamp(25px, 3vw, 38px); font-weight: 900; line-height: .98; letter-spacing: -.055em; }
 .product-card .price { margin-top: 20px; font-size: 18px; font-weight: 800; }
-.product-card .author { margin-top: 82px; font-size: 13px; line-height: 1.22; }
 
 .product-visual {
   flex: 1;
@@ -197,7 +196,6 @@ img { display: block; max-width: 100%; }
   .catalog-page { width: min(100% - 36px, 1280px); }
   .catalog-hero h1 { font-size: clamp(68px, 14vw, 112px); }
   .product-card { min-height: 570px; }
-  .product-card .author { margin-top: 62px; }
   .product-card .product-image { height: 220px; }
   .site-footer { grid-template-columns: repeat(2, 1fr); }
 }
@@ -224,7 +222,6 @@ img { display: block; max-width: 100%; }
   .product-card { min-height: 570px; padding: 42px 18px 18px; }
   .product-card h2 { font-size: clamp(28px, 9vw, 38px); }
   .product-card .price { font-size: 17px; }
-  .product-card .author { margin-top: 58px; font-size: 12px; }
   .product-visual { min-height: 230px; margin-top: 24px; }
   .product-card .product-image { width: 80%; height: 235px; }
   .site-footer { grid-template-columns: 1fr; padding: 44px 22px; }

@@ -2,10 +2,10 @@
     --admin-bg: #f6f2ec;
     --admin-surface: #ffffff;
     --admin-surface-soft: #efe7dd;
-    --admin-ink: #1d1713;
+    --admin-ink: #A31523;
     --admin-muted: #6d6258;
     --admin-line: #d6c8ba;
-    --admin-accent: #2e241d;
+    --admin-accent: #A31523;
     --admin-accent-soft: #cdb497;
     --admin-success: #2f7d52;
     --admin-warning: #b7791f;
@@ -35,7 +35,7 @@ body.admin-body {
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    background: #211a16;
+    background: #A31523;
     color: #fff;
     z-index: 1000;
     overflow-y: auto;
@@ -65,8 +65,8 @@ body.admin-body {
     width: 48px;
     height: 48px;
     border-radius: 16px;
-    background: linear-gradient(135deg, #f0d7b8, #b8946e);
-    color: #1f1713;
+    background: linear-gradient(135deg, #f0d7b8, #A31523);
+    color: #A31523;
     font-weight: 700;
     font-size: 1.25rem;
 }

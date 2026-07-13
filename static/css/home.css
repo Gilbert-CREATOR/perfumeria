@@ -59,13 +59,6 @@ img {
   letter-spacing: 1px;
 }
 
-/* Main Content */
-.catalog-page {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 32px 90px;
-}
-
 .breadcrumb {
   font-size: 10px;
   color: #292929;
@@ -122,69 +115,6 @@ img {
 
 .catalog-toolbar span:hover {
   border-color: #000;
-}
-
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.product-card {
-  background: var(--card);
-  min-height: 680px;
-  padding: 54px 24px 28px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  position: relative;
-}
-
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-}
-
-.product-card .favorite-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #999;
-  transition: all 0.3s ease;
-  z-index: 10;
-}
-
-.product-card .favorite-btn:hover,
-.product-card .favorite-btn.active {
-  color: #e74c3c;
-}
-
-.product-card h2 {
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 18px;
-}
-
-.product-card .price {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 80px;
-}
-
-.product-card img {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-  margin-top: 40px;
-  border-radius: 4px;
 }
 
 .view-more-wrap {
@@ -255,12 +185,6 @@ img {
 
 /* 📱 Tablets (768px - 1024px) */
 @media (max-width: 1024px) {
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    padding: 20px 5%;
-  }
-  
   .catalog-hero {
     padding: 80px 5%;
   }
@@ -329,12 +253,6 @@ img {
     white-space: nowrap;
   }
 
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    padding: 15px 4%;
-  }
-  
   .catalog-hero {
     padding: 60px 4%;
   }
@@ -362,12 +280,6 @@ img {
 
 /* 📱 Móviles grandes (480px - 600px) */
 @media (max-width: 600px) {
-  .products-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 12px 3%;
-  }
-  
   .catalog-hero {
     padding: 50px 3%;
   }
@@ -414,12 +326,6 @@ img {
     font-size: 10px;
   }
 
-  .products-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-    padding: 10px 2%;
-  }
-  
   .catalog-hero {
     padding: 40px 2%;
   }

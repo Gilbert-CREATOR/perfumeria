@@ -29,23 +29,16 @@
 <section class="products-grid">
   {% for producto in productos_destacados %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
-    <!-- Imagen del producto (arriba) -->
-    {% if producto.tiene_imagen %}
-      <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}" class="product-image">
-    {% else %}
-      <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}" class="product-image">
-    {% endif %}
-    
-    <!-- Nombre del producto -->
     <h2>{{ producto.nombre|upper }}</h2>
-    
-    <!-- Precio formateado -->
     <div class="price">${{ producto.precio|formato_precio }}</div>
-    
-    <!-- Botón Quick Preview -->
-    <button class="quick-preview-btn" onclick="event.stopPropagation(); openQuickPreview('{{ producto.id }}')">
-      <i class="fas fa-eye"></i>
-    </button>
+
+    <div class="product-visual">
+      {% if producto.tiene_imagen %}
+        <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}" class="product-image">
+      {% else %}
+        <div class="product-placeholder">D.A.R.C.Y.</div>
+      {% endif %}
+    </div>
     
     <!-- Badge de stock -->
     {% if producto.stock < 5 and producto.stock > 0 %}

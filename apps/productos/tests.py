@@ -40,6 +40,7 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertTrue(producto.imagen_base64)
         self.assertEqual(producto.temporada, ['summer', 'special'])
         self.assertEqual(producto.get_temporada_display(), 'Summer, Special')
+        self.assertIn('?v=', producto.imagen_url_property)
         response = self.client.get(reverse('producto_imagen', args=[producto.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'image/png')

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import base64
+import hashlib
 import mimetypes
 import os
 from django.urls import reverse
@@ -97,7 +98,8 @@ class Producto(models.Model):
     def get_imagen_url(self):
         """Obtener URL de la imagen con fallback"""
         if self.imagen_base64:
-            return reverse('producto_imagen', args=[self.pk])
+            version = hashlib.sha256(self.imagen_base64.encode('ascii')).hexdigest()[:12]
+            return f"{reverse('producto_imagen', args=[self.pk])}?v={version}"
         elif self.imagen and hasattr(self.imagen, 'url'):
             return self.imagen.url
         else:

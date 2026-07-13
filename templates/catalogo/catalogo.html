@@ -60,11 +60,7 @@
     <h2>{{ producto.nombre|upper }}</h2>
     <div class="price">${{ producto.precio|formato_precio }}</div>
     <div class="author">
-      {% if producto.temporada == 'summer' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
-      {% if producto.temporada == 'winter' %}BY HELEN SANDR<br>& MINIMALIST{% endif %}
-      {% if producto.temporada == 'night' %}BY ANN KODOR<br>& MINIMALIST{% endif %}
-      {% if producto.temporada == 'day' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
-      {% if producto.temporada == 'special' %}BY MARRY VILLANI<br>& MINIMALIST{% endif %}
+      {{ producto.autor_display|cut:" & MINIMALIST" }}<br>& MINIMALIST
     </div>
 
     <div class="product-visual">

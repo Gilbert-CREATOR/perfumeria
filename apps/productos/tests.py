@@ -29,7 +29,7 @@ class ProductoImagenPersistenteTests(TestCase):
                 'tamano_ml': 100,
                 'stock': 2,
                 'disponible': True,
-                'temporada': 'special',
+                'temporada': ['summer', 'special'],
             },
             files={'imagen': imagen},
         )
@@ -38,6 +38,8 @@ class ProductoImagenPersistenteTests(TestCase):
         producto.refresh_from_db()
 
         self.assertTrue(producto.imagen_base64)
+        self.assertEqual(producto.temporada, ['summer', 'special'])
+        self.assertEqual(producto.get_temporada_display(), 'Summer, Special')
         response = self.client.get(reverse('producto_imagen', args=[producto.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'image/png')
@@ -56,7 +58,7 @@ class ProductoImagenPersistenteTests(TestCase):
             tamano_ml=100,
             stock=2,
             disponible=True,
-            temporada='special',
+            temporada=['special'],
         )
         form = ProductoAdminForm(
             data={
@@ -80,6 +82,49 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertFalse(producto.imagen)
         self.assertIsNone(producto.imagen_base64)
         self.assertIsNone(producto.imagen_nombre)
+
+    def test_formulario_reprocesa_el_fondo_de_la_imagen_actual(self):
+        source = Image.new('RGB', (40, 40), 'white')
+        for x in range(12, 28):
+            for y in range(8, 34):
+                source.putpixel((x, y), (10, 80, 130))
+        buffer = BytesIO()
+        source.save(buffer, format='PNG')
+        producto = Producto.objects.create(
+            nombre='Fondo anterior',
+            marca='Darcy',
+            descripcion='Imagen para reprocesar',
+            precio='1000.00',
+            imagen_base64=base64.b64encode(buffer.getvalue()).decode('ascii'),
+            imagen_nombre='fondo.png',
+            tipo='eau_de_parfum',
+            tamano_ml=100,
+            stock=2,
+            disponible=True,
+            temporada=['summer', 'day'],
+        )
+        form = ProductoAdminForm(
+            data={
+                'nombre': producto.nombre,
+                'marca': producto.marca,
+                'descripcion': producto.descripcion,
+                'precio': producto.precio,
+                'tipo': producto.tipo,
+                'tamano_ml': producto.tamano_ml,
+                'stock': producto.stock,
+                'disponible': True,
+                'temporada': producto.temporada,
+                'quitar_fondo': True,
+            },
+            instance=producto,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        producto.refresh_from_db()
+
+        result = Image.open(BytesIO(base64.b64decode(producto.imagen_base64))).convert('RGBA')
+        self.assertEqual(result.getpixel((0, 0))[3], 0)
+        self.assertTrue(producto.imagen_nombre.endswith('_sin_fondo.png'))
 
     def test_eliminador_convierte_fondo_blanco_en_transparente(self):
         source = Image.new('RGB', (40, 40), 'white')

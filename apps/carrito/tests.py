@@ -25,7 +25,7 @@ class AdminPanelViewsTests(TestCase):
             tamano_ml=100,
             stock=8,
             disponible=True,
-            temporada='night',
+            temporada=['night', 'winter'],
         )
         self.pedido = Pedido.objects.create(
             usuario=self.admin_user,

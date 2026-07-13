@@ -30,7 +30,7 @@ def catalogo(request):
     # 🔥 FILTRO POR TEMPORADA
     temporada = request.GET.get('temporada')
     if temporada:
-        productos = productos.filter(temporada=temporada)
+        productos = productos.filter(temporada__contains=[temporada])
 
     # 🆕 FILTROS AVANZADOS
     marca = request.GET.get('marca')
@@ -63,7 +63,7 @@ def catalogo(request):
         for nota in notas_array:
             if nota in notas_mapping:
                 for temp in notas_mapping[nota]:
-                    notas_filter |= Q(temporada=temp)
+                    notas_filter |= Q(temporada__contains=[temp])
         
         productos = productos.filter(notas_filter)
 
@@ -96,7 +96,7 @@ def catalogo(request):
         for oc in ocasiones_array:
             if oc in ocasion_mapping:
                 for temp in ocasion_mapping[oc]:
-                    ocasion_filter |= Q(temporada=temp)
+                    ocasion_filter |= Q(temporada__contains=[temp])
         
         productos = productos.filter(ocasion_filter)
 
@@ -123,7 +123,7 @@ def catalogo(request):
     temporada_contadores = {}
     for temporada in ['summer', 'winter', 'night', 'day', 'special']:
         temporada_contadores[temporada] = Producto.objects.filter(
-            temporada=temporada, 
+            temporada__contains=[temporada],
             disponible=True
         ).count()
 

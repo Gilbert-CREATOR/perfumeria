@@ -395,9 +395,40 @@ body.admin-body {
 }
 
 .admin-inline-alert.success {
-    background: rgba(47, 125, 82, 0.08);
-    color: var(--admin-success);
-    border-color: rgba(47, 125, 82, 0.18);
+    background: var(--admin-surface-soft);
+    color: #000000;
+    border-color: var(--admin-line);
+}
+
+.admin-messages .alert-success {
+    --bs-alert-color: #000000;
+    --bs-alert-bg: var(--admin-surface-soft);
+    --bs-alert-border-color: var(--admin-line);
+    color: #000000;
+    background-color: var(--admin-surface-soft);
+    border-color: var(--admin-line);
+}
+
+.admin-season-checkbox {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.65rem;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-season-checkbox > div label {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--admin-line);
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.admin-season-checkbox input {
+    accent-color: #A31523;
 }
 
 .admin-data-list {

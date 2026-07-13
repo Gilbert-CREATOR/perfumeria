@@ -38,12 +38,35 @@ class Producto(models.Model):
     tamano_ml = models.IntegerField()
     stock = models.IntegerField()
     disponible = models.BooleanField(default=True)
-    temporada = models.CharField(max_length=20, choices=TEMPORADA_CHOICES, blank=True)
+    temporada = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.nombre
+
+    def get_temporada_display(self):
+        values = self.temporada or []
+        if isinstance(values, str):
+            values = [values]
+        labels = dict(self.TEMPORADA_CHOICES)
+        return ', '.join(labels.get(value, value) for value in values)
+
+    @property
+    def autor_display(self):
+        values = self.temporada or []
+        if isinstance(values, str):
+            values = [values]
+        if 'winter' in values:
+            return 'BY HELEN SANDR & MINIMALIST'
+        if 'night' in values:
+            return 'BY ANN KODOR & MINIMALIST'
+        return 'BY MARRY VILLANI & MINIMALIST'
     
     def save(self, *args, **kwargs):
+        # Mantener el formato nuevo incluso si algún comando o integración
+        # antigua todavía envía una sola temporada como texto.
+        if isinstance(self.temporada, str):
+            self.temporada = [self.temporada] if self.temporada else []
+
         # Render usa un disco efímero. Guardamos una copia de la imagen en la
         # base de datos antes de que el archivo temporal desaparezca.
         if self.imagen and not getattr(self.imagen, '_committed', True):

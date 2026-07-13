@@ -1,4 +1,7 @@
+import base64
+
 from django import forms
+from django.core.files.base import ContentFile
 from .models import Pedido, MetodoEnvio, Envio
 from apps.productos.models import Producto
 from apps.productos.image_processing import remove_uniform_background
@@ -16,6 +19,12 @@ class ProductoAdminForm(forms.ModelForm):
         initial=True,
         label='Quitar fondo uniforme automáticamente',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    temporada = forms.MultipleChoiceField(
+        required=False,
+        choices=Producto.TEMPORADA_CHOICES,
+        label='Temporadas',
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'admin-season-checkbox'}),
     )
 
     class Meta:
@@ -42,8 +51,15 @@ class ProductoAdminForm(forms.ModelForm):
             'tamano_ml': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'temporada': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # En productos nuevos se elimina el fondo por defecto. Al editar uno
+        # existente, el administrador debe marcarlo para reprocesar la imagen
+        # actual y así evitamos degradarla en cada guardado.
+        if self.instance and self.instance.pk and self.instance.tiene_imagen():
+            self.fields['quitar_fondo'].initial = False
 
     def clean_stock(self):
         stock = self.cleaned_data['stock']
@@ -71,12 +87,26 @@ class ProductoAdminForm(forms.ModelForm):
 
     def save(self, commit=True):
         producto = super().save(commit=False)
+        imagen = self.cleaned_data.get('imagen')
+        imagen_nueva = imagen and not getattr(imagen, '_committed', False)
+
         if self.cleaned_data.get('eliminar_imagen'):
             if producto.imagen:
                 producto.imagen.delete(save=False)
             producto.imagen = None
             producto.imagen_base64 = None
             producto.imagen_nombre = None
+        elif (
+            self.cleaned_data.get('quitar_fondo')
+            and not imagen_nueva
+            and producto.imagen_base64
+        ):
+            imagen_actual = ContentFile(
+                base64.b64decode(producto.imagen_base64),
+                name=producto.imagen_nombre or f'producto_{producto.pk}.png',
+            )
+            producto.imagen = remove_uniform_background(imagen_actual)
+
         if commit:
             producto.save()
             self.save_m2m()

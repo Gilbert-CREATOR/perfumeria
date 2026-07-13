@@ -48,12 +48,17 @@
         <div>
             <label class="form-label" for="{{ form.tipo.id_for_label }}">Tipo</label>
             {{ form.tipo }}
+            <label class="form-label mt-3" for="{{ form.nuevo_tipo.id_for_label }}">O escribe un tipo nuevo</label>
+            {{ form.nuevo_tipo }}
+            <div class="form-text">Si escribes uno nuevo, tendrá prioridad sobre la selección.</div>
         </div>
 
         <div>
             <label class="form-label">Temporadas</label>
             {{ form.temporada }}
-            <div class="form-text">Puedes seleccionar varias opciones.</div>
+            <label class="form-label mt-3" for="{{ form.nueva_temporada.id_for_label }}">Agregar temporadas nuevas</label>
+            {{ form.nueva_temporada }}
+            <div class="form-text">Puedes separar varias con comas. Todos estos campos son opcionales.</div>
         </div>
 
         <div>

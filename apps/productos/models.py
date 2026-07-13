@@ -25,24 +25,28 @@ class Producto(models.Model):
         ('special', 'Special'),
     ]
     
-    nombre = models.CharField(max_length=200)
-    marca = models.CharField(max_length=100)
-    descripcion = models.TextField()
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    nombre = models.CharField(max_length=200, blank=True, default='')
+    marca = models.CharField(max_length=100, blank=True, default='')
+    descripcion = models.TextField(blank=True, default='')
+    precio = models.DecimalField(max_digits=10, decimal_places=2, blank=True, default=0)
     imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
     
     # 🖼️ CAMPOS PARA GUARDAR IMAGEN EN BASE DE DATOS
     imagen_base64 = models.TextField(blank=True, null=True, help_text="Imagen guardada en base64 para persistencia")
     imagen_nombre = models.CharField(max_length=255, blank=True, null=True, help_text="Nombre original del archivo de imagen")
     
-    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
-    tamano_ml = models.IntegerField()
-    stock = models.IntegerField()
+    tipo = models.CharField(max_length=100, blank=True, default='')
+    tamano_ml = models.IntegerField(blank=True, default=0)
+    stock = models.IntegerField(blank=True, default=0)
     disponible = models.BooleanField(default=True)
     temporada = models.JSONField(default=list, blank=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or f'Producto #{self.pk or "nuevo"}'
+
+    def get_tipo_display(self):
+        labels = dict(self.TIPO_CHOICES)
+        return labels.get(self.tipo, self.tipo) or 'Sin tipo'
 
     def get_temporada_display(self):
         values = self.temporada or []

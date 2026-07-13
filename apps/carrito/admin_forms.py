@@ -1,7 +1,9 @@
 import base64
+from decimal import Decimal
 
 from django import forms
 from django.core.files.base import ContentFile
+from django.db import OperationalError, ProgrammingError
 from .models import Pedido, MetodoEnvio, Envio
 from apps.productos.models import Producto
 from apps.productos.image_processing import remove_uniform_background
@@ -22,9 +24,33 @@ class ProductoAdminForm(forms.ModelForm):
     )
     temporada = forms.MultipleChoiceField(
         required=False,
-        choices=Producto.TEMPORADA_CHOICES,
+        choices=(),
         label='Temporadas',
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'admin-season-checkbox'}),
+    )
+    nueva_temporada = forms.CharField(
+        required=False,
+        max_length=200,
+        label='Agregar temporadas nuevas',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej.: Primavera, Todo el año',
+        }),
+    )
+    tipo = forms.ChoiceField(
+        required=False,
+        choices=(),
+        label='Tipo',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    nuevo_tipo = forms.CharField(
+        required=False,
+        max_length=100,
+        label='Agregar un tipo nuevo',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej.: Serum, Crema corporal',
+        }),
     )
 
     class Meta:
@@ -42,19 +68,46 @@ class ProductoAdminForm(forms.ModelForm):
             'temporada',
         ]
         widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'marca': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
+            'marca': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Opcional'}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': '0.00'}),
             'imagen': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'tipo': forms.Select(attrs={'class': 'form-select'}),
-            'tamano_ml': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'tamano_ml': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'placeholder': '0'}),
+            'stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'placeholder': '0'}),
             'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        type_choices = list(Producto.TIPO_CHOICES)
+        season_choices = list(Producto.TEMPORADA_CHOICES)
+
+        # Las opciones creadas desde productos anteriores vuelven a aparecer
+        # automáticamente en el formulario para poder reutilizarlas.
+        try:
+            known_types = Producto.objects.exclude(tipo='').values_list('tipo', flat=True).distinct()
+            type_values = {value for value, _label in type_choices}
+            for value in known_types:
+                if value and value not in type_values:
+                    type_choices.append((value, value))
+                    type_values.add(value)
+
+            season_values = {value for value, _label in season_choices}
+            for values in Producto.objects.values_list('temporada', flat=True):
+                if isinstance(values, str):
+                    values = [values]
+                for value in values or []:
+                    if value and value not in season_values:
+                        season_choices.append((value, value))
+                        season_values.add(value)
+        except (OperationalError, ProgrammingError):
+            # Permite cargar el formulario mientras se crean las migraciones.
+            pass
+
+        self.fields['tipo'].choices = [('', 'Sin tipo')] + type_choices
+        self.fields['temporada'].choices = season_choices
+
         # En productos nuevos se elimina el fondo por defecto. Al editar uno
         # existente, el administrador debe marcarlo para reprocesar la imagen
         # actual y así evitamos degradarla en cada guardado.
@@ -62,10 +115,20 @@ class ProductoAdminForm(forms.ModelForm):
             self.fields['quitar_fondo'].initial = False
 
     def clean_stock(self):
-        stock = self.cleaned_data['stock']
+        stock = self.cleaned_data.get('stock')
+        if stock in (None, ''):
+            return 0
         if stock < 0:
             raise forms.ValidationError('El stock no puede ser negativo.')
         return stock
+
+    def clean_precio(self):
+        precio = self.cleaned_data.get('precio')
+        return Decimal('0') if precio in (None, '') else precio
+
+    def clean_tamano_ml(self):
+        tamano = self.cleaned_data.get('tamano_ml')
+        return 0 if tamano in (None, '') else tamano
 
     def clean_imagen(self):
         imagen = self.cleaned_data.get('imagen')
@@ -114,6 +177,18 @@ class ProductoAdminForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        nuevo_tipo = (cleaned_data.get('nuevo_tipo') or '').strip()
+        if nuevo_tipo:
+            cleaned_data['tipo'] = nuevo_tipo
+
+        temporadas = list(cleaned_data.get('temporada') or [])
+        nuevas_temporadas = (cleaned_data.get('nueva_temporada') or '').split(',')
+        for temporada in nuevas_temporadas:
+            temporada = temporada.strip()
+            if temporada and temporada not in temporadas:
+                temporadas.append(temporada)
+        cleaned_data['temporada'] = temporadas
+
         imagen = cleaned_data.get('imagen')
         imagen_nueva = imagen and not getattr(imagen, '_committed', False)
         if cleaned_data.get('eliminar_imagen') and imagen_nueva:
@@ -148,13 +223,21 @@ class MetodoEnvioForm(forms.ModelForm):
         }
 
 class ProductoStockForm(forms.ModelForm):
+    stock = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+    )
+
     class Meta:
         model = Producto
         fields = ['stock', 'disponible']
         widgets = {
-            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def clean_stock(self):
+        return self.cleaned_data.get('stock') or 0
 
 class EnvioForm(forms.ModelForm):
     class Meta:

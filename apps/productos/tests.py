@@ -1,4 +1,5 @@
 import base64
+from decimal import Decimal
 from io import BytesIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -142,3 +143,39 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertEqual(result.getpixel((0, 0))[3], 0)
         self.assertGreater(result.getpixel((20, 20))[3], 200)
         self.assertTrue(processed.name.endswith('_sin_fondo.png'))
+
+    def test_producto_puede_crearse_con_todos_los_campos_vacios(self):
+        form = ProductoAdminForm(data={})
+
+        self.assertTrue(form.is_valid(), form.errors)
+        producto = form.save()
+
+        self.assertEqual(producto.nombre, '')
+        self.assertEqual(producto.marca, '')
+        self.assertEqual(producto.precio, Decimal('0'))
+        self.assertEqual(producto.tipo, '')
+        self.assertEqual(producto.tamano_ml, 0)
+        self.assertEqual(producto.stock, 0)
+        self.assertEqual(producto.temporada, [])
+        self.assertFalse(producto.disponible)
+
+    def test_formulario_crea_y_reutiliza_tipo_y_temporadas_personalizadas(self):
+        form = ProductoAdminForm(
+            data={
+                'nombre': 'Serum facial',
+                'nuevo_tipo': 'Serum',
+                'nueva_temporada': 'Primavera, Todo el año',
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        producto = form.save()
+        self.assertEqual(producto.tipo, 'Serum')
+        self.assertEqual(producto.temporada, ['Primavera', 'Todo el año'])
+
+        siguiente_formulario = ProductoAdminForm()
+        self.assertIn(('Serum', 'Serum'), siguiente_formulario.fields['tipo'].choices)
+        self.assertIn(
+            ('Primavera', 'Primavera'),
+            siguiente_formulario.fields['temporada'].choices,
+        )

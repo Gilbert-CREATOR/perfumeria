@@ -16,6 +16,35 @@ def format_price(price):
         return f"${price:,.0f}".replace(",", ",")
     return "$0"
 
+
+def catalog_season_options():
+    """Devuelve temporadas adicionales, incluidas las creadas desde el panel."""
+    fixed_values = {'special', 'day', 'night'}
+    labels = dict(Producto.TEMPORADA_CHOICES)
+    discovered = []
+    seen = set(fixed_values)
+
+    # Primero muestra las temporadas estándar restantes y luego las creadas
+    # por el administrador, manteniendo un orden estable.
+    for value, label in Producto.TEMPORADA_CHOICES:
+        if value not in seen:
+            discovered.append((value, label.upper()))
+            seen.add(value)
+
+    custom_values = []
+    for values in Producto.objects.values_list('temporada', flat=True):
+        if isinstance(values, str):
+            values = [values]
+        for value in values or []:
+            if value and value not in seen:
+                custom_values.append(value)
+                seen.add(value)
+
+    for value in sorted(custom_values, key=str.casefold):
+        discovered.append((value, labels.get(value, value).upper()))
+
+    return discovered
+
 def catalogo(request):
     productos = Producto.objects.filter(disponible=True).prefetch_related('resenas').order_by('id')
 
@@ -117,7 +146,14 @@ def catalogo(request):
     productos = paginator.get_page(page_number)
 
     # 🏷️ MARCAS ÚNICAS
-    marcas = Producto.objects.values_list('marca', flat=True).distinct()
+    marcas = list(
+        Producto.objects.exclude(marca='')
+        .values_list('marca', flat=True)
+        .distinct()
+        .order_by('marca')
+    )
+
+    temporadas_extra = catalog_season_options()
     
     # 📊 CONTADORES POR TEMPORADA
     temporada_contadores = {}
@@ -131,6 +167,7 @@ def catalogo(request):
         'productos': productos,
         'paginator': paginator,
         'marcas': marcas,
+        'temporadas_extra': temporadas_extra,
         'total_productos': paginator.count,
         'temporada_contadores': temporada_contadores,
     }

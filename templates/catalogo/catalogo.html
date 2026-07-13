@@ -14,12 +14,21 @@
 
 <section class="catalog-hero">
   <h1>CATALOG</h1>
-  <div class="hero-links">
-    <a href="{% url 'catalogo' %}"{% if not request.GET.temporada %} class="active"{% endif %}>ALL</a>
-    <a href="{% url 'catalogo' %}?temporada=special"{% if request.GET.temporada == 'special' %} class="active"{% endif %}>NEW COLLECTION</a>
-    <a href="{% url 'catalogo' %}?temporada=day"{% if request.GET.temporada == 'day' %} class="active"{% endif %}>FOR DAY</a>
-    <a href="{% url 'catalogo' %}?temporada=night"{% if request.GET.temporada == 'night' %} class="active"{% endif %}>FOR NIGHT</a>
-  </div>
+  <nav class="hero-links" aria-label="Filter by season">
+    <div class="hero-links-primary">
+      <a href="{% url 'catalogo' %}"{% if not request.GET.temporada %} class="active"{% endif %}>ALL</a>
+      <a href="{% url 'catalogo' %}?temporada=special"{% if request.GET.temporada == 'special' %} class="active"{% endif %}>NEW COLLECTION</a>
+      <a href="{% url 'catalogo' %}?temporada=day"{% if request.GET.temporada == 'day' %} class="active"{% endif %}>FOR DAY</a>
+      <a href="{% url 'catalogo' %}?temporada=night"{% if request.GET.temporada == 'night' %} class="active"{% endif %}>FOR NIGHT</a>
+    </div>
+    {% if temporadas_extra %}
+      <div class="hero-links-extra">
+        {% for temporada_value, temporada_label in temporadas_extra %}
+          <a href="{% url 'catalogo' %}?temporada={{ temporada_value|urlencode }}"{% if request.GET.temporada == temporada_value %} class="active"{% endif %}>{{ temporada_label }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </nav>
 </section>
 
 <section class="catalog-toolbar">
@@ -28,7 +37,22 @@
     <form method="get" class="filter-panel">
       <label>
         BRAND
-        <input type="text" name="marca" value="{{ request.GET.marca }}" placeholder="ALL BRANDS">
+        <div class="brand-autocomplete">
+          <input type="text"
+                 name="marca"
+                 id="brandFilterInput"
+                 value="{{ request.GET.marca }}"
+                 placeholder="ALL BRANDS"
+                 autocomplete="off"
+                 aria-autocomplete="list"
+                 aria-controls="brandSuggestions"
+                 aria-expanded="false">
+          <div class="brand-suggestions" id="brandSuggestions" role="listbox" hidden>
+            {% for marca in marcas %}
+              <button type="button" role="option" data-brand="{{ marca }}">{{ marca }}</button>
+            {% endfor %}
+          </div>
+        </div>
       </label>
       <label>
         MIN PRICE
@@ -139,6 +163,76 @@ function comprarPorWhatsApp(nombre, precio, stock) {
 
 // Carrusel functionality
 document.addEventListener('DOMContentLoaded', function() {
+  const brandInput = document.getElementById('brandFilterInput');
+  const brandSuggestions = document.getElementById('brandSuggestions');
+
+  if (brandInput && brandSuggestions) {
+    const options = Array.from(brandSuggestions.querySelectorAll('[data-brand]'));
+    let activeIndex = -1;
+
+    const normalize = value => value.trim().toLocaleLowerCase('es');
+    const visibleOptions = () => options.filter(option => !option.hidden);
+
+    const closeSuggestions = () => {
+      brandSuggestions.hidden = true;
+      brandInput.setAttribute('aria-expanded', 'false');
+      activeIndex = -1;
+      options.forEach(option => option.classList.remove('is-active'));
+    };
+
+    const showMatches = () => {
+      const query = normalize(brandInput.value);
+      let matches = 0;
+      options.forEach(option => {
+        const matchesQuery = query && normalize(option.dataset.brand).includes(query);
+        option.hidden = !matchesQuery;
+        if (matchesQuery) matches += 1;
+      });
+      brandSuggestions.hidden = matches === 0;
+      brandInput.setAttribute('aria-expanded', matches > 0 ? 'true' : 'false');
+      activeIndex = -1;
+    };
+
+    const chooseBrand = option => {
+      brandInput.value = option.dataset.brand;
+      closeSuggestions();
+      brandInput.focus();
+    };
+
+    brandInput.addEventListener('input', showMatches);
+    brandInput.addEventListener('focus', () => {
+      if (brandInput.value.trim()) showMatches();
+    });
+
+    options.forEach(option => {
+      option.addEventListener('mousedown', event => event.preventDefault());
+      option.addEventListener('click', () => chooseBrand(option));
+    });
+
+    brandInput.addEventListener('keydown', event => {
+      const visible = visibleOptions();
+      if (brandSuggestions.hidden || !visible.length) return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        activeIndex = event.key === 'ArrowDown'
+          ? (activeIndex + 1) % visible.length
+          : (activeIndex - 1 + visible.length) % visible.length;
+        visible.forEach(option => option.classList.remove('is-active'));
+        visible[activeIndex].classList.add('is-active');
+        visible[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (event.key === 'Enter' && activeIndex >= 0) {
+        event.preventDefault();
+        chooseBrand(visible[activeIndex]);
+      } else if (event.key === 'Escape') {
+        closeSuggestions();
+      }
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.brand-autocomplete')) closeSuggestions();
+    });
+  }
+
   const carouselItems = document.querySelectorAll('.carousel-item');
   
   carouselItems.forEach(item => {

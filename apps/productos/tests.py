@@ -10,6 +10,7 @@ from PIL import Image
 from apps.carrito.admin_forms import ProductoAdminForm
 from .models import Producto
 from .image_processing import remove_uniform_background
+from .views import catalog_season_options
 
 
 class ProductoImagenPersistenteTests(TestCase):
@@ -179,3 +180,8 @@ class ProductoImagenPersistenteTests(TestCase):
             ('Primavera', 'Primavera'),
             siguiente_formulario.fields['temporada'].choices,
         )
+
+        opciones_catalogo = catalog_season_options()
+        self.assertEqual(opciones_catalogo[:2], [('summer', 'SUMMER'), ('winter', 'WINTER')])
+        self.assertIn(('Primavera', 'PRIMAVERA'), opciones_catalogo)
+        self.assertIn(('Todo el año', 'TODO EL AÑO'), opciones_catalogo)

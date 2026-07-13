@@ -20,6 +20,12 @@
 <div style="max-width: 500px; margin: 0 auto;">
   <div style="background: var(--card); padding: 60px 40px; border-radius: 8px;">
     <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 30px; text-align: center;">Create Account</h2>
+
+    {% if request.session.pending_cart_item %}
+      <div style="background: #efe7dd; color: #000; padding: 14px 16px; margin-bottom: 20px; border: 1px solid #d6c8ba; border-radius: 4px; font-size: 14px;">
+        Crea tu cuenta. Al terminar agregaremos automáticamente el producto a tu carrito.
+      </div>
+    {% endif %}
     
     {% if messages %}
       {% for message in messages %}
@@ -93,7 +99,7 @@
       <p style="margin-bottom: 15px; font-size: 14px; color: #666;">
         Already have an account?
       </p>
-      <a href="{% url 'login' %}" style="color: #000; font-weight: 600; text-decoration: underline;">
+      <a href="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" style="color: #000; font-weight: 600; text-decoration: underline;">
         Sign in
       </a>
     </div>

@@ -10,6 +10,9 @@ from apps.productos.models import Producto
 import paypalrestsdk
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
+import json
+
+from .services import add_product_to_cart, save_pending_cart_item
 
 paypalrestsdk.configure({
     "mode": "sandbox",  # cambiar a "live" en producción
@@ -35,45 +38,53 @@ def ver_carrito(request):
 
 
 
-@login_required
 def agregar_al_carrito(request, producto_id):
-    if not request.user.is_authenticated:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'Debes iniciar sesión', 'redirect': '/usuarios/login/'})
-        return redirect('/usuarios/login/?next=' + request.path)
-
     producto = get_object_or_404(Producto, id=producto_id)
-    
-    # Validar stock
-    if not producto.validar_stock():
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'No hay stock disponible'})
-        messages.error(request, 'No hay stock disponible')
-        return redirect('ver_carrito')
 
-    carrito, created = Carrito.objects.get_or_create(usuario=request.user)
-
-    item, created = ItemCarrito.objects.get_or_create(
-        carrito=carrito,
-        producto=producto
-    )
-
-    if not created:
-        # Validar stock si se aumenta la cantidad
-        if not producto.validar_stock(item.cantidad + 1):
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'error': f'Stock insuficiente. Solo quedan {producto.stock} unidades'})
-            messages.error(request, f'Stock insuficiente. Solo quedan {producto.stock} unidades')
-        else:
-            item.cantidad += 1
-            item.save()
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'message': f'Se agregó otra unidad de {producto.nombre}'})
-            messages.success(request, f'Se agregó otra unidad de {producto.nombre} al carrito')
+    if request.content_type == 'application/json':
+        try:
+            payload = json.loads(request.body or '{}')
+        except (TypeError, ValueError, json.JSONDecodeError):
+            payload = {}
+        requested_quantity = payload.get('cantidad', 1)
     else:
+        requested_quantity = request.POST.get('cantidad', 1)
+
+    try:
+        requested_quantity = max(1, int(requested_quantity))
+    except (TypeError, ValueError):
+        requested_quantity = 1
+
+    if not request.user.is_authenticated:
+        if not producto.validar_stock(requested_quantity):
+            error = 'No hay stock suficiente para la cantidad solicitada.'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': error})
+            messages.error(request, error)
+            return redirect('detalle_producto', producto_id=producto.id)
+
+        save_pending_cart_item(request, producto.id, requested_quantity)
+        login_url = f"{reverse('login')}?next={reverse('ver_carrito')}"
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'message': f'{producto.nombre} agregado al carrito'})
-        messages.success(request, f'{producto.nombre} agregado al carrito')
+            return JsonResponse({
+                'success': False,
+                'error': 'Inicia sesión o crea una cuenta para agregar el producto.',
+                'redirect': login_url,
+            })
+        return redirect(login_url)
+
+    success, message = add_product_to_cart(
+        request.user,
+        producto.id,
+        requested_quantity,
+    )
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': success, 'message': message, 'error': None if success else message})
+
+    if success:
+        messages.success(request, message)
+    else:
+        messages.error(request, message)
 
     return redirect('ver_carrito')
 

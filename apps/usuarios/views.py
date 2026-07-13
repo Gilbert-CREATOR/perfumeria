@@ -7,6 +7,34 @@ from apps.productos.models import Favorito
 from .models import PerfilUsuario, Direccion
 from .forms import PerfilForm, DireccionForm
 from django.contrib import messages
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from apps.carrito.services import complete_pending_cart_item
+
+
+def finish_pending_cart(request):
+    result = complete_pending_cart_item(request)
+    if result is None:
+        return False
+
+    success, message = result
+    if success:
+        messages.success(request, message)
+    else:
+        messages.error(request, message)
+    return True
+
+
+def safe_next_url(request, default='/'):
+    next_url = request.GET.get('next') or default
+    if url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return default
 
 
 def login_usuario(request):
@@ -32,11 +60,14 @@ def login_usuario(request):
 
         if user:
             login(request, user)
+            has_pending_cart = finish_pending_cart(request)
             # Si el usuario es admin, redirigir al panel de administración
-            if user.is_staff or user.is_superuser:
+            if has_pending_cart:
+                next_url = reverse('ver_carrito')
+            elif user.is_staff or user.is_superuser:
                 next_url = '/admin/panel/'
             else:
-                next_url = request.GET.get('next', '/')
+                next_url = safe_next_url(request)
             messages.success(request, f'¡Bienvenido {user.username}!')
             return redirect(next_url)
         else:
@@ -86,8 +117,11 @@ def registro_usuario(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
+            has_pending_cart = finish_pending_cart(request)
             messages.success(request, f'¡Cuenta creada! Bienvenido {user.username}')
-            return redirect('/')
+            if has_pending_cart:
+                return redirect('ver_carrito')
+            return redirect(safe_next_url(request))
 
     return render(request, 'usuarios/register.html')
 

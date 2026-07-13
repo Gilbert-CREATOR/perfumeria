@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 from .forms import ResenaForm
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 def format_price(price):
     """Formatear precio para que sea más legible"""
@@ -45,6 +46,7 @@ def catalog_season_options():
 
     return discovered
 
+@ensure_csrf_cookie
 def catalogo(request):
     productos = Producto.objects.filter(disponible=True).prefetch_related('resenas').order_by('id')
 
@@ -173,6 +175,7 @@ def catalogo(request):
     }
     return render(request, 'catalogo/catalogo.html', context)
 
+@ensure_csrf_cookie
 def home(request):
     """Vista principal con productos destacados"""
     productos_destacados = Producto.objects.filter(disponible=True)[:6]
@@ -184,6 +187,7 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
+@ensure_csrf_cookie
 def detalle_producto(request, producto_id):
     producto = get_object_or_404(Producto.objects.prefetch_related('resenas__usuario'), id=producto_id)
     resenas = producto.resenas.select_related('usuario').order_by('-creado')

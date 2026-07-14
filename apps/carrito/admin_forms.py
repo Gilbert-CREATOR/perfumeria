@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.db import OperationalError, ProgrammingError
 from .models import Pedido, MetodoEnvio, Envio
 from apps.productos.models import Producto
-from apps.productos.image_processing import remove_uniform_background
+from apps.productos.image_processing import remove_uniform_background, validate_product_image
 
 
 class ProductoAdminForm(forms.ModelForm):
@@ -141,6 +141,13 @@ class ProductoAdminForm(forms.ModelForm):
             raise forms.ValidationError('La imagen no puede superar 5 MB.')
         if imagen and getattr(imagen, 'content_type', '').split('/')[0] != 'image':
             raise forms.ValidationError('Selecciona un archivo de imagen válido.')
+        if imagen:
+            try:
+                validate_product_image(imagen)
+            except (OSError, ValueError):
+                raise forms.ValidationError(
+                    'La imagen no es válida o sus dimensiones son demasiado grandes.'
+                )
         if imagen and self.data.get('quitar_fondo'):
             try:
                 imagen = remove_uniform_background(imagen)

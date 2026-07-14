@@ -9,7 +9,7 @@ from PIL import Image
 
 from apps.carrito.admin_forms import ProductoAdminForm
 from .models import Producto
-from .image_processing import remove_uniform_background
+from .image_processing import MAX_IMAGE_DIMENSION, remove_uniform_background
 from .views import catalog_season_options
 
 
@@ -144,6 +144,20 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertEqual(result.getpixel((0, 0))[3], 0)
         self.assertGreater(result.getpixel((20, 20))[3], 200)
         self.assertTrue(processed.name.endswith('_sin_fondo.png'))
+
+    def test_eliminador_redimensiona_imagen_grande_antes_de_guardarla(self):
+        source = Image.new('RGB', (1800, 1400), 'white')
+        source.paste((20, 90, 150), (650, 300, 1150, 1200))
+        buffer = BytesIO()
+        source.save(buffer, format='JPEG', quality=88)
+        upload = SimpleUploadedFile('grande.jpg', buffer.getvalue(), content_type='image/jpeg')
+
+        processed = remove_uniform_background(upload)
+        result = Image.open(processed).convert('RGBA')
+
+        self.assertLessEqual(max(result.size), MAX_IMAGE_DIMENSION)
+        self.assertEqual(result.getpixel((0, 0))[3], 0)
+        self.assertGreater(result.getpixel((result.width // 2, result.height // 2))[3], 200)
 
     def test_producto_puede_crearse_con_todos_los_campos_vacios(self):
         form = ProductoAdminForm(data={})

@@ -22,10 +22,6 @@
   </div>
 </section>
 
-<section class="catalog-toolbar">
-  <!-- TODO tu contenido igual -->
-</section>
-
 <section class="products-grid">
   {% for producto in productos_destacados %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">

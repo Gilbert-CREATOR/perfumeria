@@ -227,3 +227,18 @@ class AdminPanelViewsTests(TestCase):
         self.producto.refresh_from_db()
         self.assertEqual(self.producto.stock, 4)
         self.assertTrue(self.producto.disponible)
+
+    def test_admin_can_publish_a_product_with_zero_stock(self):
+        producto = Producto.objects.create(
+            nombre='Agotado visible',
+            stock=0,
+            disponible=False,
+        )
+
+        response = self.client.post(
+            reverse('admin_producto_toggle_disponibilidad', args=[producto.id]),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        producto.refresh_from_db()
+        self.assertTrue(producto.disponible)

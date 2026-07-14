@@ -120,8 +120,6 @@ class Producto(models.Model):
         """Descuenta stock si hay suficiente"""
         if self.validar_stock(cantidad):
             self.stock -= cantidad
-            if self.stock == 0:
-                self.disponible = False
             self.save()
             return True
         return False

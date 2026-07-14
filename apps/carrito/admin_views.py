@@ -209,13 +209,10 @@ def admin_producto_toggle_disponibilidad(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
 
     if request.method == 'POST':
-        if not producto.disponible and producto.stock <= 0:
-            messages.warning(request, f'No puedes activar "{producto.nombre}" con stock en 0.')
-        else:
-            producto.disponible = not producto.disponible
-            producto.save(update_fields=['disponible'])
-            estado = 'activo' if producto.disponible else 'inactivo'
-            messages.success(request, f'"{producto.nombre}" ahora está {estado}.')
+        producto.disponible = not producto.disponible
+        producto.save(update_fields=['disponible'])
+        estado = 'activo' if producto.disponible else 'inactivo'
+        messages.success(request, f'"{producto.nombre}" ahora está {estado}.')
 
     return redirect('admin_productos')
 
@@ -412,21 +409,16 @@ def admin_productos_stock(request):
                     messages.error(request, 'El stock no puede ser negativo.')
                 else:
                     producto.stock = nuevo_stock
-                    if nuevo_stock == 0:
-                        producto.disponible = False
-                    elif 'disponible' in request.POST:
+                    if 'disponible' in request.POST:
                         producto.disponible = parse_bool(request.POST.get('disponible'))
                     producto.save()
                     messages.success(request, f'Stock de "{producto.nombre}" actualizado.')
 
         elif accion == 'toggle_disponibilidad':
-            if not producto.disponible and producto.stock <= 0:
-                messages.warning(request, f'No puedes activar "{producto.nombre}" con stock en 0.')
-            else:
-                producto.disponible = not producto.disponible
-                producto.save(update_fields=['disponible'])
-                estado_producto = 'activo' if producto.disponible else 'inactivo'
-                messages.success(request, f'"{producto.nombre}" ahora está {estado_producto}.')
+            producto.disponible = not producto.disponible
+            producto.save(update_fields=['disponible'])
+            estado_producto = 'activo' if producto.disponible else 'inactivo'
+            messages.success(request, f'"{producto.nombre}" ahora está {estado_producto}.')
 
         return redirect('admin_stock')
 

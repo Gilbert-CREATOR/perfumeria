@@ -174,6 +174,36 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertEqual(producto.temporada, [])
         self.assertFalse(producto.disponible)
 
+    def test_producto_agotado_puede_seguir_publicado_en_catalogo(self):
+        form = ProductoAdminForm(
+            data={
+                'nombre': 'One Million Elixir',
+                'stock': 0,
+                'disponible': True,
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        producto = form.save()
+
+        self.assertEqual(producto.stock, 0)
+        self.assertTrue(producto.disponible)
+        self.assertTrue(Producto.objects.filter(disponible=True, pk=producto.pk).exists())
+
+    def test_ultima_unidad_agota_pero_no_oculta_el_producto(self):
+        producto = Producto.objects.create(
+            nombre='Última unidad',
+            stock=1,
+            disponible=True,
+        )
+
+        self.assertTrue(producto.descontar_stock(1))
+        producto.refresh_from_db()
+
+        self.assertEqual(producto.stock, 0)
+        self.assertTrue(producto.disponible)
+        self.assertFalse(producto.validar_stock(1))
+
     def test_formulario_crea_y_reutiliza_tipo_y_temporadas_personalizadas(self):
         form = ProductoAdminForm(
             data={

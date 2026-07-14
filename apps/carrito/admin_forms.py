@@ -203,8 +203,6 @@ class ProductoAdminForm(forms.ModelForm):
                 'imagen',
                 'No puedes subir y eliminar una imagen al mismo tiempo. Elige una opción.',
             )
-        if cleaned_data.get('stock', 0) == 0:
-            cleaned_data['disponible'] = False
         return cleaned_data
 
 

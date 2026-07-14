@@ -154,6 +154,37 @@ function comprarPorWhatsApp(nombre, precio, stock) {
 
 // Carrusel functionality
 document.addEventListener('DOMContentLoaded', function() {
+  const catalogControls = Array.from(document.querySelectorAll('.catalog-control'));
+
+  catalogControls.forEach(control => {
+    const summary = control.querySelector(':scope > summary');
+    if (!summary) return;
+
+    const syncExpandedState = () => {
+      summary.setAttribute('aria-expanded', control.open ? 'true' : 'false');
+    };
+
+    summary.addEventListener('click', event => {
+      event.preventDefault();
+      const shouldOpen = !control.open;
+
+      catalogControls.forEach(otherControl => {
+        if (otherControl !== control) otherControl.open = false;
+      });
+
+      control.open = shouldOpen;
+      catalogControls.forEach(otherControl => {
+        const otherSummary = otherControl.querySelector(':scope > summary');
+        if (otherSummary) {
+          otherSummary.setAttribute('aria-expanded', otherControl.open ? 'true' : 'false');
+        }
+      });
+    });
+
+    control.addEventListener('toggle', syncExpandedState);
+    syncExpandedState();
+  });
+
   const brandInput = document.getElementById('brandFilterInput');
   const brandSuggestions = document.getElementById('brandSuggestions');
 

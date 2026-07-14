@@ -175,6 +175,7 @@ img { display: block; max-width: 100%; }
   min-height: 650px;
   padding: 52px 30px 20px;
   background: var(--card);
+  border-radius: 18px;
   text-align: center;
   display: flex;
   flex-direction: column;

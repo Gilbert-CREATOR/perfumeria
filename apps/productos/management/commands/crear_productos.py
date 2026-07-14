@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 50,
                 'disponible': True,
-                'temporada': ['summer', 'day'],
+                'temporada': ['verano', 'dia'],
             },
             {
                 'nombre': 'Noche Misteriosa',
@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 30,
                 'disponible': True,
-                'temporada': ['night', 'winter'],
+                'temporada': ['invierno', 'noche'],
             },
             {
                 'nombre': 'Urban Spirit',
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 45,
                 'disponible': True,
-                'temporada': ['day'],
+                'temporada': ['dia'],
             },
             {
                 'nombre': 'Power Elite',
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 25,
                 'disponible': True,
-                'temporada': ['special', 'night'],
+                'temporada': ['otono', 'noche'],
             },
             {
                 'nombre': 'Free Soul',
@@ -72,7 +72,7 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 40,
                 'disponible': True,
-                'temporada': ['day'],
+                'temporada': ['dia'],
             },
             {
                 'nombre': 'Crystal Waters',
@@ -83,7 +83,7 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 35,
                 'disponible': True,
-                'temporada': ['summer', 'day'],
+                'temporada': ['verano', 'dia'],
             },
             {
                 'nombre': 'Silk Body Lotion',
@@ -94,7 +94,7 @@ class Command(BaseCommand):
                 'tamano_ml': 200,
                 'stock': 60,
                 'disponible': True,
-                'temporada': ['day'],
+                'temporada': ['dia'],
             },
             {
                 'nombre': 'Golden Shower Gel',
@@ -105,7 +105,7 @@ class Command(BaseCommand):
                 'tamano_ml': 250,
                 'stock': 80,
                 'disponible': True,
-                'temporada': ['summer'],
+                'temporada': ['verano'],
             },
         ]
         

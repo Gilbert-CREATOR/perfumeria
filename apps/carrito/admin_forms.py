@@ -22,21 +22,12 @@ class ProductoAdminForm(forms.ModelForm):
         label='Quitar fondo uniforme automáticamente',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
     )
-    temporada = forms.MultipleChoiceField(
-        required=False,
-        choices=(),
-        label='Temporadas',
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'admin-season-checkbox'}),
-    )
-    nueva_temporada = forms.CharField(
-        required=False,
-        max_length=200,
-        label='Agregar temporadas nuevas',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Ej.: Primavera, Todo el año',
-        }),
-    )
+    porcentaje_invierno = forms.IntegerField(required=False, min_value=0, max_value=100, initial=0)
+    porcentaje_primavera = forms.IntegerField(required=False, min_value=0, max_value=100, initial=0)
+    porcentaje_verano = forms.IntegerField(required=False, min_value=0, max_value=100, initial=0)
+    porcentaje_otono = forms.IntegerField(required=False, min_value=0, max_value=100, initial=0)
+    porcentaje_dia = forms.IntegerField(required=False, min_value=0, max_value=100, initial=0)
+    porcentaje_noche = forms.IntegerField(required=False, min_value=0, max_value=100, initial=0)
     tipo = forms.ChoiceField(
         required=False,
         choices=(),
@@ -65,7 +56,6 @@ class ProductoAdminForm(forms.ModelForm):
             'tamano_ml',
             'stock',
             'disponible',
-            'temporada',
         ]
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
@@ -81,7 +71,6 @@ class ProductoAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         type_choices = list(Producto.TIPO_CHOICES)
-        season_choices = list(Producto.TEMPORADA_CHOICES)
 
         # Las opciones creadas desde productos anteriores vuelven a aparecer
         # automáticamente en el formulario para poder reutilizarlas.
@@ -93,20 +82,27 @@ class ProductoAdminForm(forms.ModelForm):
                     type_choices.append((value, value))
                     type_values.add(value)
 
-            season_values = {value for value, _label in season_choices}
-            for values in Producto.objects.values_list('temporada', flat=True):
-                if isinstance(values, str):
-                    values = [values]
-                for value in values or []:
-                    if value and value not in season_values:
-                        season_choices.append((value, value))
-                        season_values.add(value)
         except (OperationalError, ProgrammingError):
             # Permite cargar el formulario mientras se crean las migraciones.
             pass
 
         self.fields['tipo'].choices = [('', 'Sin tipo')] + type_choices
-        self.fields['temporada'].choices = season_choices
+
+        porcentajes = self.instance.temporada_porcentajes or {} if self.instance else {}
+        temporadas_anteriores = self.instance.temporada or [] if self.instance else []
+        for valor, _etiqueta in Producto.TEMPORADA_CHOICES:
+            nombre_campo = f'porcentaje_{valor}'
+            self.fields[nombre_campo].widget = forms.NumberInput(attrs={
+                'class': 'form-control admin-season-number',
+                'min': '0',
+                'max': '100',
+                'step': '1',
+                'inputmode': 'numeric',
+            })
+            self.fields[nombre_campo].initial = porcentajes.get(
+                valor,
+                100 if valor in temporadas_anteriores else 0,
+            )
 
         # En productos nuevos se elimina el fondo por defecto. Al editar uno
         # existente, el administrador debe marcarlo para reprocesar la imagen
@@ -157,6 +153,8 @@ class ProductoAdminForm(forms.ModelForm):
 
     def save(self, commit=True):
         producto = super().save(commit=False)
+        producto.temporada = self.cleaned_data.get('temporada', [])
+        producto.temporada_porcentajes = self.cleaned_data.get('temporada_porcentajes', {})
         imagen = self.cleaned_data.get('imagen')
         imagen_nueva = imagen and not getattr(imagen, '_committed', False)
 
@@ -188,13 +186,15 @@ class ProductoAdminForm(forms.ModelForm):
         if nuevo_tipo:
             cleaned_data['tipo'] = nuevo_tipo
 
-        temporadas = list(cleaned_data.get('temporada') or [])
-        nuevas_temporadas = (cleaned_data.get('nueva_temporada') or '').split(',')
-        for temporada in nuevas_temporadas:
-            temporada = temporada.strip()
-            if temporada and temporada not in temporadas:
-                temporadas.append(temporada)
+        porcentajes = {}
+        temporadas = []
+        for valor, _etiqueta in Producto.TEMPORADA_CHOICES:
+            porcentaje = cleaned_data.get(f'porcentaje_{valor}') or 0
+            porcentajes[valor] = porcentaje
+            if porcentaje > 0:
+                temporadas.append(valor)
         cleaned_data['temporada'] = temporadas
+        cleaned_data['temporada_porcentajes'] = porcentajes
 
         imagen = cleaned_data.get('imagen')
         imagen_nueva = imagen and not getattr(imagen, '_committed', False)

@@ -18,11 +18,12 @@ class Producto(models.Model):
     ]
     
     TEMPORADA_CHOICES = [
-        ('summer', 'Summer'),
-        ('winter', 'Winter'),
-        ('night', 'Night'),
-        ('day', 'Day'),
-        ('special', 'Special'),
+        ('invierno', 'Invierno'),
+        ('primavera', 'Primavera'),
+        ('verano', 'Verano'),
+        ('otono', 'Otoño'),
+        ('dia', 'Día'),
+        ('noche', 'Noche'),
     ]
     
     nombre = models.CharField(max_length=200, blank=True, default='')
@@ -40,6 +41,7 @@ class Producto(models.Model):
     stock = models.IntegerField(blank=True, default=0)
     disponible = models.BooleanField(default=True)
     temporada = models.JSONField(default=list, blank=True)
+    temporada_porcentajes = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return self.nombre or f'Producto #{self.pk or "nuevo"}'
@@ -54,6 +56,28 @@ class Producto(models.Model):
             values = [values]
         labels = dict(self.TEMPORADA_CHOICES)
         return ', '.join(labels.get(value, value) for value in values)
+
+    @property
+    def temporadas_visual(self):
+        """Temporadas en orden fijo con un porcentaje seguro de 0 a 100."""
+        porcentajes = self.temporada_porcentajes or {}
+        temporadas_activas = self.temporada or []
+        if isinstance(temporadas_activas, str):
+            temporadas_activas = [temporadas_activas]
+
+        resultado = []
+        for valor, etiqueta in self.TEMPORADA_CHOICES:
+            porcentaje = porcentajes.get(valor, 100 if valor in temporadas_activas else 0)
+            try:
+                porcentaje = int(porcentaje)
+            except (TypeError, ValueError):
+                porcentaje = 0
+            resultado.append({
+                'valor': valor,
+                'etiqueta': etiqueta,
+                'porcentaje': max(0, min(100, porcentaje)),
+            })
+        return resultado
 
     def save(self, *args, **kwargs):
         # Mantener el formato nuevo incluso si algún comando o integración

@@ -19,7 +19,8 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 30,
                 'disponible': True,
-                'temporada': ['day'],
+                'temporada': ['dia'],
+                'temporada_porcentajes': {'dia': 100},
             },
             {
                 'nombre': 'Versace Eros',
@@ -30,7 +31,8 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 25,
                 'disponible': True,
-                'temporada': ['night'],
+                'temporada': ['noche'],
+                'temporada_porcentajes': {'noche': 100},
             },
             {
                 'nombre': 'Stallion 53',
@@ -41,7 +43,8 @@ class Command(BaseCommand):
                 'tamano_ml': 100,
                 'stock': 20,
                 'disponible': True,
-                'temporada': ['special'],
+                'temporada': ['otono'],
+                'temporada_porcentajes': {'otono': 100},
             },
         ]
         

@@ -31,7 +31,8 @@ class ProductoImagenPersistenteTests(TestCase):
                 'tamano_ml': 100,
                 'stock': 2,
                 'disponible': True,
-                'temporada': ['summer', 'special'],
+                'porcentaje_verano': 80,
+                'porcentaje_otono': 45,
             },
             files={'imagen': imagen},
         )
@@ -40,8 +41,9 @@ class ProductoImagenPersistenteTests(TestCase):
         producto.refresh_from_db()
 
         self.assertTrue(producto.imagen_base64)
-        self.assertEqual(producto.temporada, ['summer', 'special'])
-        self.assertEqual(producto.get_temporada_display(), 'Summer, Special')
+        self.assertEqual(producto.temporada, ['verano', 'otono'])
+        self.assertEqual(producto.temporada_porcentajes['verano'], 80)
+        self.assertEqual(producto.get_temporada_display(), 'Verano, Otoño')
         self.assertIn('?v=', producto.imagen_url_property)
         response = self.client.get(reverse('producto_imagen', args=[producto.id]))
         self.assertEqual(response.status_code, 200)
@@ -61,7 +63,8 @@ class ProductoImagenPersistenteTests(TestCase):
             tamano_ml=100,
             stock=2,
             disponible=True,
-            temporada=['special'],
+            temporada=['otono'],
+            temporada_porcentajes={'otono': 70},
         )
         form = ProductoAdminForm(
             data={
@@ -73,7 +76,7 @@ class ProductoImagenPersistenteTests(TestCase):
                 'tamano_ml': producto.tamano_ml,
                 'stock': producto.stock,
                 'disponible': True,
-                'temporada': producto.temporada,
+                'porcentaje_otono': 70,
                 'eliminar_imagen': True,
             },
             instance=producto,
@@ -104,7 +107,8 @@ class ProductoImagenPersistenteTests(TestCase):
             tamano_ml=100,
             stock=2,
             disponible=True,
-            temporada=['summer', 'day'],
+            temporada=['verano', 'dia'],
+            temporada_porcentajes={'verano': 65, 'dia': 90},
         )
         form = ProductoAdminForm(
             data={
@@ -116,7 +120,8 @@ class ProductoImagenPersistenteTests(TestCase):
                 'tamano_ml': producto.tamano_ml,
                 'stock': producto.stock,
                 'disponible': True,
-                'temporada': producto.temporada,
+                'porcentaje_verano': 65,
+                'porcentaje_dia': 90,
                 'quitar_fondo': True,
             },
             instance=producto,
@@ -172,6 +177,14 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertEqual(producto.tamano_ml, 0)
         self.assertEqual(producto.stock, 0)
         self.assertEqual(producto.temporada, [])
+        self.assertEqual(producto.temporada_porcentajes, {
+            'invierno': 0,
+            'primavera': 0,
+            'verano': 0,
+            'otono': 0,
+            'dia': 0,
+            'noche': 0,
+        })
         self.assertFalse(producto.disponible)
 
     def test_producto_agotado_puede_seguir_publicado_en_catalogo(self):
@@ -204,28 +217,45 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertTrue(producto.disponible)
         self.assertFalse(producto.validar_stock(1))
 
-    def test_formulario_crea_y_reutiliza_tipo_y_temporadas_personalizadas(self):
+    def test_formulario_guarda_tipo_nuevo_y_porcentajes_de_temporada(self):
         form = ProductoAdminForm(
             data={
                 'nombre': 'Serum facial',
                 'nuevo_tipo': 'Serum',
-                'nueva_temporada': 'Primavera, Todo el año',
+                'porcentaje_primavera': 75,
+                'porcentaje_dia': 30,
             }
         )
 
         self.assertTrue(form.is_valid(), form.errors)
         producto = form.save()
         self.assertEqual(producto.tipo, 'Serum')
-        self.assertEqual(producto.temporada, ['Primavera', 'Todo el año'])
+        self.assertEqual(producto.temporada, ['primavera', 'dia'])
+        self.assertEqual(producto.temporada_porcentajes['primavera'], 75)
+        self.assertEqual(producto.temporada_porcentajes['dia'], 30)
 
         siguiente_formulario = ProductoAdminForm()
         self.assertIn(('Serum', 'Serum'), siguiente_formulario.fields['tipo'].choices)
-        self.assertIn(
-            ('Primavera', 'Primavera'),
-            siguiente_formulario.fields['temporada'].choices,
+        opciones_catalogo = catalog_season_options()
+        self.assertEqual(opciones_catalogo, [
+            ('invierno', 'INVIERNO'),
+            ('primavera', 'PRIMAVERA'),
+            ('verano', 'VERANO'),
+            ('otono', 'OTOÑO'),
+            ('dia', 'DÍA'),
+            ('noche', 'NOCHE'),
+        ])
+
+    def test_metricas_visuales_mantienen_orden_y_porcentajes_seguros(self):
+        producto = Producto(
+            temporada=['invierno', 'noche'],
+            temporada_porcentajes={'invierno': 50, 'noche': 150},
         )
 
-        opciones_catalogo = catalog_season_options()
-        self.assertEqual(opciones_catalogo[:2], [('summer', 'SUMMER'), ('winter', 'WINTER')])
-        self.assertIn(('Primavera', 'PRIMAVERA'), opciones_catalogo)
-        self.assertIn(('Todo el año', 'TODO EL AÑO'), opciones_catalogo)
+        metricas = producto.temporadas_visual
+
+        self.assertEqual([item['etiqueta'] for item in metricas], [
+            'Invierno', 'Primavera', 'Verano', 'Otoño', 'Día', 'Noche',
+        ])
+        self.assertEqual(metricas[0]['porcentaje'], 50)
+        self.assertEqual(metricas[-1]['porcentaje'], 100)

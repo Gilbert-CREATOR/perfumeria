@@ -19,32 +19,8 @@ def format_price(price):
 
 
 def catalog_season_options():
-    """Devuelve temporadas adicionales, incluidas las creadas desde el panel."""
-    fixed_values = {'special', 'day', 'night'}
-    labels = dict(Producto.TEMPORADA_CHOICES)
-    discovered = []
-    seen = set(fixed_values)
-
-    # Primero muestra las temporadas estándar restantes y luego las creadas
-    # por el administrador, manteniendo un orden estable.
-    for value, label in Producto.TEMPORADA_CHOICES:
-        if value not in seen:
-            discovered.append((value, label.upper()))
-            seen.add(value)
-
-    custom_values = []
-    for values in Producto.objects.values_list('temporada', flat=True):
-        if isinstance(values, str):
-            values = [values]
-        for value in values or []:
-            if value and value not in seen:
-                custom_values.append(value)
-                seen.add(value)
-
-    for value in sorted(custom_values, key=str.casefold):
-        discovered.append((value, labels.get(value, value).upper()))
-
-    return discovered
+    """Devuelve las seis temporadas oficiales en su orden visual."""
+    return [(value, label.upper()) for value, label in Producto.TEMPORADA_CHOICES]
 
 @ensure_csrf_cookie
 def catalogo(request):
@@ -82,12 +58,12 @@ def catalogo(request):
         notas_array = notas.split(',')
         # Mapear notas a tipos/temporadas
         notas_mapping = {
-            'citrico': ['summer', 'day'],
-            'floral': ['special', 'day'],
-            'madera': ['winter', 'night'],
-            'oriental': ['night', 'special'],
-            'fresco': ['day', 'summer'],
-            'dulce': ['special']
+            'citrico': ['verano', 'dia'],
+            'floral': ['primavera', 'dia'],
+            'madera': ['invierno', 'noche'],
+            'oriental': ['noche', 'otono'],
+            'fresco': ['dia', 'verano'],
+            'dulce': ['otono', 'noche']
         }
         
         notas_filter = Q()
@@ -115,12 +91,12 @@ def catalogo(request):
     if ocasion:
         ocasiones_array = ocasion.split(',')
         ocasion_mapping = {
-            'diario': ['day'],
-            'trabajo': ['day'],
-            'noche': ['night'],
-            'especial': ['special'],
-            'romantico': ['night', 'special'],
-            'deportivo': ['day', 'summer']
+            'diario': ['dia'],
+            'trabajo': ['dia'],
+            'noche': ['noche'],
+            'especial': ['otono', 'noche'],
+            'romantico': ['noche', 'primavera'],
+            'deportivo': ['dia', 'verano']
         }
         
         ocasion_filter = Q()
@@ -155,11 +131,11 @@ def catalogo(request):
         .order_by('marca')
     )
 
-    temporadas_extra = catalog_season_options()
+    temporadas_catalogo = catalog_season_options()
     
     # 📊 CONTADORES POR TEMPORADA
     temporada_contadores = {}
-    for temporada in ['summer', 'winter', 'night', 'day', 'special']:
+    for temporada, _label in Producto.TEMPORADA_CHOICES:
         temporada_contadores[temporada] = Producto.objects.filter(
             temporada__contains=[temporada],
             disponible=True
@@ -169,7 +145,7 @@ def catalogo(request):
         'productos': productos,
         'paginator': paginator,
         'marcas': marcas,
-        'temporadas_extra': temporadas_extra,
+        'temporadas_catalogo': temporadas_catalogo,
         'total_productos': paginator.count,
         'temporada_contadores': temporada_contadores,
     }

@@ -53,12 +53,22 @@
             <div class="form-text">Si escribes uno nuevo, tendrá prioridad sobre la selección.</div>
         </div>
 
-        <div>
-            <label class="form-label">Temporadas</label>
-            {{ form.temporada }}
-            <label class="form-label mt-3" for="{{ form.nueva_temporada.id_for_label }}">Agregar temporadas nuevas</label>
-            {{ form.nueva_temporada }}
-            <div class="form-text">Puedes separar varias con comas. Todos estos campos son opcionales.</div>
+        <div class="admin-form-span-2">
+            <label class="form-label">Porcentaje por temporada</label>
+            <div class="admin-season-percentages">
+                <label><span>Invierno</span><span class="admin-season-input">{{ form.porcentaje_invierno }}<b>%</b></span></label>
+                <label><span>Primavera</span><span class="admin-season-input">{{ form.porcentaje_primavera }}<b>%</b></span></label>
+                <label><span>Verano</span><span class="admin-season-input">{{ form.porcentaje_verano }}<b>%</b></span></label>
+                <label><span>Otoño</span><span class="admin-season-input">{{ form.porcentaje_otono }}<b>%</b></span></label>
+                <label><span>Día</span><span class="admin-season-input">{{ form.porcentaje_dia }}<b>%</b></span></label>
+                <label><span>Noche</span><span class="admin-season-input">{{ form.porcentaje_noche }}<b>%</b></span></label>
+            </div>
+            <div class="form-text">Indica de 0 a 100 cuánto corresponde el producto a cada temporada.</div>
+            {% for field in form %}
+                {% if field.name|slice:":11" == "porcentaje_" and field.errors %}
+                    <div class="text-danger small mt-1">{{ field.label }}: {{ field.errors|join:", " }}</div>
+                {% endif %}
+            {% endfor %}
         </div>
 
         <div>

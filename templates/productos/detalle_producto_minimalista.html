@@ -82,6 +82,99 @@
     flex: 1;
 }
 
+.season-profile {
+    display: grid;
+    gap: 18px;
+}
+
+.season-profile-title {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+.season-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(76px, 1fr));
+    gap: 22px 14px;
+}
+
+.season-meter {
+    --season-color: #A31523;
+    display: grid;
+    justify-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.season-meter--invierno { --season-color: #61c8e7; }
+.season-meter--primavera { --season-color: #d8769d; }
+.season-meter--verano { --season-color: #efb52f; }
+.season-meter--otono { --season-color: #b96f35; }
+.season-meter--dia { --season-color: #e3a11d; }
+.season-meter--noche { --season-color: #6768a9; }
+
+.season-icon {
+    position: relative;
+    width: 58px;
+    height: 58px;
+}
+
+.season-icon > svg,
+.season-icon-fill svg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 58px;
+    height: 58px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.65;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.season-icon > svg {
+    color: #c8c3bc;
+}
+
+.season-icon-fill {
+    position: absolute;
+    inset: auto 0 0;
+    height: var(--season-fill);
+    overflow: hidden;
+    color: var(--season-color);
+    transition: height 700ms cubic-bezier(.2, .75, .25, 1);
+}
+
+.season-icon-fill svg {
+    stroke-width: 2.25;
+}
+
+.season-percentage {
+    color: var(--season-color);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.season-name {
+    color: #000;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-align: center;
+}
+
+.season-symbols {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
 .product-actions {
     display: flex;
     gap: 16px;
@@ -217,6 +310,10 @@
     .add-to-cart-btn {
         width: 100%;
     }
+
+    .season-grid {
+        grid-template-columns: repeat(3, minmax(72px, 1fr));
+    }
 }
 
 @media (max-width: 480px) {
@@ -330,10 +427,6 @@
                 <span class="value">{{ producto.tamano_ml }}ml</span>
             </li>
             <li>
-                <span class="label">Temporada:</span>
-                <span class="value">{{ producto.get_temporada_display|default:"Todas" }}</span>
-            </li>
-            <li>
                 <span class="label">Disponibilidad:</span>
                 <span class="value">
                     {% if producto.stock > 0 %}
@@ -348,6 +441,45 @@
                 </span>
             </li>
         </ul>
+
+        <svg class="season-symbols" aria-hidden="true" focusable="false">
+            <symbol id="season-invierno" viewBox="0 0 24 24">
+                <path d="M12 2v20M4.9 6.1l14.2 11.8M4.9 17.9 19.1 6.1M9 3.8l3 2.1 3-2.1M9 20.2l3-2.1 3 2.1M3.8 9l2.1 3-2.1 3M20.2 9l-2.1 3 2.1 3"/>
+            </symbol>
+            <symbol id="season-primavera" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="2.4"/><path d="M12 9.6C8.8 8.3 8.8 3.5 12 2c3.2 1.5 3.2 6.3 0 7.6ZM14.1 10.8c1.3-3.2 6.1-3.2 7.6 0-1.5 3.2-6.3 3.2-7.6 0ZM13.3 14c3.2 1.3 3.2 6.1 0 7.6-3.2-1.5-3.2-6.3 0-7.6ZM9.9 13.2c-1.3 3.2-6.1 3.2-7.6 0 1.5-3.2 6.3-3.2 7.6 0Z"/>
+            </symbol>
+            <symbol id="season-verano" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4.2"/><path d="M12 1.8v2.1M12 20.1v2.1M1.8 12h2.1M20.1 12h2.1M4.8 4.8l1.5 1.5M17.7 17.7l1.5 1.5M19.2 4.8l-1.5 1.5M6.3 17.7l-1.5 1.5"/>
+            </symbol>
+            <symbol id="season-otono" viewBox="0 0 24 24">
+                <path d="M20.8 3.2C13.2 3 6.1 5.9 4 11.2c-1.7 4.3.9 7.6 4.8 7.6 6.5 0 10.4-7.2 12-15.6Z"/><path d="M4.2 20.8c2.8-5.7 7.2-9.7 13.2-12.5M9.1 15.2l-.2-4.1M12.5 12.2l4 .1"/>
+            </symbol>
+            <symbol id="season-dia" viewBox="0 0 24 24">
+                <path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 3v3M3.8 9.2l2.1 1.2M20.2 9.2l-2.1 1.2M6.4 5.8l1.5 1.5M17.6 5.8l-1.5 1.5"/>
+            </symbol>
+            <symbol id="season-noche" viewBox="0 0 24 24">
+                <path d="M20.7 15.2A8.6 8.6 0 0 1 8.8 3.3 9 9 0 1 0 20.7 15.2Z"/><path d="m17.7 3.2.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5.5-1.3Z"/>
+            </symbol>
+        </svg>
+
+        <section class="season-profile" aria-labelledby="seasonProfileTitle">
+            <h2 class="season-profile-title" id="seasonProfileTitle">TEMPORADAS</h2>
+            <div class="season-grid">
+                {% for temporada in producto.temporadas_visual %}
+                    <div class="season-meter season-meter--{{ temporada.valor }}">
+                        <div class="season-icon" style="--season-fill: {{ temporada.porcentaje }}%;" aria-label="{{ temporada.etiqueta }}: {{ temporada.porcentaje }} por ciento">
+                            <svg aria-hidden="true"><use href="#season-{{ temporada.valor }}"></use></svg>
+                            <span class="season-icon-fill" aria-hidden="true">
+                                <svg><use href="#season-{{ temporada.valor }}"></use></svg>
+                            </span>
+                        </div>
+                        <span class="season-percentage">{{ temporada.porcentaje }}%</span>
+                        <span class="season-name">{{ temporada.etiqueta|upper }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
         
         <!-- Selector de Cantidad y Botón -->
         <div>

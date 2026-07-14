@@ -18,17 +18,10 @@
   <nav class="hero-links" aria-label="Filter by season">
     <div class="hero-links-primary">
       <a href="{% url 'catalogo' %}"{% if not request.GET.temporada %} class="active"{% endif %}>ALL</a>
-      <a href="{% url 'catalogo' %}?temporada=special"{% if request.GET.temporada == 'special' %} class="active"{% endif %}>NEW COLLECTION</a>
-      <a href="{% url 'catalogo' %}?temporada=day"{% if request.GET.temporada == 'day' %} class="active"{% endif %}>FOR DAY</a>
-      <a href="{% url 'catalogo' %}?temporada=night"{% if request.GET.temporada == 'night' %} class="active"{% endif %}>FOR NIGHT</a>
+      {% for temporada_value, temporada_label in temporadas_catalogo %}
+        <a href="{% url 'catalogo' %}?temporada={{ temporada_value }}"{% if request.GET.temporada == temporada_value %} class="active"{% endif %}>{{ temporada_label }}</a>
+      {% endfor %}
     </div>
-    {% if temporadas_extra %}
-      <div class="hero-links-extra">
-        {% for temporada_value, temporada_label in temporadas_extra %}
-          <a href="{% url 'catalogo' %}?temporada={{ temporada_value|urlencode }}"{% if request.GET.temporada == temporada_value %} class="active"{% endif %}>{{ temporada_label }}</a>
-        {% endfor %}
-      </div>
-    {% endif %}
   </nav>
 </section>
 

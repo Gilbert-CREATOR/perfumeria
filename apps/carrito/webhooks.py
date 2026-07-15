@@ -105,14 +105,17 @@ def handle_payment_denied(resource):
             pedido_id = int(custom_id)
             pedido = get_object_or_404(Pedido, id=pedido_id)
             
-            # Marcar como cancelado
-            pedido.estado = 'cancelado'
-            pedido.save()
-            
-            # Devolver stock
-            for item in pedido.items.all():
-                item.producto.stock += item.cantidad
-                item.producto.save()
+            if pedido.estado != 'cancelado':
+                pedido.estado = 'cancelado'
+                pedido.save(update_fields=['estado'])
+
+                # Devolver stock una sola vez, aunque PayPal repita el webhook.
+                for item in pedido.items.select_related('producto'):
+                    item.producto.stock += item.cantidad
+                    item.producto.save(update_fields=['stock'])
+
+                from .emails import enviar_email_pago_rechazado
+                enviar_email_pago_rechazado(pedido, resource.get('reason_code') or 'El procesador de pago rechazó la operación.')
             
             print(f"❌ Pedido #{pedido.id} CANCELADO - Pago denegado")
             
@@ -147,9 +150,11 @@ def handle_payment_refunded(resource):
             pedido_id = int(custom_id)
             pedido = get_object_or_404(Pedido, id=pedido_id)
             
-            # Marcar como reembolsado
-            pedido.estado = 'cancelado'
-            pedido.save()
+            if pedido.estado != 'cancelado':
+                pedido.estado = 'cancelado'
+                pedido.save(update_fields=['estado'])
+                from .emails import enviar_email_cancelacion_reembolso
+                enviar_email_cancelacion_reembolso(pedido, reembolsado=True)
             
             print(f"💰 Pedido #{pedido.id} REEMBOLSADO")
             

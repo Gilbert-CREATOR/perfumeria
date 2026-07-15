@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import user_passes_test
 import json
 
 from .services import add_product_to_cart, save_pending_cart_item
+from .recommendations import productos_recomendados_por_temporada
 
 paypalrestsdk.configure({
     "mode": "sandbox",  # cambiar a "live" en producción
@@ -28,12 +29,14 @@ def ver_carrito(request):
 
     carrito, created = Carrito.objects.get_or_create(usuario=request.user)
 
-    items = carrito.items.select_related('producto').all()
+    items = list(carrito.items.select_related('producto').all())
     total = sum(item.subtotal() for item in items)
+    productos_relacionados = productos_recomendados_por_temporada(items)
 
     return render(request, 'carrito/carrito.html', {
         'productos': items,
-        'total': total
+        'total': total,
+        'productos_relacionados': productos_relacionados,
     })
 
 

@@ -5,12 +5,43 @@ from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from PIL import Image
 
 from apps.carrito.admin_forms import ProductoAdminForm
-from .models import Producto
+from apps.carrito.models import ItemPedido, Pedido
+from .models import AlertaStock, Producto, Resena
 from .image_processing import MAX_IMAGE_DIMENSION, remove_uniform_background
 from .views import catalog_season_options, sort_catalog_products
+
+
+class AlertasYResenasTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='comprador', email='comprador@example.com', password='clave-segura-123'
+        )
+        self.producto = Producto.objects.create(
+            nombre='Fragancia agotada', precio='1900.00', stock=0, disponible=True,
+        )
+        self.client.force_login(self.user)
+
+    def test_cliente_puede_activar_alerta_de_stock(self):
+        response = self.client.post(reverse('crear_alerta_stock', args=[self.producto.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(AlertaStock.objects.filter(usuario=self.user, producto=self.producto).exists())
+
+    def test_solo_comprador_con_pedido_entregado_puede_resenar(self):
+        pedido = Pedido.objects.create(usuario=self.user, total='1900.00', estado='entregado')
+        ItemPedido.objects.create(
+            pedido=pedido, producto=self.producto, cantidad=1, precio='1900.00'
+        )
+        response = self.client.post(reverse('crear_resena', args=[self.producto.id]), {
+            'estrellas': 5, 'comentario': 'Excelente fragancia.',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Resena.objects.filter(
+            usuario=self.user, producto=self.producto, estrellas=5
+        ).exists())
 
 
 class ProductoImagenPersistenteTests(TestCase):

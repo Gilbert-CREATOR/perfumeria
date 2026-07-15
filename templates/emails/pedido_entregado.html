@@ -1,49 +1,16 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedido Entregado - Perfumería Premium</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #2c3e50; margin: 0;">
-                <i class="fas fa-spray-can"></i> Perfumería Premium
-            </h1>
-        </div>
-        
-        <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
-            <h2 style="color: #27ae60; margin-top: 0;">
-                <i class="fas fa-check-circle"></i> ¡Tu Pedido Ha Sido Entregado!
-            </h2>
-            
-            <p>Hola {{ nombre_cliente }},</p>
-            
-            <p>Te confirmamos que tu pedido #{{ pedido_id }} ha sido entregado exitosamente.</p>
-            
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">Detalles de la Entrega:</h3>
-                <p><strong>Fecha de Entrega:</strong> {{ fecha_entrega|date:"d/m/Y H:i" }}</p>
-                <p><strong>Número de Pedido:</strong> #{{ pedido_id }}</p>
-                <p><strong>Total del Pedido:</strong> ${{ total|floatformat:2 }}</p>
-            </div>
-            
-            <p>Esperamos que disfrutes tus fragancias. Si tienes alguna pregunta o necesitas ayuda con tu pedido, no dudes en contactarnos.</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="#" style="background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                    <i class="fas fa-star"></i> Dejar una Reseña
-                </a>
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <p style="color: #666; margin-bottom: 0;">
-                Gracias por tu compra en Perfumería Premium<br>
-                <small>© 2024 Perfumería Premium. Todos los derechos reservados.</small>
-            </p>
-        </div>
-    </div>
-</body>
-</html>
+{% extends "emails/base_darcy.html" %}
+{% block title %}Pedido entregado | D.A.R.C.Y.{% endblock %}
+{% block preheader %}Tu pedido #{{ pedido.id }} fue entregado. Esperamos que lo disfrutes.{% endblock %}
+{% block content %}
+<tr>
+  <td class="mobile-pad" style="padding:52px 42px 48px; background:#111111; color:#F3F1ED; text-align:center;">
+    <div style="width:58px; height:58px; margin:0 auto 24px; border-radius:58px; background:#A31523; color:#fff; font-size:30px; line-height:58px;">✓</div>
+    <p style="margin:0 0 15px; color:#c8c4bd; font-size:11px; font-weight:800; letter-spacing:2px;">ENTREGA COMPLETADA</p>
+    <h1 class="hero-title" style="margin:0; font-size:54px; line-height:53px; letter-spacing:-2px; font-weight:900;">ES TODO TUYO.</h1>
+  </td>
+</tr>
+<tr><td class="mobile-pad" style="padding:38px 42px 12px; text-align:center;"><p style="margin:0 0 12px; font-size:21px; line-height:29px; font-weight:800;">Disfrútalo, {{ nombre_cliente }}.</p><p style="margin:0; color:#57534d; font-size:14px; line-height:23px;">El pedido #{{ pedido.id }} fue marcado como entregado. Esperamos que cada fragancia sea exactamente lo que buscabas.</p></td></tr>
+{% include "emails/includes/productos_pedido.html" %}
+<tr><td class="mobile-pad" style="padding:24px 42px 10px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#A31523; color:#F3F1ED;"><tr><td style="padding:28px; text-align:center;"><p style="margin:0 0 8px; font-size:10px; font-weight:800; letter-spacing:1.5px;">TU OPINIÓN IMPORTA</p><p style="margin:0; font-size:20px; line-height:27px; font-weight:800;">Cuéntanos cómo fue tu experiencia.</p></td></tr></table></td></tr>
+{% include "emails/includes/boton_pedido.html" %}
+{% endblock %}

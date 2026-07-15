@@ -3,6 +3,62 @@
 
 {% block title %}Cart - D.A.R.C.Y.{% endblock %}
 
+{% block extra_css %}
+<style>
+  .cart-product-layout {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .cart-product-image-frame {
+    width: 130px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .cart-product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    mix-blend-mode: multiply;
+  }
+
+  .cart-product-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #999;
+    font-size: 10px;
+  }
+
+  @media (max-width: 620px) {
+    .cart-product-layout {
+      grid-template-columns: 100px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .cart-product-image-frame {
+      width: 100px;
+      height: 125px;
+    }
+
+    .cart-product-total {
+      grid-column: 1 / -1;
+      text-align: left !important;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 {% if messages %}
   {% for message in messages %}
@@ -32,14 +88,14 @@
     {% if productos %}
       {% for item in productos %}
       <div style="background: var(--card); padding: 30px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: 20px; align-items: center;">
+        <div class="cart-product-layout">
           <!-- Product Image -->
-          <div>
-            {% if item.producto.imagen %}
+          <div class="cart-product-image-frame">
+            {% if item.producto.tiene_imagen %}
               <img src="{{ item.producto.imagen_url_property }}" alt="{{ item.producto.nombre }}"
-                   style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                   class="cart-product-image">
             {% else %}
-              <div style="width: 100px; height: 100px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 10px;">
+              <div class="cart-product-placeholder">
                 PERFUME
               </div>
             {% endif %}
@@ -70,7 +126,7 @@
           </div>
           
           <!-- Price and Remove -->
-          <div style="text-align: right;">
+          <div class="cart-product-total" style="text-align: right;">
             <div style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">
               ${{ item.subtotal|floatformat:2 }}
             </div>
@@ -132,7 +188,7 @@
   </div>
 </div>
 
-{% if productos %}
+{% if productos_relacionados %}
 <!-- Related Products -->
 <div style="margin-bottom: 60px;">
   <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 40px; text-align: center;">You might also like</h2>
@@ -142,7 +198,7 @@
     <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
       <h2>{{ producto.nombre|upper }}</h2>
       <div class="price">${{ producto.precio|floatformat:2 }}</div>
-      {% if producto.imagen %}
+      {% if producto.tiene_imagen %}
         <img src="{{ producto.imagen_url_property }}" alt="{{ producto.nombre }}">
       {% else %}
         <img src="https://via.placeholder.com/180x180/f3f1ed/000?text=PERFUME" alt="{{ producto.nombre }}">

@@ -85,13 +85,19 @@ WSGI_APPLICATION = 'perfumeria.wsgi.application'
 import dj_database_url
 import os
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        engine="django.db.backends.postgresql"
-    )
-}
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
+    }
+else:
+    # Entorno local y suite de pruebas; Render siempre proporciona DATABASE_URL.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        },
+    }
 
 
 # Password validation
@@ -147,6 +153,11 @@ LOGOUT_REDIRECT_URL = '/'
 
 # 📧 Email settings (para desarrollo)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'D.A.R.C.Y. <noreply@perfumeria.com>'
+PUBLIC_SITE_URL = os.environ.get(
+    'PUBLIC_SITE_URL',
+    'https://perfumeria-darcy.onrender.com',
+).rstrip('/')
 
 # 💳 PayPal settings (sandbox)
 PAYPAL_CLIENT_ID = 'your-paypal-client-id'

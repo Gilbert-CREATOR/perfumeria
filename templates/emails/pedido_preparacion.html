@@ -1,0 +1,11 @@
+{% extends 'emails/base_darcy.html' %}
+{% block title %}Pedido en preparación{% endblock %}
+{% block preheader %}Estamos preparando cuidadosamente tu pedido.{% endblock %}
+{% block content %}
+<tr><td class="mobile-pad" style="padding:48px 42px;">
+  <p style="margin:0 0 12px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }} · EN PREPARACIÓN</p>
+  <h1 class="hero-title" style="margin:0 0 18px;font-size:49px;line-height:50px;">TU SELECCIÓN<br>ESTÁ EN PROCESO.</h1>
+  <p style="margin:0 0 28px;font-size:15px;line-height:24px;">Hola {{ nombre_cliente }}. Ya estamos preparando tus productos. Te avisaremos nuevamente cuando el pedido salga en camino.</p>
+  {% include 'emails/includes/productos_pedido.html' %}
+</td></tr>
+{% endblock %}

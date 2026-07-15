@@ -1,57 +1,16 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito Abandonado - Perfumería Premium</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #2c3e50; margin: 0;">
-                <i class="fas fa-spray-can"></i> Perfumería Premium
-            </h1>
-        </div>
-        
-        <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
-            <h2 style="color: #e74c3c; margin-top: 0;">
-                <i class="fas fa-shopping-cart"></i> ¿Olvidaste Algo?
-            </h2>
-            
-            <p>Hola {{ nombre_cliente }},</p>
-            
-            <p>Notamos que tienes productos en tu carrito que no has comprado aún. ¡No te los pierdas!</p>
-            
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">Tu Carrito:</h3>
-                {% for producto in productos %}
-                <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-                    <strong>{{ producto.nombre }}</strong><br>
-                    <small>Cantidad: {{ producto.cantidad }} | Precio: ${{ producto.precio|floatformat:2 }}</small>
-                </div>
-                {% endfor %}
-                <div style="margin-top: 15px; text-align: right;">
-                    <strong>Total: ${{ total|floatformat:2 }}</strong>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="#" style="background: #e74c3c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                    <i class="fas fa-shopping-cart"></i> Completar mi Compra
-                </a>
-            </div>
-            
-            <p style="color: #666; font-size: 14px;">
-                Este es un recordatorio automático. Si ya completaste tu compra, por favor ignora este correo.
-            </p>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <p style="color: #666; margin-bottom: 0;">
-                Perfumería Premium - Tus fragancias favoritas<br>
-                <small>© 2024 Perfumería Premium. Todos los derechos reservados.</small>
-            </p>
-        </div>
-    </div>
-</body>
-</html>
+{% extends "emails/base_darcy.html" %}
+{% block title %}Tu selección te espera | D.A.R.C.Y.{% endblock %}
+{% block preheader %}Los perfumes que elegiste todavía están en tu carrito.{% endblock %}
+{% block content %}
+<tr>
+  <td class="mobile-pad" style="padding:52px 42px 48px; background:#A31523; color:#F3F1ED;">
+    <p style="margin:0 0 18px; font-size:11px; font-weight:800; letter-spacing:2px;">TU CARRITO</p>
+    <h1 class="hero-title" style="margin:0; font-size:56px; line-height:54px; letter-spacing:-2px; font-weight:900;">NO LO DEJES<br>PARA DESPUÉS.</h1>
+  </td>
+</tr>
+<tr><td class="mobile-pad" style="padding:38px 42px 14px;"><p style="margin:0 0 12px; font-size:21px; line-height:29px; font-weight:800;">{{ nombre_cliente }}, guardamos tu selección.</p><p style="margin:0; color:#57534d; font-size:14px; line-height:23px;">Tus perfumes siguen en el carrito. La disponibilidad puede cambiar, así que vuelve cuando estés listo para completar la compra.</p></td></tr>
+<tr><td class="mobile-pad" style="padding:22px 42px 12px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  {% for item in items %}<tr><td class="product-image-cell" width="104" style="padding:14px 14px 14px 0; border-top:1px solid #d8d3cb;">{% if item.producto.tiene_imagen %}<img class="product-image" src="{{ site_url }}{{ item.producto.imagen_url_property }}" width="86" height="104" alt="{{ item.producto.nombre }}" style="display:block; width:86px; height:104px; object-fit:contain; border:0;">{% else %}<div style="width:86px; height:104px; background:#e6e1d9; font-size:9px; line-height:104px; text-align:center;">D.A.R.C.Y.</div>{% endif %}</td><td style="padding:14px 0; border-top:1px solid #d8d3cb; vertical-align:middle;"><p style="margin:0 0 5px; font-size:16px; line-height:20px; font-weight:900;">{{ item.producto.nombre|upper }}</p><p style="margin:0; color:#77726b; font-size:11px; line-height:17px;">{{ item.cantidad }} × ${{ item.producto.precio|floatformat:2 }}</p></td></tr>{% endfor %}
+</table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top:2px solid #000000;"><tr><td style="padding:16px 0 0; font-size:17px; font-weight:900;">TOTAL</td><td align="right" style="padding:16px 0 0; color:#A31523; font-size:17px; font-weight:900;">${{ total|floatformat:2 }}</td></tr></table></td></tr>
+<tr><td class="mobile-pad" align="center" style="padding:28px 42px 44px;"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td style="background:#000000;"><a href="{{ carrito_url }}" style="display:inline-block; padding:16px 28px; color:#ffffff; text-decoration:none; font-size:11px; font-weight:800; letter-spacing:1px;">VOLVER A MI CARRITO</a></td></tr></table><p style="margin:18px 0 0; color:#77726b; font-size:10px; line-height:16px;">Si ya completaste tu compra, puedes ignorar este mensaje.</p></td></tr>
+{% endblock %}

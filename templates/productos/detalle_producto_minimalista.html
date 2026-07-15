@@ -353,6 +353,14 @@
     color: #b33d34;
 }
 
+.stock-alert-btn { margin-top:16px; padding:13px 20px; border:1px solid #000; background:transparent; color:#000; font-size:.75rem; font-weight:800; cursor:pointer; }
+.reviews-section { max-width:1200px; margin:20px auto 80px; padding:44px 20px; border-top:1px solid #d8d3cb; }
+.reviews-section h2 { margin:0 0 28px; font-size:clamp(2rem,5vw,4rem); }
+.review-form { display:grid; gap:14px; max-width:620px; margin-bottom:38px; }
+.review-form select,.review-form textarea { box-sizing:border-box; width:100%; padding:14px; border:1px solid #000; background:var(--bg,#f4f2ee); color:#000; }
+.review-form button { height:48px; border:0; background:#000; color:#fff; font-weight:800; cursor:pointer; }
+.review-card { padding:20px 0; border-top:1px solid #d8d3cb; }
+
 /* Breadcrumb minimalista */
 .breadcrumb {
     display: flex;
@@ -518,9 +526,18 @@
                     {% endif %}
                 </div>
             {% else %}
-                <div class="stock-info out-of-stock">
+                <div class="stock-info out-of-stock" id="disponibilidad">
                     Producto temporalmente agotado
                 </div>
+                {% if user.is_authenticated %}
+                  {% if alerta_stock_activa %}
+                    <p style="font-size:.78rem;font-weight:700;">AVISO ACTIVADO — TE ESCRIBIREMOS CUANDO REGRESE.</p>
+                  {% else %}
+                    <form method="post" action="{% url 'crear_alerta_stock' producto.id %}">{% csrf_token %}<button class="stock-alert-btn" type="submit">AVÍSAME CUANDO ESTÉ DISPONIBLE</button></form>
+                  {% endif %}
+                {% else %}
+                  <a class="stock-alert-btn" style="display:inline-block;text-decoration:none;" href="{% url 'login' %}?next={{ request.path|urlencode }}">INICIA SESIÓN PARA RECIBIR EL AVISO</a>
+                {% endif %}
             {% endif %}
         </div>
         
@@ -542,6 +559,23 @@
     </div>
     
 </div>
+
+<section class="reviews-section" id="resena">
+  <p style="font-size:.72rem;font-weight:800;letter-spacing:.14em;color:#A31523;">EXPERIENCIAS REALES</p>
+  <h2>RESEÑAS</h2>
+  {% if puede_resenar %}
+    <form class="review-form" method="post" action="{% url 'crear_resena' producto.id %}">{% csrf_token %}
+      <label for="id_estrellas"><strong>PUNTUACIÓN</strong></label>{{ resena_form.estrellas }}
+      <label for="id_comentario"><strong>TU EXPERIENCIA</strong></label>{{ resena_form.comentario }}
+      <button type="submit">PUBLICAR RESEÑA</button>
+    </form>
+  {% elif user.is_authenticated %}
+    <p style="color:#6a665f;">Podrás reseñar este producto después de recibir un pedido que lo incluya.</p>
+  {% endif %}
+  {% for resena in resenas %}
+    <article class="review-card"><strong>{{ resena.estrellas }}/5 · {{ resena.usuario.username }}</strong><p>{{ resena.comentario }}</p></article>
+  {% empty %}<p style="color:#6a665f;">Todavía no hay reseñas.</p>{% endfor %}
+</section>
 {% endblock %}
 
 {% block extra_js %}

@@ -12,6 +12,14 @@ from django.utils import timezone
 
 from apps.productos.models import Producto
 from .admin_forms import EnvioForm, MetodoEnvioForm, PedidoAdminForm, ProductoAdminForm
+from .emails import (
+    enviar_email_cancelacion_reembolso,
+    enviar_email_envio_despachado,
+    enviar_email_pedido_entregado,
+    enviar_email_pedido_preparacion,
+    enviar_email_recomendaciones,
+    enviar_email_solicitud_resena,
+)
 from .models import ESTADOS_PEDIDO, Envio, ItemPedido, MetodoEnvio, Pedido
 
 ADMIN_LOGIN_URL = '/usuarios/login/'
@@ -43,6 +51,24 @@ def count_by_choices(queryset, field_name, choices):
         key: queryset.filter(**{field_name: key}).count()
         for key, _label in choices
     }
+
+
+def notificar_cambio_envio(envio, estado_anterior=None):
+    """Envía una sola notificación cuando el envío alcanza un hito nuevo."""
+    if not envio.pedido.usuario.email:
+        return
+
+    if envio.estado == 'entregado' and estado_anterior != 'entregado':
+        enviar_email_pedido_entregado(envio.pedido)
+        enviar_email_recomendaciones(envio.pedido)
+        enviar_email_solicitud_resena(envio.pedido)
+    elif envio.estado == 'preparando' and estado_anterior != 'preparando':
+        enviar_email_pedido_preparacion(envio.pedido)
+    elif (
+        envio.estado in {'despachado', 'en_transito'}
+        and estado_anterior not in {'despachado', 'en_transito', 'entregado'}
+    ):
+        enviar_email_envio_despachado(envio.pedido)
 
 
 def shift_month(date_value, delta):
@@ -267,9 +293,12 @@ def admin_detalle_pedido(request, pedido_id):
         accion = request.POST.get('accion')
 
         if accion == 'actualizar_pedido':
+            estado_anterior = pedido.estado
             pedido_form = PedidoAdminForm(request.POST, instance=pedido)
             if pedido_form.is_valid():
-                pedido_form.save()
+                pedido_actualizado = pedido_form.save()
+                if pedido_actualizado.estado == 'cancelado' and estado_anterior != 'cancelado':
+                    enviar_email_cancelacion_reembolso(pedido_actualizado)
                 messages.success(request, f'Pedido #{pedido.id} actualizado correctamente.')
                 return redirect('admin_detalle_pedido', pedido_id=pedido.id)
             messages.error(request, 'Revisa los datos del pedido antes de guardar.')
@@ -298,6 +327,7 @@ def admin_detalle_pedido(request, pedido_id):
                     pedido.estado = 'enviado'
                     pedido.save(update_fields=['estado'])
 
+                notificar_cambio_envio(nuevo_envio)
                 messages.success(request, f'Se creó el envío del pedido #{pedido.id}.')
                 return redirect('admin_detalle_envio', envio_id=nuevo_envio.id)
             else:
@@ -500,6 +530,7 @@ def admin_detalle_envio(request, envio_id):
         Envio.objects.select_related('pedido__usuario', 'metodo_envio'),
         id=envio_id,
     )
+    estado_anterior = envio.estado
     form = EnvioForm(request.POST or None, instance=envio)
 
     if request.method == 'POST':
@@ -519,6 +550,7 @@ def admin_detalle_envio(request, envio_id):
                 pedido.estado = 'enviado'
                 pedido.save(update_fields=['estado'])
 
+            notificar_cambio_envio(envio, estado_anterior)
             messages.success(request, f'Envío del pedido #{pedido.id} actualizado.')
             return redirect('admin_detalle_envio', envio_id=envio.id)
 

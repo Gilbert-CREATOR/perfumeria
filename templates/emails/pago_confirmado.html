@@ -1,87 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago Confirmado</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #28a745; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .success-icon { font-size: 48px; text-align: center; margin: 20px 0; }
-        .product { border-bottom: 1px solid #ddd; padding: 10px 0; }
-        .product:last-child { border-bottom: none; }
-        .total { background: #e9ecef; padding: 15px; margin: 20px 0; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        .btn { display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>💰 ¡Pago Confirmado!</h1>
-            <p>Tu pago ha sido procesado exitosamente</p>
-        </div>
-        
-        <div class="content">
-            <div class="success-icon">
-                ✅
-            </div>
-            
-            <h2>¡Excelente noticia {{ nombre_cliente }}!</h2>
-            <p>El pago de tu pedido #{{ pedido.id }} ha sido confirmado. Ya estamos preparando tu envío.</p>
-            
-            <h3>📦 Detalles del Pedido</h3>
-            <p><strong>Pedido:</strong> #{{ pedido.id }}</p>
-            <p><strong>Fecha de Pago:</strong> {{ pedido.creado|date:"d/m/Y H:i" }}</p>
-            <p><strong>Estado:</strong> {{ pedido.get_estado_display }}</p>
-            
-            <h3>🛍️ Productos en tu Pedido</h3>
-            {% for item in items %}
-            <div class="product">
-                <strong>{{ item.producto.nombre }}</strong><br>
-                <small>{{ item.producto.marca }} - {{ item.producto.tamano_ml }}ml</small><br>
-                {{ item.cantidad }} x ${{ item.precio }} = ${{ item.subtotal }}
-            </div>
-            {% endfor %}
-            
-            <div class="total">
-                <h3>💰 Resumen del Pago</h3>
-                <p><strong>Subtotal:</strong> ${{ pedido.subtotal }}</p>
-                <p><strong>Envío:</strong> ${{ pedido.costo_envio }}</p>
-                <p><strong>Total Pagado:</strong> ${{ pedido.total }}</p>
-                <p><strong>Método de Pago:</strong> {{ pedido.get_metodo_pago_display }}</p>
-            </div>
-            
-            <h3>📋 ¿Qué Sigue?</h3>
-            <ol>
-                <li>✅ Pago confirmado</li>
-                <li>🔄 Preparando tu pedido (1-2 horas)</li>
-                <li>📦 Despachando tu envío (24-48 horas)</li>
-                <li>🚚 En camino a tu dirección</li>
-                <li>🏠 ¡Entrega!</li>
-            </ol>
-            
-            <p>Recibirás un email cuando tu pedido sea despachado con el número de seguimiento.</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="#" class="btn">Ver Mi Pedido</a>
-            </div>
-            
-            <h3>📞 ¿Necesitas ayuda?</h3>
-            <p>Si tienes alguna pregunta sobre tu pedido, contáctanos:</p>
-            <p>
-                📧 ayuda@perfumeria.com<br>
-                📞 +1 (809) 123-4567<br>
-                💬 WhatsApp: +1 (809) 123-4567
-            </p>
-        </div>
-        
-        <div class="footer">
-            <p>© 2024 Perfumería - Todos los derechos reservados</p>
-            <p>Este email fue enviado a {{ pedido.usuario.email }}</p>
-        </div>
-    </div>
-</body>
-</html>
+{% extends "emails/base_darcy.html" %}
+{% block title %}Pago confirmado | D.A.R.C.Y.{% endblock %}
+{% block preheader %}El pago de tu pedido #{{ pedido.id }} fue confirmado.{% endblock %}
+{% block content %}
+<tr>
+  <td class="mobile-pad" style="padding:50px 42px 44px; background:#111111; color:#F3F1ED;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+      <td style="vertical-align:top;"><p style="margin:0 0 18px; color:#c8c4bd; font-size:11px; font-weight:800; letter-spacing:2px;">PAGO APROBADO</p><h1 class="hero-title" style="margin:0; font-size:58px; line-height:55px; letter-spacing:-2px; font-weight:900;">TODO LISTO.</h1></td>
+      <td align="right" style="vertical-align:top;"><div style="width:54px; height:54px; border-radius:54px; background:#A31523; color:#fff; font-size:28px; line-height:54px; text-align:center;">✓</div></td>
+    </tr></table>
+  </td>
+</tr>
+<tr><td class="mobile-pad" style="padding:38px 42px 4px;"><p style="margin:0 0 12px; font-size:21px; line-height:29px; font-weight:800;">Excelente noticia, {{ nombre_cliente }}.</p><p style="margin:0; color:#57534d; font-size:14px; line-height:23px;">Confirmamos el pago de <strong>${{ pedido.total|floatformat:2 }}</strong> para tu pedido #{{ pedido.id }}. Ahora empieza la preparación.</p></td></tr>
+<tr><td class="mobile-pad" style="padding:26px 42px 6px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#e6e1d9;"><tr><td style="padding:22px;"><p style="margin:0 0 12px; font-size:10px; font-weight:800; letter-spacing:1.5px;">LO QUE SIGUE</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td width="32" style="color:#A31523; font-weight:900;">01</td><td style="padding:7px 0; font-size:13px; font-weight:700;">Preparación de tu pedido</td></tr><tr><td width="32" style="color:#A31523; font-weight:900;">02</td><td style="padding:7px 0; font-size:13px; font-weight:700;">Despacho y número de seguimiento</td></tr><tr><td width="32" style="color:#A31523; font-weight:900;">03</td><td style="padding:7px 0; font-size:13px; font-weight:700;">Entrega en tu dirección</td></tr></table></td></tr></table></td></tr>
+{% include "emails/includes/productos_pedido.html" %}
+{% include "emails/includes/boton_pedido.html" %}
+{% endblock %}

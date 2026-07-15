@@ -167,6 +167,24 @@ class Favorito(models.Model):
     class Meta:
         unique_together = ('usuario', 'producto')
 
+
+class AlertaStock(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='alertas_stock')
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE, related_name='alertas_stock')
+    creada = models.DateTimeField(auto_now_add=True)
+    enviada = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario', 'producto'],
+                name='alerta_stock_unica_por_usuario_producto',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.usuario} espera {self.producto}'
+
 class Resena(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='resenas')

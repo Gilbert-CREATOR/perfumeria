@@ -1,0 +1,11 @@
+{% extends 'emails/base_darcy.html' %}
+{% block title %}Cuenta eliminada{% endblock %}
+{% block preheader %}Confirmación definitiva de eliminación de tu cuenta.{% endblock %}
+{% block content %}
+<tr><td class="mobile-pad" style="padding:50px 42px;">
+  <p style="margin:0 0 12px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:2px;">CONFIRMACIÓN DE CUENTA</p>
+  <h1 class="hero-title" style="margin:0 0 18px;font-size:48px;line-height:49px;">CUENTA<br>ELIMINADA.</h1>
+  <p style="margin:0 0 18px;font-size:15px;line-height:24px;">Hola {{ nombre }}. La cuenta <strong>{{ username }}</strong> y sus datos asociados fueron eliminados definitivamente.</p>
+  <p style="margin:0;color:#6a665f;font-size:13px;line-height:21px;">Esas credenciales ya no permiten iniciar sesión. Si deseas volver en el futuro, deberás registrarte como un usuario nuevo.</p>
+</td></tr>
+{% endblock %}

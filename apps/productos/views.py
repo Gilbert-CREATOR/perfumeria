@@ -4,8 +4,10 @@ import base64
 import binascii
 from django.db.models import Q, Count
 from django.db.models.functions import Lower
-from .models import Producto, Favorito
+from .models import Producto, Favorito, AlertaStock, Resena
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.urls import reverse
 from django.shortcuts import redirect
 from .forms import ResenaForm
 from django.core.paginator import Paginator
@@ -185,8 +187,67 @@ def detalle_producto(request, producto_id):
         'producto': producto,
         'resenas': resenas,
         'productos_relacionados': productos_relacionados,
+        'alerta_stock_activa': (
+            request.user.is_authenticated
+            and AlertaStock.objects.filter(usuario=request.user, producto=producto, enviada__isnull=True).exists()
+        ),
+        'puede_resenar': (
+            request.user.is_authenticated
+            and request.user.pedido_set.filter(items__producto=producto, estado='entregado').exists()
+        ),
+        'resena_form': ResenaForm(),
     }
     return render(request, 'productos/detalle_producto_minimalista.html', context)
+
+
+@login_required
+def crear_alerta_stock(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    if request.method == 'POST':
+        if producto.stock > 0:
+            messages.info(request, 'Este producto ya está disponible.')
+        else:
+            alerta, created = AlertaStock.objects.get_or_create(
+                usuario=request.user,
+                producto=producto,
+                defaults={'enviada': None},
+            )
+            if not created and alerta.enviada:
+                alerta.enviada = None
+                alerta.save(update_fields=['enviada'])
+            messages.success(request, 'Te avisaremos por correo cuando vuelva a estar disponible.')
+    return redirect(f'{reverse("detalle_producto", args=[producto.id])}#disponibilidad')
+
+
+@login_required
+def crear_resena(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    compro_producto = request.user.pedido_set.filter(
+        items__producto=producto,
+        estado='entregado',
+    ).exists()
+    if request.method != 'POST' or not compro_producto:
+        messages.error(request, 'Solo puedes reseñar productos de pedidos entregados.')
+        return redirect(f'{reverse("detalle_producto", args=[producto.id])}#resena')
+
+    form = ResenaForm(request.POST)
+    if form.is_valid():
+        resena = Resena.objects.filter(usuario=request.user, producto=producto).order_by('id').first()
+        if resena:
+            resena.comentario = form.cleaned_data['comentario']
+            resena.estrellas = form.cleaned_data['estrellas']
+            resena.save(update_fields=['comentario', 'estrellas'])
+        else:
+            Resena.objects.create(
+                usuario=request.user,
+                producto=producto,
+                comentario=form.cleaned_data['comentario'],
+                estrellas=form.cleaned_data['estrellas'],
+            )
+        messages.success(request, 'Gracias por compartir tu experiencia.')
+    else:
+        messages.error(request, 'Revisa la puntuación y el comentario.')
+    return redirect(f'{reverse("detalle_producto", args=[producto.id])}#resena')
 
 @login_required
 def toggle_favorito(request, producto_id):

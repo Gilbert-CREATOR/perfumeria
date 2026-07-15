@@ -10,8 +10,10 @@ urlpatterns = [
     path('perfil/', views.perfil, name='perfil'),
     
     # 🔄 Password reset URLs
+    path('verificar-email/<str:token>/', views.verificar_email, name='verificar_email'),
+    path('eliminar-cuenta/', views.eliminar_cuenta, name='eliminar_cuenta'),
     path('password-reset/', 
-         auth_views.PasswordResetView.as_view(template_name='usuarios/password_reset.html'),
+         views.DarcyPasswordResetView.as_view(),
          name='password_reset'),
     path('password-reset/done/',
          auth_views.PasswordResetDoneView.as_view(template_name='usuarios/password_reset_done.html'),

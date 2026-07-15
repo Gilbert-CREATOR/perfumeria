@@ -2,13 +2,239 @@ import json
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core import mail
 from django.http import HttpResponse
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from apps.productos.models import Producto
+from apps.productos.models import AlertaStock, Producto
 from .models import Carrito, Envio, ItemCarrito, ItemPedido, MetodoEnvio, Pedido
 from .services import PENDING_CART_SESSION_KEY
+from .recommendations import productos_recomendados_por_temporada
+from .emails import (
+    enviar_email_carrito_abandonado,
+    enviar_email_confirmacion_pedido,
+    enviar_email_envio_despachado,
+    enviar_email_pago_confirmado,
+    enviar_email_pedido_entregado,
+    enviar_email_pago_rechazado,
+    enviar_email_pedido_preparacion,
+    enviar_email_cancelacion_reembolso,
+    enviar_email_recomendaciones,
+    enviar_email_solicitud_resena,
+)
+from .admin_views import notificar_cambio_envio
+
+
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    PUBLIC_SITE_URL='https://darcy.example',
+    DEFAULT_FROM_EMAIL='D.A.R.C.Y. <noreply@darcy.example>',
+)
+class DesignedEmailTemplatesTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='cliente_email',
+            email='cliente@example.com',
+            first_name='Ana',
+        )
+        self.producto = Producto.objects.create(
+            nombre='Noir Intense',
+            marca='Darcy',
+            precio='3200.00',
+            stock=5,
+            disponible=True,
+            temporada=['noche'],
+        )
+        self.pedido = Pedido.objects.create(
+            usuario=self.user,
+            subtotal='3200.00',
+            costo_envio='150.00',
+            total='3350.00',
+            estado='pagado',
+            metodo_pago='transferencia',
+            nombre_completo='Ana Cliente',
+            telefono='8095550101',
+            direccion='Calle Principal 10',
+            ciudad='Santo Domingo',
+            provincia='Distrito Nacional',
+            codigo_postal='10101',
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido,
+            producto=self.producto,
+            cantidad=1,
+            precio='3200.00',
+        )
+        metodo = MetodoEnvio.objects.create(
+            nombre='Entrega express',
+            costo='150.00',
+            tiempo_entrega='1 día',
+            activo=True,
+        )
+        Envio.objects.create(
+            pedido=self.pedido,
+            metodo_envio=metodo,
+            numero_seguimiento='DARCY-001',
+            estado='despachado',
+        )
+
+    def test_los_cinco_correos_se_renderizan_con_diseno_y_enlaces_reales(self):
+        carrito = Carrito.objects.create(usuario=self.user)
+        item_carrito = ItemCarrito.objects.create(
+            carrito=carrito,
+            producto=self.producto,
+            cantidad=1,
+        )
+
+        resultados = [
+            enviar_email_confirmacion_pedido(self.pedido),
+            enviar_email_pago_confirmado(self.pedido),
+            enviar_email_envio_despachado(self.pedido),
+            enviar_email_pedido_entregado(self.pedido),
+            enviar_email_carrito_abandonado(self.user, [item_carrito]),
+        ]
+
+        self.assertEqual(resultados, [True, True, True, True, True])
+        self.assertEqual(len(mail.outbox), 5)
+        for mensaje in mail.outbox:
+            self.assertTrue(mensaje.alternatives)
+            html = mensaje.alternatives[0][0]
+            self.assertIn('D.A.R.C.Y.', html)
+            self.assertIn('#A31523', html)
+            self.assertIn('https://darcy.example', html)
+
+    def test_los_nuevos_correos_transaccionales_tambien_tienen_diseno(self):
+        Producto.objects.create(
+            nombre='Noir Companion', marca='Darcy', precio='2800.00', stock=4,
+            disponible=True, temporada=['noche'],
+        )
+        resultados = [
+            enviar_email_pago_rechazado(self.pedido),
+            enviar_email_pedido_preparacion(self.pedido),
+            enviar_email_cancelacion_reembolso(self.pedido),
+            enviar_email_cancelacion_reembolso(self.pedido, reembolsado=True),
+            enviar_email_recomendaciones(self.pedido),
+            enviar_email_solicitud_resena(self.pedido),
+        ]
+        self.assertEqual(resultados, [True] * 6)
+        self.assertEqual(len(mail.outbox), 6)
+        for mensaje in mail.outbox:
+            html = mensaje.alternatives[0][0]
+            self.assertIn('D.A.R.C.Y.', html)
+            self.assertIn('#A31523', html)
+
+    def test_reposicion_de_stock_envia_aviso_una_sola_vez(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=['stock'])
+        alerta = AlertaStock.objects.create(usuario=self.user, producto=self.producto)
+        self.producto.stock = 3
+        self.producto.save(update_fields=['stock'])
+        alerta.refresh_from_db()
+        self.assertIsNotNone(alerta.enviada)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('volvió a estar disponible', mail.outbox[0].subject)
+
+
+class CartSeasonRecommendationsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='cliente_recomendaciones',
+            password='clave-segura-123',
+        )
+        self.carrito = Carrito.objects.create(usuario=self.user)
+        self.en_carrito = Producto.objects.create(
+            nombre='Perfume del carrito',
+            precio='2500.00',
+            stock=5,
+            disponible=True,
+            temporada=['invierno', 'noche'],
+        )
+        ItemCarrito.objects.create(
+            carrito=self.carrito,
+            producto=self.en_carrito,
+            cantidad=1,
+        )
+
+    def recomendaciones(self):
+        items = self.carrito.items.select_related('producto').all()
+        return productos_recomendados_por_temporada(items)
+
+    def test_recomienda_por_mayor_numero_de_temporadas_coincidentes(self):
+        dos_coincidencias = Producto.objects.create(
+            nombre='Afinidad completa',
+            precio='2300.00',
+            stock=4,
+            disponible=True,
+            temporada=['invierno', 'noche', 'otono'],
+        )
+        una_coincidencia = Producto.objects.create(
+            nombre='Afinidad parcial',
+            precio='1800.00',
+            stock=3,
+            disponible=True,
+            temporada=['noche'],
+        )
+        Producto.objects.create(
+            nombre='Sin afinidad',
+            precio='1900.00',
+            stock=3,
+            disponible=True,
+            temporada=['verano', 'dia'],
+        )
+
+        self.assertEqual(
+            [producto.pk for producto in self.recomendaciones()],
+            [dos_coincidencias.pk, una_coincidencia.pk],
+        )
+
+    def test_excluye_carrito_inactivos_y_productos_sin_stock(self):
+        Producto.objects.create(
+            nombre='Inactivo',
+            precio='2000.00',
+            stock=5,
+            disponible=False,
+            temporada=['invierno'],
+        )
+        Producto.objects.create(
+            nombre='Agotado',
+            precio='2000.00',
+            stock=0,
+            disponible=True,
+            temporada=['noche'],
+        )
+
+        self.assertEqual(self.recomendaciones(), [])
+
+    def test_sin_temporadas_en_el_carrito_no_inventa_recomendaciones(self):
+        self.en_carrito.temporada = []
+        self.en_carrito.save(update_fields=['temporada'])
+        Producto.objects.create(
+            nombre='Otro perfume',
+            precio='2000.00',
+            stock=5,
+            disponible=True,
+            temporada=['noche'],
+        )
+
+        self.assertEqual(self.recomendaciones(), [])
+
+    def test_vista_del_carrito_entrega_las_recomendaciones_a_la_plantilla(self):
+        recomendado = Producto.objects.create(
+            nombre='Recomendado visible',
+            precio='2100.00',
+            stock=5,
+            disponible=True,
+            temporada=['invierno'],
+        )
+        self.client.force_login(self.user)
+
+        with patch('apps.carrito.views.render', return_value=HttpResponse(status=200)) as mocked_render:
+            response = self.client.get(reverse('ver_carrito'))
+
+        self.assertEqual(response.status_code, 200)
+        contexto = mocked_render.call_args.args[2]
+        self.assertEqual(contexto['productos_relacionados'], [recomendado])
 
 
 class PendingCartAuthenticationTests(TestCase):
@@ -228,6 +454,24 @@ class AdminPanelViewsTests(TestCase):
         self.producto.refresh_from_db()
         self.assertEqual(self.producto.stock, 4)
         self.assertTrue(self.producto.disponible)
+
+    def test_hitos_del_envio_disparan_el_correo_correspondiente_una_sola_vez(self):
+        self.admin_user.email = 'cliente-envio@example.com'
+        self.admin_user.save(update_fields=['email'])
+
+        with patch('apps.carrito.admin_views.enviar_email_envio_despachado') as despacho, \
+             patch('apps.carrito.admin_views.enviar_email_pedido_entregado') as entrega:
+            self.envio.estado = 'despachado'
+            notificar_cambio_envio(self.envio, 'preparando')
+            despacho.assert_called_once_with(self.pedido)
+            entrega.assert_not_called()
+
+            notificar_cambio_envio(self.envio, 'despachado')
+            self.assertEqual(despacho.call_count, 1)
+
+            self.envio.estado = 'entregado'
+            notificar_cambio_envio(self.envio, 'en_transito')
+            entrega.assert_called_once_with(self.pedido)
 
     def test_admin_can_publish_a_product_with_zero_stock(self):
         producto = Producto.objects.create(

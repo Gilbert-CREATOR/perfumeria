@@ -9,8 +9,15 @@ from .forms import PerfilForm, DireccionForm
 from django.contrib import messages
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.core import signing
+from django.contrib.auth import views as auth_views
+from django.conf import settings
 
 from apps.carrito.services import complete_pending_cart_item
+from .emails import VERIFICACION_SALT, enviar_email_bienvenida, enviar_email_cuenta_eliminada
+
+
+FRASE_ELIMINAR_CUENTA = 'ELIMINAR MI CUENTA'
 
 
 def finish_pending_cart(request):
@@ -117,6 +124,7 @@ def registro_usuario(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
+            enviar_email_bienvenida(user)
             has_pending_cart = finish_pending_cart(request)
             messages.success(request, f'¡Cuenta creada! Bienvenido {user.username}')
             if has_pending_cart:
@@ -124,6 +132,69 @@ def registro_usuario(request):
             return redirect(safe_next_url(request))
 
     return render(request, 'usuarios/register.html')
+
+
+def verificar_email(request, token):
+    try:
+        data = signing.loads(token, salt=VERIFICACION_SALT, max_age=60 * 60 * 24 * 7)
+        user = User.objects.get(pk=data['uid'], email=data['email'])
+    except (signing.BadSignature, signing.SignatureExpired, KeyError, User.DoesNotExist):
+        messages.error(request, 'El enlace de verificación no es válido o ya venció.')
+        return redirect('login')
+
+    perfil, _ = PerfilUsuario.objects.get_or_create(usuario=user)
+    if not perfil.email_verificado:
+        perfil.email_verificado = True
+        perfil.save(update_fields=['email_verificado'])
+    messages.success(request, 'Tu correo quedó verificado correctamente.')
+    return redirect('mi_cuenta' if request.user == user else 'login')
+
+
+class DarcyPasswordResetView(auth_views.PasswordResetView):
+    template_name = 'usuarios/password_reset.html'
+    email_template_name = 'emails/password_reset.txt'
+    html_email_template_name = 'emails/password_reset.html'
+    subject_template_name = 'emails/password_reset_subject.txt'
+
+    def dispatch(self, request, *args, **kwargs):
+        site_url = getattr(settings, 'PUBLIC_SITE_URL', 'http://localhost:8000').rstrip('/')
+        self.extra_email_context = {
+            'site_url': site_url,
+            'catalogo_url': f'{site_url}{reverse("catalogo")}',
+        }
+        return super().dispatch(request, *args, **kwargs)
+
+
+@login_required
+def eliminar_cuenta(request):
+    if request.user.is_staff or request.user.is_superuser:
+        messages.error(request, 'Las cuentas administrativas no se eliminan desde esta opción.')
+        return redirect('perfil')
+
+    if request.method == 'POST':
+        username_confirmacion = request.POST.get('username_confirmacion', '').strip()
+        frase_confirmacion = request.POST.get('frase_confirmacion', '').strip()
+
+        if username_confirmacion != request.user.username:
+            messages.error(request, 'El nombre de usuario no coincide.')
+        elif frase_confirmacion != FRASE_ELIMINAR_CUENTA:
+            messages.error(request, f'Escribe exactamente: {FRASE_ELIMINAR_CUENTA}')
+        elif not request.user.check_password(request.POST.get('password', '')):
+            messages.error(request, 'La contraseña no es correcta.')
+        else:
+            user = request.user
+            email = user.email
+            nombre = user.get_full_name().strip()
+            username = user.username
+            enviar_email_cuenta_eliminada(email=email, nombre=nombre, username=username)
+            logout(request)
+            user.delete()
+            messages.success(request, 'Tu cuenta y sus datos fueron eliminados definitivamente.')
+            return redirect('home')
+
+    return render(request, 'usuarios/eliminar_cuenta.html', {
+        'frase_confirmacion': FRASE_ELIMINAR_CUENTA,
+    })
 
 
 @login_required

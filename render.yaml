@@ -34,7 +34,9 @@ services:
       - key: EMAIL_HOST_PASSWORD
         sync: false
       - key: DEFAULT_FROM_EMAIL
-        value: noreply@perfumeria.com
+        value: D.A.R.C.Y. <noreply@perfumeria.com>
+      - key: PUBLIC_SITE_URL
+        value: https://perfumeria-darcy.onrender.com
       - key: PAYPAL_MODE
         value: sandbox
       - key: PAYPAL_CLIENT_ID

@@ -1,0 +1,67 @@
+{% extends 'base_moderno.html' %}
+{% block title %}Confirmar eliminación de cuenta - D.A.R.C.Y.{% endblock %}
+{% block extra_css %}
+<style>
+  .delete-page{max-width:720px;margin:64px auto;padding:0 24px 90px}.delete-eyebrow{margin:0;color:#A31523;font-size:12px;font-weight:900;letter-spacing:2px}.delete-title{margin:14px 0 26px;font-size:clamp(44px,9vw,82px);line-height:.92;letter-spacing:-.045em}.delete-warning{border:1px solid #A31523;border-radius:14px;overflow:hidden;background:#F3F1ED}.delete-warning__head{padding:18px 28px;background:#A31523;color:#F3F1ED;font-size:14px;font-weight:900;letter-spacing:.04em}.delete-warning__body{padding:30px}.delete-warning ul{margin:18px 0 28px;padding-left:20px;line-height:1.65}.delete-field{margin-top:22px}.delete-field label{display:block;margin-bottom:8px;font-size:12px;font-weight:900}.delete-field code{padding:2px 6px;background:#e3ded6;color:#000;font-weight:800}.delete-field input{box-sizing:border-box;width:100%;height:52px;padding:0 14px;border:1px solid #87827b;border-radius:6px;background:#fff;color:#000;font-size:15px}.delete-field input:focus{outline:3px solid rgba(163,21,35,.18);border-color:#A31523}.delete-submit{width:100%;min-height:54px;margin-top:26px;padding:13px;border:0;border-radius:6px;background:#A31523;color:#F3F1ED;font-weight:900;cursor:pointer}.delete-submit:disabled{background:#a7a39d;color:#e6e3de;cursor:not-allowed}.delete-cancel{display:inline-block;margin-top:24px;color:#000;font-weight:800;text-decoration:none}.delete-cancel:hover{text-decoration:underline}@media(max-width:560px){.delete-page{margin-top:38px;padding-inline:16px}.delete-warning__body{padding:24px 20px}.delete-warning__head{padding-inline:20px}}
+</style>
+{% endblock %}
+{% block content %}
+<main class="delete-page">
+  <p class="delete-eyebrow">ZONA DE PELIGRO · PASO FINAL</p>
+  <h1 class="delete-title">ELIMINAR<br>CUENTA</h1>
+
+  <section class="delete-warning" aria-labelledby="deleteWarningTitle">
+    <div class="delete-warning__head" id="deleteWarningTitle">ESTA ACCIÓN NO SE PUEDE DESHACER</div>
+    <div class="delete-warning__body">
+      <p style="margin-top:0;font-size:16px;line-height:1.6;">Se eliminará definitivamente la cuenta <strong>{{ user.username }}</strong> y perderás:</p>
+      <ul>
+        <li>Tu perfil, direcciones y datos personales.</li>
+        <li>Tu carrito, favoritos, alertas y reseñas.</li>
+        <li>Tu historial de pedidos y acceso con estas credenciales.</li>
+      </ul>
+
+      <form method="post" id="deleteAccountForm">{% csrf_token %}
+        <div class="delete-field">
+          <label for="username_confirmacion">ESCRIBE TU USUARIO: <code>{{ user.username }}</code></label>
+          <input id="username_confirmacion" name="username_confirmacion" type="text" required autocomplete="off" autocapitalize="none" spellcheck="false">
+        </div>
+
+        <div class="delete-field">
+          <label for="frase_confirmacion">ESCRIBE EXACTAMENTE: <code>{{ frase_confirmacion }}</code></label>
+          <input id="frase_confirmacion" name="frase_confirmacion" type="text" required autocomplete="off" autocapitalize="characters" spellcheck="false">
+        </div>
+
+        <div class="delete-field">
+          <label for="password">CONFIRMA TU CONTRASEÑA</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password">
+        </div>
+
+        <button class="delete-submit" id="deleteSubmit" type="submit" disabled>ENTIENDO, ELIMINAR MI CUENTA</button>
+      </form>
+    </div>
+  </section>
+  <a class="delete-cancel" href="{% url 'perfil' %}">← Cancelar y volver a mi perfil</a>
+</main>
+{% endblock %}
+{% block extra_js %}
+<script>
+  (function () {
+    const username = document.getElementById('username_confirmacion');
+    const phrase = document.getElementById('frase_confirmacion');
+    const password = document.getElementById('password');
+    const submit = document.getElementById('deleteSubmit');
+    const expectedUsername = '{{ user.username|escapejs }}';
+    const expectedPhrase = '{{ frase_confirmacion|escapejs }}';
+    function validateConfirmation() {
+      submit.disabled = !(
+        username.value === expectedUsername &&
+        phrase.value === expectedPhrase &&
+        password.value.length > 0
+      );
+    }
+    [username, phrase, password].forEach(function (field) {
+      field.addEventListener('input', validateConfirmation);
+    });
+  }());
+</script>
+{% endblock %}

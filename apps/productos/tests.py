@@ -10,7 +10,7 @@ from PIL import Image
 from apps.carrito.admin_forms import ProductoAdminForm
 from .models import Producto
 from .image_processing import MAX_IMAGE_DIMENSION, remove_uniform_background
-from .views import catalog_season_options
+from .views import catalog_season_options, sort_catalog_products
 
 
 class ProductoImagenPersistenteTests(TestCase):
@@ -259,3 +259,17 @@ class ProductoImagenPersistenteTests(TestCase):
         ])
         self.assertEqual(metricas[0]['porcentaje'], 50)
         self.assertEqual(metricas[-1]['porcentaje'], 100)
+
+    def test_catalogo_ordena_por_nombre_y_precio(self):
+        Producto.objects.create(nombre='Zulu', precio='500.00', disponible=True)
+        Producto.objects.create(nombre='alfa', precio='900.00', disponible=True)
+        Producto.objects.create(nombre='Beta', precio='100.00', disponible=True)
+        productos = Producto.objects.filter(disponible=True)
+
+        por_nombre = sort_catalog_products(productos, 'nombre')
+        self.assertEqual(list(por_nombre.values_list('nombre', flat=True)), ['alfa', 'Beta', 'Zulu'])
+
+        por_precio = sort_catalog_products(productos, 'precio_desc')
+        self.assertEqual(list(por_precio.values_list('precio', flat=True)), [
+            Decimal('900.00'), Decimal('500.00'), Decimal('100.00'),
+        ])

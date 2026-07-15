@@ -168,6 +168,20 @@ img { display: block; max-width: 100%; }
 .filter-panel button { height: 38px; padding: 0 18px; border: 0; background: #000; color: #fff; font-weight: 800; }
 .filter-panel > a { height: 38px; display: flex; align-items: center; font-size: 11px; }
 .sort-panel { left: auto; right: 0; width: 220px; align-items: stretch; flex-direction: column; gap: 14px; font-size: 11px; }
+.sort-panel button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.sort-panel button:hover,
+.sort-panel button:focus-visible,
+.sort-panel button.active { text-decoration: underline; text-underline-offset: 3px; }
 
 .products-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 

@@ -63,12 +63,20 @@
   </details>
   <details class="catalog-control catalog-sort" id="sort">
     <summary>SORT BY +</summary>
-    <div class="sort-panel">
-      <a href="?sort=nombre">NAME</a>
-      <a href="?sort=precio_asc">PRICE: LOW TO HIGH</a>
-      <a href="?sort=precio_desc">PRICE: HIGH TO LOW</a>
-      <a href="?sort=popularidad">POPULARITY</a>
-    </div>
+    <form method="get" class="sort-panel">
+      {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+      {% if request.GET.temporada %}<input type="hidden" name="temporada" value="{{ request.GET.temporada }}">{% endif %}
+      {% if request.GET.marca %}<input type="hidden" name="marca" value="{{ request.GET.marca }}">{% endif %}
+      {% if request.GET.precio_min %}<input type="hidden" name="precio_min" value="{{ request.GET.precio_min }}">{% endif %}
+      {% if request.GET.precio_max %}<input type="hidden" name="precio_max" value="{{ request.GET.precio_max }}">{% endif %}
+      {% if request.GET.notas %}<input type="hidden" name="notas" value="{{ request.GET.notas }}">{% endif %}
+      {% if request.GET.intensidad %}<input type="hidden" name="intensidad" value="{{ request.GET.intensidad }}">{% endif %}
+      {% if request.GET.ocasion %}<input type="hidden" name="ocasion" value="{{ request.GET.ocasion }}">{% endif %}
+      <button type="submit" name="sort" value="nombre"{% if request.GET.sort == 'nombre' %} class="active"{% endif %}>NAME</button>
+      <button type="submit" name="sort" value="precio_asc"{% if request.GET.sort == 'precio_asc' %} class="active"{% endif %}>PRICE: LOW TO HIGH</button>
+      <button type="submit" name="sort" value="precio_desc"{% if request.GET.sort == 'precio_desc' %} class="active"{% endif %}>PRICE: HIGH TO LOW</button>
+      <button type="submit" name="sort" value="popularidad"{% if request.GET.sort == 'popularidad' %} class="active"{% endif %}>POPULARITY</button>
+    </form>
   </details>
 </section>
 

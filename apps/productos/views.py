@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 import base64
 import binascii
 from django.db.models import Q, Count
+from django.db.models.functions import Lower
 from .models import Producto, Favorito
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -21,6 +22,19 @@ def format_price(price):
 def catalog_season_options():
     """Devuelve las seis temporadas oficiales en su orden visual."""
     return [(value, label.upper()) for value, label in Producto.TEMPORADA_CHOICES]
+
+
+def sort_catalog_products(productos, sort):
+    """Aplica un orden estable a los productos del catálogo."""
+    if sort == 'nombre':
+        return productos.order_by(Lower('nombre'), 'id')
+    if sort == 'precio_asc':
+        return productos.order_by('precio', 'id')
+    if sort == 'precio_desc':
+        return productos.order_by('-precio', 'id')
+    if sort == 'popularidad':
+        return productos.annotate(resena_count=Count('resenas')).order_by('-resena_count', 'id')
+    return productos
 
 @ensure_csrf_cookie
 def catalogo(request):
@@ -109,14 +123,7 @@ def catalogo(request):
 
     # 📊 ORDENAMIENTO
     sort = request.GET.get('sort')
-    if sort == 'nombre':
-        productos = productos.order_by('nombre')
-    elif sort == 'precio_asc':
-        productos = productos.order_by('precio')
-    elif sort == 'precio_desc':
-        productos = productos.order_by('-precio')
-    elif sort == 'popularidad':
-        productos = productos.annotate(resena_count=Count('resenas')).order_by('-resena_count')
+    productos = sort_catalog_products(productos, sort)
 
     # 📄 PAGINACIÓN
     paginator = Paginator(productos, 12)

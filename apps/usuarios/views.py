@@ -49,16 +49,14 @@ def login_usuario(request):
         return redirect('/')
         
     if request.method == 'POST':
-        # Permitir login con email o username
-        login_field = request.POST['username']
+        # Resuelve ambas credenciales sin depender de que el valor contenga "@".
+        login_field = request.POST.get('username', '').strip()
         password = request.POST['password']
 
-        # Si el login_field contiene @, es un email
-        if '@' in login_field:
+        user_obj = User.objects.filter(username__iexact=login_field).order_by('id').first()
+        if user_obj is None:
             user_obj = User.objects.filter(email__iexact=login_field).order_by('id').first()
-            username = user_obj.username if user_obj else None
-        else:
-            username = login_field
+        username = user_obj.username if user_obj else None
 
         if username:
             user = authenticate(request, username=username, password=password)
@@ -78,7 +76,7 @@ def login_usuario(request):
             messages.success(request, f'¡Bienvenido {user.username}!')
             return redirect(next_url)
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos')
+            messages.error(request, 'Usuario, correo o contraseña incorrectos')
 
     return render(request, 'usuarios/login.html')
 

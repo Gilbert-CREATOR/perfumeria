@@ -3,6 +3,8 @@
 
 {% block title %}Profile -D.A.R.C.Y. {% endblock %}
 
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+
 {% block content %}
 <p class="breadcrumb">Home Page / Profile</p>
 
@@ -116,14 +118,45 @@
   </div>
   
   <div style="text-align: center; margin-top: 40px;">
-    <form method="POST" action="{% url 'logout' %}">
+    <form class="logout-form" method="POST" action="{% url 'logout' %}" data-logout-form>
       {% csrf_token %}
-      <button type="submit" 
-              style="padding: 12px 30px; background: transparent; color: #000; border: 2px solid #000; font-size: 11px; font-weight: 800; cursor: pointer;">
-        LOGOUT
+      <button class="logout-button" type="submit" data-logout-button aria-label="Cerrar sesión">
+        <span class="logout-button__text" data-logout-text>LOGOUT</span>
+        <svg class="logout-button__doorway" viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M93.4 86.3H58.6a3.4 3.4 0 0 1-3.4-3.4V17.1a3.4 3.4 0 0 1 3.4-3.4h34.8a3.4 3.4 0 0 1 3.4 3.4v65.8a3.4 3.4 0 0 1-3.4 3.4z"/>
+        </svg>
+        <svg class="logout-button__figure" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="48" cy="29" r="8"/>
+          <path d="M41 40c8-4 15 0 16 8l1 17-9 1-2-14-5 13-8-4 7-21zM39 57l8 7-12 20-7-4 11-23zM52 63l9 2 5 19-8 2-6-23zM42 43l-15 9-4-7 17-11 2 9zM55 43l15 12-5 6-14-11 4-7z"/>
+        </svg>
+        <svg class="logout-button__door" viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M93.4 86.3H58.6a3.4 3.4 0 0 1-3.4-3.4V17.1a3.4 3.4 0 0 1 3.4-3.4h34.8a3.4 3.4 0 0 1 3.4 3.4v65.8a3.4 3.4 0 0 1-3.4 3.4z"/>
+          <circle cx="66" cy="50" r="3.7" fill="#F3F1ED" stroke="none"/>
+        </svg>
       </button>
     </form>
     <a href="{% url 'eliminar_cuenta' %}" style="display:inline-block;margin-top:24px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:.08em;">ELIMINAR MI CUENTA</a>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function() {
+  var form = document.querySelector('[data-logout-form]');
+  if (!form) return;
+  form.addEventListener('submit', function(event) {
+    if (form.dataset.submitting === 'true' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    event.preventDefault();
+    form.dataset.submitting = 'true';
+    var button = form.querySelector('[data-logout-button]');
+    var text = form.querySelector('[data-logout-text]');
+    button.classList.add('is-logging-out');
+    button.disabled = true;
+    text.textContent = 'SALIENDO';
+    window.setTimeout(function() { form.submit(); }, 850);
+  });
+}());
+</script>
 {% endblock %}

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}D.A.R.C.Y. - Perfumería Premium{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/catalogo.css' %}" />
+  <script src="{% static 'js/language.js' %}" defer></script>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -19,10 +20,10 @@
   </svg>
   <header class="site-header">
     <nav class="nav-left">
-      <a href="{% url 'home' %}">HOME</a>
-      <a href="{% url 'catalogo' %}">CATALOG</a>
-      <a href="#">BLOG</a>
-      <a href="{% url 'contacto' %}">CONTACTS</a>
+      <a href="{% url 'home' %}" data-i18n="HOME">HOME</a>
+      <a href="{% url 'catalogo' %}" data-i18n="CATALOG">CATALOG</a>
+      <a href="#" data-i18n="BLOG">BLOG</a>
+      <a href="{% url 'contacto' %}" data-i18n="CONTACTS">CONTACTS</a>
     </nav>
 
     <div class="brand">D.A.R.C.Y.</div>
@@ -32,16 +33,17 @@
         <a href="/admin/panel/" style="color: #ff6b35; font-weight: bold;">ADMIN</a>
       {% endif %}
       {% if user.is_authenticated %}
-        <a href="{% url 'perfil' %}">ACCOUNT</a>
+        <a href="{% url 'perfil' %}" data-i18n="ACCOUNT">ACCOUNT</a>
         <a class="header-favorites-link{% if favoritos_count %} active{% endif %}" href="{% url 'ver_favoritos' %}" aria-label="Mis favoritos" title="Mis favoritos">
           <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
           <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
           <span class="header-favorites-count" data-favorites-count>{{ favoritos_count }}</span>
         </a>
       {% else %}
-        <a href="{% url 'login' %}">ACCOUNT</a>
+        <a href="{% url 'login' %}" data-i18n="ACCOUNT">ACCOUNT</a>
       {% endif %}
-      <a href="{% url 'ver_carrito' %}">CART <span class="cart-count">({{ carrito_count|default:0 }})</span></a>
+      <a href="{% url 'ver_carrito' %}"><span data-i18n="CART">CART</span> <span class="cart-count">({{ carrito_count|default:0 }})</span></a>
+      <button class="language-toggle" type="button" data-language-toggle aria-label="Cambiar idioma" title="Cambiar idioma">EN</button>
     </nav>
   </header>
 
@@ -51,7 +53,7 @@
 
   <footer class="site-footer">
     <div class="footer-col">
-      <h4>CONTACT</h4>
+      <h4 data-i18n="CONTACT">CONTACT</h4>
       <a href="#">CLEVENKA 33 DK</a>
       <a href="#">Santiago, RD</a>
       <a href="#">INFO@DARCY.COM</a>
@@ -59,75 +61,33 @@
     </div>
 
     <div class="footer-col">
-      <h4>FOLLOW</h4>
-      <a href="#https://www.instagram.com">INSTAGRAM</a>
-      <a href="#https://www.facebook.com">FACEBOOK</a>
-      <a href="#https://twitter.com">TWITTER</a>
+      <h4 data-i18n="FOLLOW">FOLLOW</h4>
+      <a class="footer-social-link" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram (abre en una pestaña nueva)">INSTAGRAM <span aria-hidden="true">↗</span></a>
+      <a class="footer-social-link" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook (abre en una pestaña nueva)">FACEBOOK <span aria-hidden="true">↗</span></a>
+      <a class="footer-social-link" href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter (abre en una pestaña nueva)">X / TWITTER <span aria-hidden="true">↗</span></a>
     </div>
 
     <div class="footer-col">
-      <h4>INFORMATION</h4>
-      <a href="{% url 'nosotros' %}">DELIVERY & RETURNS</a>
-      <a href="{% url 'login' %}">ACCOUNT</a>
-      <a href="{% url 'faq' %}">TERMS & CONDITION</a>
+      <h4 data-i18n="INFORMATION">INFORMATION</h4>
+      <a href="{% url 'nosotros' %}" data-i18n="DELIVERY & RETURNS">DELIVERY & RETURNS</a>
+      <a href="{% url 'login' %}" data-i18n="ACCOUNT">ACCOUNT</a>
+      <a href="{% url 'faq' %}" data-i18n="TERMS & CONDITION">TERMS & CONDITION</a>
     </div>
 
     <div class="footer-col newsletter" id="newsletter">
-      <h4>NEWSLETTER</h4>
-      <form class="newsletter-form" action="{% url 'newsletter:suscribirse' %}" method="post" data-newsletter-form>
+      <h4 data-i18n="NEWSLETTER">NEWSLETTER</h4>
+      <form class="newsletter-form" action="{% url 'newsletter:suscribirse' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <label class="sr-only" for="newsletter-email">Correo electrónico</label>
         <input id="newsletter-email" type="email" name="email" placeholder="EMAIL ADDRESS" autocomplete="email" required>
-        <button type="submit">SUBSCRIBE</button>
-        <p class="newsletter-status" data-newsletter-status aria-live="polite">
+        <button type="submit" data-i18n="SUBSCRIBE">SUBSCRIBE</button>
+        <p class="newsletter-status{% if request.GET.newsletter == 'success' or request.GET.newsletter == 'already' %} is-success{% elif request.GET.newsletter == 'invalid' or request.GET.newsletter == 'email-error' %} is-error{% endif %}" aria-live="polite">
           {% if request.GET.newsletter == 'success' %}¡Gracias por suscribirte! Revisa tu correo.{% elif request.GET.newsletter == 'already' %}Este correo ya está suscrito a D.A.R.C.Y.{% elif request.GET.newsletter == 'invalid' %}Escribe una dirección de correo válida.{% elif request.GET.newsletter == 'email-error' %}No pudimos completar la suscripción. Inténtalo más tarde.{% endif %}
         </p>
       </form>
     </div>
   </footer>
-
-  <script>
-  (function() {
-    document.querySelectorAll('[data-newsletter-form]').forEach(function(form) {
-      form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        var button = form.querySelector('button[type="submit"]');
-        var status = form.querySelector('[data-newsletter-status]');
-        var originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'SENDING...';
-        status.textContent = '';
-        status.classList.remove('is-error', 'is-success');
-
-        fetch(form.action, {
-          method: 'POST',
-          body: new FormData(form),
-          headers: {'X-Requested-With': 'XMLHttpRequest'}
-        })
-          .then(function(response) {
-            return response.json().then(function(data) {
-              if (!response.ok) throw new Error(data.message || 'No pudimos completar la suscripción.');
-              return data;
-            });
-          })
-          .then(function(data) {
-            status.textContent = data.message;
-            status.classList.add('is-success');
-            form.querySelector('input[name="email"]').value = '';
-          })
-          .catch(function(error) {
-            status.textContent = error.message;
-            status.classList.add('is-error');
-          })
-          .finally(function() {
-            button.disabled = false;
-            button.textContent = originalText;
-          });
-      });
-    });
-  }());
-  </script>
 
   {% block extra_js %}
   <script>

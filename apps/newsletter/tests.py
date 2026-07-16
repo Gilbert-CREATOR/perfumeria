@@ -43,6 +43,19 @@ class NewsletterTests(TestCase):
         self.assertIn(str(suscriptor.token), html)
         self.assertIn('#A31523', html)
 
+    def test_formulario_html_redirige_sin_depender_de_fetch(self):
+        with patch('apps.newsletter.views.enviar_bienvenida_suscripcion'):
+            response = self.client.post(
+                reverse('newsletter:suscribirse'),
+                {'email': 'safari@example.com', 'next': '/catalogo/?orden=nombre'},
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response['Location'],
+            '/catalogo/?orden=nombre&newsletter=success#newsletter',
+        )
+
     def test_email_duplicado_no_crea_otra_suscripcion_ni_otro_correo(self):
         SuscriptorNewsletter.objects.create(email='cliente@example.com')
 

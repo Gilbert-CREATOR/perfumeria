@@ -98,6 +98,17 @@ class AutenticacionTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(int(self.client.session['_auth_user_id']), 1)
 
+    def test_login_acepta_nombre_de_usuario_sin_importar_mayusculas(self):
+        user = get_user_model().objects.create_user(
+            username='ClienteDarcy', email='cliente2@example.com', password='clave-segura-123'
+        )
+        response = self.client.post(
+            '/usuarios/login/',
+            {'username': 'clientedarcy', 'password': 'clave-segura-123'},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.id)
+
     def test_sync_admin_actualiza_credenciales(self):
         variables = {
             'DJANGO_SUPERUSER_USERNAME': 'admin',

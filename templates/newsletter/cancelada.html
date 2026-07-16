@@ -1,0 +1,10 @@
+{% extends 'base_moderno.html' %}
+{% block title %}Suscripción cancelada | D.A.R.C.Y.{% endblock %}
+{% block content %}
+<section class="newsletter-preference-page">
+  <p class="newsletter-preference-kicker">PREFERENCIAS ACTUALIZADAS</p>
+  <h1>SUSCRIPCIÓN<br>CANCELADA.</h1>
+  <p>{{ suscriptor.email }} ya no recibirá comunicaciones del newsletter. Podrás volver a suscribirte desde el formulario al pie de la página.</p>
+  <a class="newsletter-preference-link" href="{% url 'home' %}">VOLVER A LA TIENDA</a>
+</section>
+{% endblock %}

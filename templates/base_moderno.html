@@ -52,7 +52,7 @@
   <footer class="site-footer">
     <div class="footer-col">
       <h4>CONTACT</h4>
-      <a href="#">CLEVENKA 33 DK-34600</a>
+      <a href="#">CLEVENKA 33 DK</a>
       <a href="#">Santiago, RD</a>
       <a href="#">INFO@DARCY.COM</a>
       <a href="#">+11233455678</a>
@@ -72,12 +72,62 @@
       <a href="{% url 'faq' %}">TERMS & CONDITION</a>
     </div>
 
-    <div class="footer-col newsletter">
+    <div class="footer-col newsletter" id="newsletter">
       <h4>NEWSLETTER</h4>
-      <input type="email" placeholder="EMAIL ADDRESS">
-      <button>SUBSCRIBE</button>
+      <form class="newsletter-form" action="{% url 'newsletter:suscribirse' %}" method="post" data-newsletter-form>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <label class="sr-only" for="newsletter-email">Correo electrónico</label>
+        <input id="newsletter-email" type="email" name="email" placeholder="EMAIL ADDRESS" autocomplete="email" required>
+        <button type="submit">SUBSCRIBE</button>
+        <p class="newsletter-status" data-newsletter-status aria-live="polite">
+          {% if request.GET.newsletter == 'success' %}¡Gracias por suscribirte! Revisa tu correo.{% elif request.GET.newsletter == 'already' %}Este correo ya está suscrito a D.A.R.C.Y.{% elif request.GET.newsletter == 'invalid' %}Escribe una dirección de correo válida.{% elif request.GET.newsletter == 'email-error' %}No pudimos completar la suscripción. Inténtalo más tarde.{% endif %}
+        </p>
+      </form>
     </div>
   </footer>
+
+  <script>
+  (function() {
+    document.querySelectorAll('[data-newsletter-form]').forEach(function(form) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var button = form.querySelector('button[type="submit"]');
+        var status = form.querySelector('[data-newsletter-status]');
+        var originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'SENDING...';
+        status.textContent = '';
+        status.classList.remove('is-error', 'is-success');
+
+        fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+          .then(function(response) {
+            return response.json().then(function(data) {
+              if (!response.ok) throw new Error(data.message || 'No pudimos completar la suscripción.');
+              return data;
+            });
+          })
+          .then(function(data) {
+            status.textContent = data.message;
+            status.classList.add('is-success');
+            form.querySelector('input[name="email"]').value = '';
+          })
+          .catch(function(error) {
+            status.textContent = error.message;
+            status.classList.add('is-error');
+          })
+          .finally(function() {
+            button.disabled = false;
+            button.textContent = originalText;
+          });
+      });
+    });
+  }());
+  </script>
 
   {% block extra_js %}
   <script>

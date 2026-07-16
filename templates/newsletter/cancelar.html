@@ -1,0 +1,14 @@
+{% extends 'base_moderno.html' %}
+{% block title %}Cancelar suscripción | D.A.R.C.Y.{% endblock %}
+{% block content %}
+<section class="newsletter-preference-page">
+  <p class="newsletter-preference-kicker">PREFERENCIAS DE CORREO</p>
+  <h1>CANCELAR<br>SUSCRIPCIÓN.</h1>
+  {% if suscriptor.activo %}
+    <p>Dejarás de recibir novedades, recordatorios de carrito y recomendaciones en <strong>{{ suscriptor.email }}</strong>.</p>
+    <form action="{% url 'newsletter:cancelar_confirmar' suscriptor.token %}" method="post">{% csrf_token %}<button type="submit">CONFIRMAR CANCELACIÓN</button></form>
+  {% else %}
+    <p>Esta dirección ya no está suscrita al newsletter de D.A.R.C.Y.</p>
+  {% endif %}
+</section>
+{% endblock %}

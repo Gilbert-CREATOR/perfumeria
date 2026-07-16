@@ -10,6 +10,7 @@ urlpatterns = [
     path('', include('apps.productos.urls')),
     path('carrito/', include('apps.carrito.urls')),
     path('usuarios/', include('apps.usuarios.urls')),
+    path('newsletter/', include('apps.newsletter.urls')),
 
     # 🎯 URLs del panel admin personalizado
     path('admin/', include('apps.carrito.admin_urls')),

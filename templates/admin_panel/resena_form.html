@@ -1,0 +1,34 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Editar reseña{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Reseñas</p>
+        <h1>Editar reseña</h1>
+        <p class="admin-subtitle">Opinión de {{ resena.usuario.username }} sobre {{ resena.producto.nombre }}.</p>
+    </div>
+    <div class="admin-hero-actions">
+        <a href="{% url 'admin_resenas' %}" class="btn btn-outline-dark">Volver</a>
+    </div>
+</section>
+
+<section class="admin-panel-card admin-panel-card-narrow">
+    <form method="post" class="admin-form-stack">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger mb-0">{{ form.non_field_errors }}</div>{% endif %}
+        <div>
+            <label class="form-label" for="{{ form.estrellas.id_for_label }}">Puntuación</label>
+            {{ form.estrellas }}
+            {{ form.estrellas.errors }}
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.comentario.id_for_label }}">Comentario</label>
+            {{ form.comentario }}
+            {{ form.comentario.errors }}
+        </div>
+        <button type="submit" class="btn btn-dark">Guardar cambios</button>
+    </form>
+</section>
+{% endblock %}

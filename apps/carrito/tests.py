@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from apps.productos.models import AlertaStock, Producto
+from apps.productos.models import AlertaStock, Producto, Resena
 from .models import Carrito, Envio, ItemCarrito, ItemPedido, MetodoEnvio, Pedido
 from .services import PENDING_CART_SESSION_KEY
 from .recommendations import productos_recomendados_por_temporada
@@ -407,12 +407,19 @@ class AdminPanelViewsTests(TestCase):
             numero_seguimiento='EXP-001',
             estado='preparando',
         )
+        self.resena = Resena.objects.create(
+            usuario=self.admin_user,
+            producto=self.producto,
+            estrellas=4,
+            comentario='Reseña administrable.',
+        )
 
     def test_admin_index_pages_render(self):
         urls = [
             reverse('admin_panel'),
             reverse('admin_productos'),
             reverse('admin_producto_crear'),
+            reverse('admin_resenas'),
             reverse('admin_pedidos'),
             reverse('admin_stock'),
             reverse('admin_envios'),
@@ -430,6 +437,7 @@ class AdminPanelViewsTests(TestCase):
             reverse('admin_detalle_pedido', args=[self.pedido.id]),
             reverse('admin_detalle_envio', args=[self.envio.id]),
             reverse('admin_producto_editar', args=[self.producto.id]),
+            reverse('admin_resena_editar', args=[self.resena.id]),
             reverse('admin_metodo_envio_editar', args=[self.metodo_envio.id]),
         ]
 
@@ -437,6 +445,20 @@ class AdminPanelViewsTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
+
+    def test_admin_puede_editar_y_eliminar_resena(self):
+        response = self.client.post(
+            reverse('admin_resena_editar', args=[self.resena.id]),
+            {'estrellas': 2, 'comentario': 'Contenido corregido por administración.'},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.resena.refresh_from_db()
+        self.assertEqual(self.resena.estrellas, 2)
+        self.assertEqual(self.resena.comentario, 'Contenido corregido por administración.')
+
+        response = self.client.post(reverse('admin_resena_eliminar', args=[self.resena.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Resena.objects.filter(pk=self.resena.id).exists())
 
     def test_admin_stock_update_works_without_django_admin(self):
         response = self.client.post(

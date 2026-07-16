@@ -13,6 +13,7 @@ from .forms import ResenaForm
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 
 def format_price(price):
     """Formatear precio para que sea más legible"""
@@ -37,6 +38,29 @@ def sort_catalog_products(productos, sort):
     if sort == 'popularidad':
         return productos.annotate(resena_count=Count('resenas')).order_by('-resena_count', 'id')
     return productos
+
+
+def productos_relacionados_para(producto, limite=8):
+    """Prioriza productos con temporadas afines y completa con el catálogo activo."""
+    temporadas_origen = set(producto.temporada or [])
+    candidatos = Producto.objects.filter(
+        disponible=True,
+        stock__gt=0,
+    ).exclude(pk=producto.pk).order_by('pk')
+
+    puntuados = []
+    for candidato in candidatos:
+        temporadas_candidato = set(candidato.temporada or [])
+        coincidencias = len(temporadas_origen.intersection(temporadas_candidato))
+        misma_marca = bool(
+            producto.marca
+            and candidato.marca
+            and producto.marca.casefold() == candidato.marca.casefold()
+        )
+        puntuados.append((coincidencias, misma_marca, candidato.pk, candidato))
+
+    puntuados.sort(key=lambda resultado: (-resultado[0], -resultado[1], resultado[2]))
+    return [candidato for _, _, _, candidato in puntuados[:limite]]
 
 @ensure_csrf_cookie
 def catalogo(request):
@@ -176,12 +200,11 @@ def home(request):
 def detalle_producto(request, producto_id):
     producto = get_object_or_404(Producto.objects.prefetch_related('resenas__usuario'), id=producto_id)
     resenas = producto.resenas.select_related('usuario').order_by('-creado')
+    resena_usuario = None
+    if request.user.is_authenticated:
+        resena_usuario = resenas.filter(usuario=request.user).first()
     
-    # Productos relacionados
-    productos_relacionados = Producto.objects.filter(
-        disponible=True, 
-        marca=producto.marca
-    ).exclude(id=producto.id)[:4]
+    productos_relacionados = productos_relacionados_para(producto)
 
     context = {
         'producto': producto,
@@ -191,11 +214,9 @@ def detalle_producto(request, producto_id):
             request.user.is_authenticated
             and AlertaStock.objects.filter(usuario=request.user, producto=producto, enviada__isnull=True).exists()
         ),
-        'puede_resenar': (
-            request.user.is_authenticated
-            and request.user.pedido_set.filter(items__producto=producto, estado='entregado').exists()
-        ),
-        'resena_form': ResenaForm(),
+        'puede_resenar': request.user.is_authenticated,
+        'resena_form': ResenaForm(instance=resena_usuario),
+        'resena_usuario': resena_usuario,
     }
     return render(request, 'productos/detalle_producto_minimalista.html', context)
 
@@ -222,36 +243,32 @@ def crear_alerta_stock(request, producto_id):
 @login_required
 def crear_resena(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
-    compro_producto = request.user.pedido_set.filter(
-        items__producto=producto,
-        estado='entregado',
-    ).exists()
-    if request.method != 'POST' or not compro_producto:
-        messages.error(request, 'Solo puedes reseñar productos de pedidos entregados.')
+    if request.method != 'POST':
+        messages.error(request, 'Envía la reseña desde el formulario del producto.')
         return redirect(f'{reverse("detalle_producto", args=[producto.id])}#resena')
 
     form = ResenaForm(request.POST)
     if form.is_valid():
-        resena = Resena.objects.filter(usuario=request.user, producto=producto).order_by('id').first()
-        if resena:
-            resena.comentario = form.cleaned_data['comentario']
-            resena.estrellas = form.cleaned_data['estrellas']
-            resena.save(update_fields=['comentario', 'estrellas'])
-        else:
-            Resena.objects.create(
-                usuario=request.user,
-                producto=producto,
-                comentario=form.cleaned_data['comentario'],
-                estrellas=form.cleaned_data['estrellas'],
-            )
+        Resena.objects.update_or_create(
+            usuario=request.user,
+            producto=producto,
+            defaults={
+                'comentario': form.cleaned_data['comentario'],
+                'estrellas': form.cleaned_data['estrellas'],
+            },
+        )
         messages.success(request, 'Gracias por compartir tu experiencia.')
     else:
         messages.error(request, 'Revisa la puntuación y el comentario.')
     return redirect(f'{reverse("detalle_producto", args=[producto.id])}#resena')
 
-@login_required
+@require_POST
 def toggle_favorito(request, producto_id):
     """Toggle favorito para un producto"""
+    if not request.user.is_authenticated:
+        login_url = f'{reverse("login")}?next={reverse("detalle_producto", args=[producto_id])}'
+        return JsonResponse({'success': False, 'redirect': login_url}, status=401)
+
     producto = get_object_or_404(Producto, id=producto_id)
     favorito, created = Favorito.objects.get_or_create(
         usuario=request.user,
@@ -260,14 +277,23 @@ def toggle_favorito(request, producto_id):
     
     if not created:
         favorito.delete()
-        return JsonResponse({'success': True, 'is_favorito': False})
+        return JsonResponse({
+            'success': True,
+            'is_favorito': False,
+            'favoritos_count': Favorito.objects.filter(usuario=request.user).count(),
+        })
     
-    return JsonResponse({'success': True, 'is_favorito': True})
+    return JsonResponse({
+        'success': True,
+        'is_favorito': True,
+        'favoritos_count': Favorito.objects.filter(usuario=request.user).count(),
+    })
 
 @login_required
+@ensure_csrf_cookie
 def ver_favoritos(request):
     """Ver lista de favoritos del usuario"""
-    favoritos = Favorito.objects.filter(usuario=request.user).select_related('producto')
+    favoritos = Favorito.objects.filter(usuario=request.user).select_related('producto').order_by('-id')
     
     context = {
         'favoritos': favoritos,

@@ -1,18 +1,27 @@
 import base64
 from decimal import Decimal
 from io import BytesIO
+from unittest.mock import patch
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.http import HttpResponse
+from django.template.loader import get_template
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from PIL import Image
 
 from apps.carrito.admin_forms import ProductoAdminForm
-from apps.carrito.models import ItemPedido, Pedido
-from .models import AlertaStock, Producto, Resena
+from .context_processors import favoritos_usuario
+from .models import AlertaStock, Favorito, Producto, Resena
 from .image_processing import MAX_IMAGE_DIMENSION, remove_uniform_background
-from .views import catalog_season_options, sort_catalog_products
+from .views import (
+    catalog_season_options,
+    detalle_producto,
+    productos_relacionados_para,
+    sort_catalog_products,
+)
 
 
 class AlertasYResenasTests(TestCase):
@@ -30,11 +39,7 @@ class AlertasYResenasTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(AlertaStock.objects.filter(usuario=self.user, producto=self.producto).exists())
 
-    def test_solo_comprador_con_pedido_entregado_puede_resenar(self):
-        pedido = Pedido.objects.create(usuario=self.user, total='1900.00', estado='entregado')
-        ItemPedido.objects.create(
-            pedido=pedido, producto=self.producto, cantidad=1, precio='1900.00'
-        )
+    def test_cliente_registrado_puede_resenar_sin_haber_comprado(self):
         response = self.client.post(reverse('crear_resena', args=[self.producto.id]), {
             'estrellas': 5, 'comentario': 'Excelente fragancia.',
         })
@@ -42,6 +47,31 @@ class AlertasYResenasTests(TestCase):
         self.assertTrue(Resena.objects.filter(
             usuario=self.user, producto=self.producto, estrellas=5
         ).exists())
+
+    def test_cliente_actualiza_su_unica_resena(self):
+        Resena.objects.create(
+            usuario=self.user, producto=self.producto, estrellas=3, comentario='Inicial.'
+        )
+
+        self.client.post(reverse('crear_resena', args=[self.producto.id]), {
+            'estrellas': 5, 'comentario': 'Ahora me encanta.',
+        })
+
+        self.assertEqual(Resena.objects.filter(usuario=self.user, producto=self.producto).count(), 1)
+        resena = Resena.objects.get(usuario=self.user, producto=self.producto)
+        self.assertEqual(resena.estrellas, 5)
+        self.assertEqual(resena.comentario, 'Ahora me encanta.')
+
+    def test_visitante_debe_iniciar_sesion_para_resenar(self):
+        self.client.logout()
+
+        response = self.client.post(reverse('crear_resena', args=[self.producto.id]), {
+            'estrellas': 5, 'comentario': 'No debe guardarse.',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response.url)
+        self.assertFalse(Resena.objects.exists())
 
 
 class ProductoImagenPersistenteTests(TestCase):
@@ -304,3 +334,110 @@ class ProductoImagenPersistenteTests(TestCase):
         self.assertEqual(list(por_precio.values_list('precio', flat=True)), [
             Decimal('900.00'), Decimal('500.00'), Decimal('100.00'),
         ])
+
+
+class ProductosRelacionadosDetalleTests(TestCase):
+    def test_prioriza_temporadas_y_completa_con_productos_disponibles(self):
+        principal = Producto.objects.create(
+            nombre='Uomo Born in Roma', marca='Valentino', stock=6,
+            disponible=True, temporada=['noche', 'otono'],
+        )
+        alternativo = Producto.objects.create(
+            nombre='Alternativo', marca='Otra', stock=4,
+            disponible=True, temporada=['primavera'],
+        )
+        afin = Producto.objects.create(
+            nombre='Afin', marca='Otra', stock=4,
+            disponible=True, temporada=['noche'],
+        )
+        Producto.objects.create(
+            nombre='Inactivo', stock=4, disponible=False, temporada=['noche'],
+        )
+
+        relacionados = productos_relacionados_para(principal)
+
+        self.assertEqual(relacionados, [afin, alternativo])
+
+    def test_pagina_de_detalle_muestra_el_carrusel(self):
+        principal = Producto.objects.create(
+            nombre='Principal', stock=3, disponible=True, temporada=['dia'],
+        )
+        Producto.objects.create(
+            nombre='Recomendado', stock=2, disponible=True, temporada=['dia'],
+        )
+
+        request = RequestFactory().get(reverse('detalle_producto', args=[principal.pk]))
+        request.user = AnonymousUser()
+        contexto = {}
+
+        def capturar_render(_request, _template, context):
+            contexto.update(context)
+            return HttpResponse('ok')
+
+        with patch('apps.productos.views.render', side_effect=capturar_render):
+            response = detalle_producto(request, principal.pk)
+
+        plantilla = get_template('productos/detalle_producto_minimalista.html').template.source
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([producto.nombre for producto in contexto['productos_relacionados']], ['Recomendado'])
+        self.assertIn('YOU MIGHT ALSO LIKE', plantilla)
+        self.assertIn('related-products-scroll', plantilla)
+
+
+class FavoritosTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='cliente_favoritos', password='clave-segura-123'
+        )
+        self.producto = Producto.objects.create(
+            nombre='Favorito', stock=3, disponible=True,
+        )
+
+    def test_usuario_autenticado_puede_agregar_y_quitar_favorito(self):
+        self.client.force_login(self.user)
+        url = reverse('toggle_favorito', args=[self.producto.pk])
+
+        agregado = self.client.post(url)
+        repetido = self.client.post(url)
+
+        self.assertEqual(agregado.status_code, 200)
+        self.assertTrue(agregado.json()['is_favorito'])
+        self.assertEqual(agregado.json()['favoritos_count'], 1)
+        self.assertEqual(repetido.status_code, 200)
+        self.assertFalse(repetido.json()['is_favorito'])
+        self.assertFalse(Favorito.objects.exists())
+
+    def test_visitante_recibe_redireccion_de_login_sin_crear_favorito(self):
+        response = self.client.post(reverse('toggle_favorito', args=[self.producto.pk]))
+
+        self.assertEqual(response.status_code, 401)
+        self.assertIn(reverse('login'), response.json()['redirect'])
+        self.assertFalse(Favorito.objects.exists())
+
+    def test_solo_post_puede_cambiar_favoritos(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse('toggle_favorito', args=[self.producto.pk]))
+
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(Favorito.objects.exists())
+
+    def test_contexto_global_entrega_ids_y_contador(self):
+        Favorito.objects.create(usuario=self.user, producto=self.producto)
+        request = RequestFactory().get('/')
+        request.user = self.user
+
+        contexto = favoritos_usuario(request)
+
+        self.assertEqual(contexto['favoritos_ids'], {self.producto.pk})
+        self.assertEqual(contexto['favoritos_count'], 1)
+
+    def test_plantilla_moderna_de_favoritos_existe(self):
+        plantilla = get_template('productos/favoritos_moderno.html').template.source
+        base = get_template('base_moderno.html').template.source
+
+        self.assertIn('FAVORITES', plantilla)
+        self.assertIn('data-reload-on-change', plantilla)
+        self.assertIn('favorite-icon-outline', plantilla)
+        self.assertIn('heart-outline-icon', base)
+        self.assertIn('heart-filled-icon', base)

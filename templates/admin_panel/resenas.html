@@ -1,0 +1,77 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Reseñas{% endblock %}
+
+{% block content %}
+<section class="admin-page-head">
+    <div>
+        <p class="admin-kicker">Comunidad</p>
+        <h1>Gestión de reseñas</h1>
+        <p class="admin-subtitle">Consulta, corrige o elimina las opiniones publicadas por los clientes.</p>
+    </div>
+</section>
+
+<section class="admin-mini-stats">
+    <article><strong>{{ total_resenas }}</strong><span>Resultados</span></article>
+</section>
+
+<section class="admin-panel-card mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-7">
+            <label class="form-label" for="reviewSearch">Buscar</label>
+            <input id="reviewSearch" type="search" name="q" class="form-control" value="{{ busqueda }}" placeholder="Cliente, correo, producto o comentario">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="reviewStars">Puntuación</label>
+            <select id="reviewStars" name="estrellas" class="form-select">
+                <option value="">Todas</option>
+                {% for value in "12345" %}
+                    <option value="{{ value }}" {% if estrellas_actuales == value %}selected{% endif %}>{{ value }} estrella{% if value != '1' %}s{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrar</button>
+        </div>
+    </form>
+</section>
+
+<section class="admin-panel-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Producto</th>
+                    <th>Puntuación</th>
+                    <th>Comentario</th>
+                    <th>Fecha</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resena in resenas %}
+                    <tr>
+                        <td><strong>{{ resena.usuario.username }}</strong><br><small>{{ resena.usuario.email|default:"Sin correo" }}</small></td>
+                        <td><a href="{% url 'detalle_producto' resena.producto.id %}#resena" class="text-dark">{{ resena.producto.nombre }}</a></td>
+                        <td><span class="admin-badge entregado">{{ resena.estrellas }}/5</span></td>
+                        <td style="min-width:260px;max-width:420px;">{{ resena.comentario|truncatechars:160 }}</td>
+                        <td>{{ resena.creado|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end">
+                            <div class="admin-table-actions">
+                                <a href="{% url 'admin_resena_editar' resena.id %}" class="btn btn-sm btn-outline-dark">Editar</a>
+                                <form method="post" action="{% url 'admin_resena_eliminar' resena.id %}" onsubmit="return confirm('¿Eliminar esta reseña definitivamente?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-5">No hay reseñas para mostrar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

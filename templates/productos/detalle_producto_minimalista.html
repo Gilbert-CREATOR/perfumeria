@@ -124,7 +124,7 @@
 .season-icon > svg,
 .season-icon-fill svg {
     position: absolute;
-    left: 0;
+    left: -48px;
     bottom: 0;
     width: 40px;
     height: 40px;
@@ -224,20 +224,177 @@
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.add-to-cart-btn:hover {
+.add-to-cart-btn:hover:not(:disabled) {
     background: #fff;
     color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .16);
+}
+
+.add-to-cart-btn:active:not(:disabled) {
+    transform: translateY(0) scale(.97);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+}
+
+.cart-button-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .22s ease, transform .22s ease;
+}
+
+.cart-button-label-added {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+.cart-button-animation {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 38px;
+    height: 30px;
+    opacity: 0;
+    color: currentColor;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.cart-button-animation svg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 38px;
+    height: 25px;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.cart-button-package {
+    position: absolute;
+    top: -4px;
+    left: 13px;
+    width: 12px;
+    height: 11px;
+    border: 1.5px solid currentColor;
+    background: #000;
+    opacity: 0;
+}
+
+.add-to-cart-btn.is-adding {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+    cursor: wait;
+}
+
+.add-to-cart-btn.is-adding .cart-button-label-default {
+    opacity: 0;
+    transform: translateY(-12px);
+}
+
+.add-to-cart-btn.is-adding .cart-button-animation {
+    animation: cart-drive 1050ms cubic-bezier(.42, 0, .2, 1) both;
+}
+
+.add-to-cart-btn.is-adding .cart-button-package {
+    animation: package-drop 1050ms cubic-bezier(.42, 0, .2, 1) both;
+}
+
+.add-to-cart-btn.is-added .cart-button-label-default {
+    opacity: 0;
+    transform: translateY(-12px);
+}
+
+.add-to-cart-btn.is-added .cart-button-label-added {
+    opacity: 1;
+    transform: translateY(0);
+    animation: added-label-pop 360ms cubic-bezier(.2, .9, .25, 1.3);
+}
+
+@keyframes cart-drive {
+    0% { left: -48px; opacity: 0; transform: translateY(-50%); }
+    12% { opacity: 1; }
+    68% { left: calc(50% - 19px); opacity: 1; transform: translateY(-50%); }
+    100% { left: calc(100% + 12px); opacity: 0; transform: translateY(-50%); }
+}
+
+@keyframes package-drop {
+    0%, 22% { opacity: 0; transform: translateY(-18px) rotate(-8deg); }
+    30% { opacity: 1; }
+    55% { opacity: 1; transform: translateY(8px) rotate(0); }
+    72%, 100% { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes added-label-pop {
+    0% { opacity: 0; transform: scale(.84); }
+    65% { opacity: 1; transform: scale(1.06); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .add-to-cart-btn,
+    .detail-favorite-btn,
+    .cart-button-label,
+    .cart-button-animation,
+    .cart-button-package {
+        transition: none !important;
+        animation: none !important;
+    }
 }
 
 .add-to-cart-btn:disabled {
     background: #ccc;
     border-color: #ccc;
     cursor: not-allowed;
+}
+
+.add-to-cart-btn.is-adding:disabled {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+    opacity: 1;
+}
+
+.detail-favorite-btn {
+    width: 44px;
+    height: 44px;
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    background: var(--bg);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .2s ease, color .2s ease;
+}
+
+.detail-favorite-btn:hover { transform: scale(1.12); }
+.detail-favorite-btn:active { transform: scale(.86); }
+
+.detail-favorite-btn.active {
+    background: var(--bg);
+    color: #A31523;
+}
+
+.detail-favorite-btn .favorite-icon {
+    width: 24px;
+    height: 24px;
 }
 
 /* Columna Derecha - Imagen */
@@ -360,6 +517,55 @@
 .review-form select,.review-form textarea { box-sizing:border-box; width:100%; padding:14px; border:1px solid #000; background:var(--bg,#f4f2ee); color:#000; }
 .review-form button { height:48px; border:0; background:#000; color:#fff; font-weight:800; cursor:pointer; }
 .review-card { padding:20px 0; border-top:1px solid #d8d3cb; }
+
+.related-products-section {
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 20px;
+}
+
+.related-products-section > h2 {
+    margin: 0 0 34px;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: .95;
+    text-align: center;
+}
+
+.related-products-scroll {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 0 18px;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.related-products-scroll .product-card {
+    flex: 0 0 calc((100% - 18px) / 2);
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+.related-products-scroll::-webkit-scrollbar { height: 7px; }
+.related-products-scroll::-webkit-scrollbar-track {
+    background: #e5e1da;
+    border-radius: 999px;
+}
+.related-products-scroll::-webkit-scrollbar-thumb {
+    background: #000;
+    border-radius: 999px;
+}
+
+@media (max-width: 480px) {
+    .related-products-section { padding-right: 0; }
+    .related-products-section > h2 { padding-right: 20px; }
+    .related-products-scroll { gap: 14px; padding-right: 20px; }
+    .related-products-scroll .product-card { flex-basis: min(82vw, 360px); }
+}
 
 /* Breadcrumb minimalista */
 .breadcrumb {
@@ -505,17 +711,36 @@
                     <input type="number" id="quantity" value="1" min="1" max="{{ producto.stock|default:1 }}">
                     <button type="button" id="increaseBtn">+</button>
                 </div>
-                <button class="add-to-cart-btn" 
+                <button type="button" class="add-to-cart-btn"
                         id="addToCartBtn"
                         {% if not producto.stock %}disabled{% endif %}
                         onclick="addToCart('{{ producto.id }}')">
                     {% if producto.stock %}
-                        Agregar al carrito
+                        <span class="cart-button-label cart-button-label-default">Agregar al carrito</span>
+                        <span class="cart-button-label cart-button-label-added">Agregado</span>
+                        <span class="cart-button-animation" aria-hidden="true">
+                            <svg viewBox="0 0 40 28">
+                                <path d="M2 3h5l3.2 15.2h20.4L35 8H9"/>
+                                <circle cx="14" cy="24" r="2"/>
+                                <circle cx="29" cy="24" r="2"/>
+                            </svg>
+                            <span class="cart-button-package"></span>
+                        </span>
                     {% else %}
                         Agotado
                     {% endif %}
                 </button>
             </div>
+            <button type="button"
+                    class="detail-favorite-btn{% if producto.id in favoritos_ids %} active{% endif %}"
+                    data-favorite-url="{% url 'toggle_favorito' producto.id %}"
+                    data-favorite-product="{{ producto.id }}"
+                    aria-pressed="{% if producto.id in favoritos_ids %}true{% else %}false{% endif %}"
+                    aria-label="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}"
+                    title="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}">
+                <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
+                <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
+            </button>
             
             {% if producto.stock > 0 %}
                 <div class="stock-info in-stock">
@@ -567,15 +792,42 @@
     <form class="review-form" method="post" action="{% url 'crear_resena' producto.id %}">{% csrf_token %}
       <label for="id_estrellas"><strong>PUNTUACIÓN</strong></label>{{ resena_form.estrellas }}
       <label for="id_comentario"><strong>TU EXPERIENCIA</strong></label>{{ resena_form.comentario }}
-      <button type="submit">PUBLICAR RESEÑA</button>
+      <button type="submit">{% if resena_usuario %}ACTUALIZAR RESEÑA{% else %}PUBLICAR RESEÑA{% endif %}</button>
     </form>
-  {% elif user.is_authenticated %}
-    <p style="color:#6a665f;">Podrás reseñar este producto después de recibir un pedido que lo incluya.</p>
+  {% else %}
+    <p style="color:#6a665f;">Para dejar una reseña debes <a href="{% url 'login' %}?next={{ request.path|urlencode }}%23resena">iniciar sesión</a> o registrarte.</p>
   {% endif %}
   {% for resena in resenas %}
     <article class="review-card"><strong>{{ resena.estrellas }}/5 · {{ resena.usuario.username }}</strong><p>{{ resena.comentario }}</p></article>
   {% empty %}<p style="color:#6a665f;">Todavía no hay reseñas.</p>{% endfor %}
 </section>
+
+{% if productos_relacionados %}
+<section class="related-products-section" aria-labelledby="relatedProductsTitle">
+  <h2 id="relatedProductsTitle">YOU MIGHT ALSO LIKE</h2>
+  <div class="related-products-scroll" aria-label="Productos recomendados">
+    {% for producto_relacionado in productos_relacionados %}
+      <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto_relacionado.id %}'">
+        <button type="button" class="favorite-btn{% if producto_relacionado.id in favoritos_ids %} active{% endif %}"
+                data-favorite-url="{% url 'toggle_favorito' producto_relacionado.id %}"
+                data-favorite-product="{{ producto_relacionado.id }}"
+                aria-pressed="{% if producto_relacionado.id in favoritos_ids %}true{% else %}false{% endif %}"
+                aria-label="{% if producto_relacionado.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}">
+          <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
+          <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
+        </button>
+        <h2>{{ producto_relacionado.nombre|upper }}</h2>
+        <div class="price">${{ producto_relacionado.precio|floatformat:2 }}</div>
+        {% if producto_relacionado.tiene_imagen %}
+          <img class="product-image" src="{{ producto_relacionado.imagen_url_property }}" alt="{{ producto_relacionado.nombre }}">
+        {% else %}
+          <div class="product-image-placeholder" aria-label="Producto sin imagen">PERFUME</div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -614,6 +866,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // Agregar al carrito
 function addToCart(productId) {
     var quantity = document.getElementById('quantity').value;
+    var button = document.getElementById('addToCartBtn');
+    if (button.disabled) return;
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var animationDuration = reduceMotion ? 0 : 1050;
+    var animationStarted = Date.now();
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.classList.remove('is-added');
+    button.classList.add('is-adding');
     
     fetch('/carrito/agregar/' + productId + '/', {
         method: 'POST',
@@ -631,9 +892,22 @@ function addToCart(productId) {
     })
     .then(function(data) {
         if (data.success) {
-            showNotification('Producto agregado al carrito', 'success');
             updateCartCount();
+            var remaining = Math.max(0, animationDuration - (Date.now() - animationStarted));
+            window.setTimeout(function() {
+                button.classList.remove('is-adding');
+                button.classList.add('is-added');
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+                showNotification('Producto agregado al carrito', 'success');
+                window.setTimeout(function() {
+                    button.classList.remove('is-added');
+                }, reduceMotion ? 0 : 1400);
+            }, remaining);
         } else {
+            button.classList.remove('is-adding');
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
             if (data.redirect) {
                 // Redirigir a login si no está autenticado
                 window.location.href = data.redirect;
@@ -643,6 +917,9 @@ function addToCart(productId) {
         }
     })
     .catch(function(error) {
+        button.classList.remove('is-adding');
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
         showNotification('Error de conexión', 'error');
     });
 }

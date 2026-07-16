@@ -192,5 +192,13 @@ class Resena(models.Model):
     estrellas = models.IntegerField()
     creado = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario', 'producto'],
+                name='resena_unica_por_usuario_producto',
+            ),
+        ]
+
     def __str__(self):
         return f"{self.usuario} - {self.producto}"

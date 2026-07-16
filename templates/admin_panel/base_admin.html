@@ -32,6 +32,10 @@
                     <i class="fa-solid fa-spray-can-sparkles"></i>
                     <span>Productos</span>
                 </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_resenas' or request.resolver_match.url_name == 'admin_resena_editar' %}active{% endif %}" href="{% url 'admin_resenas' %}">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Reseñas</span>
+                </a>
                 <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_stock' %}active{% endif %}" href="{% url 'admin_stock' %}">
                     <i class="fa-solid fa-boxes-stacked"></i>
                     <span>Stock</span>

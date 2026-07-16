@@ -1,0 +1,49 @@
+{% extends 'base_moderno.html' %}
+
+{% block title %}Favorites - D.A.R.C.Y.{% endblock %}
+
+{% block content %}
+<p class="breadcrumb">Home Page / Favorites</p>
+
+<section class="catalog-hero">
+  <h1>FAVORITES</h1>
+  <div class="hero-links">
+    <a href="{% url 'home' %}">HOME</a>
+    <a href="{% url 'catalogo' %}">CATALOG</a>
+    <a class="active" href="{% url 'ver_favoritos' %}">FAVORITES</a>
+  </div>
+</section>
+
+{% if favoritos %}
+  <section class="products-grid">
+    {% for favorito in favoritos %}
+      <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' favorito.producto.id %}'">
+        <button type="button" class="favorite-btn active"
+                data-favorite-url="{% url 'toggle_favorito' favorito.producto.id %}"
+                data-favorite-product="{{ favorito.producto.id }}"
+                data-reload-on-change
+                aria-pressed="true"
+                aria-label="Quitar de favoritos"
+                title="Quitar de favoritos">
+          <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
+          <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
+        </button>
+        <h2>{{ favorito.producto.nombre|upper }}</h2>
+        <div class="price">${{ favorito.producto.precio|floatformat:2 }}</div>
+        <div class="product-visual">
+          {% if favorito.producto.tiene_imagen %}
+            <img src="{{ favorito.producto.imagen_url_property }}" alt="{{ favorito.producto.nombre }}" class="product-image">
+          {% else %}
+            <div class="product-placeholder">D.A.R.C.Y.</div>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <section style="min-height:320px;text-align:center;display:grid;place-content:center;gap:24px;">
+    <h2 style="font-size:clamp(2rem,5vw,4rem);">NO FAVORITES YET</h2>
+    <a class="view-more" href="{% url 'catalogo' %}" style="display:grid;place-items:center;min-height:50px;">EXPLORE THE CATALOG</a>
+  </section>
+{% endif %}
+{% endblock %}

@@ -10,7 +10,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.productos.models import Producto
+from apps.productos.forms import ResenaForm
+from apps.productos.models import Producto, Resena
 from .admin_forms import EnvioForm, MetodoEnvioForm, PedidoAdminForm, ProductoAdminForm
 from .emails import (
     enviar_email_cancelacion_reembolso,
@@ -165,6 +166,60 @@ def admin_productos(request):
             'tipos_producto': Producto.TIPO_CHOICES,
         },
     )
+
+
+@admin_required
+def admin_resenas(request):
+    resenas = Resena.objects.select_related('usuario', 'producto').order_by('-creado', '-id')
+    q = request.GET.get('q', '').strip()
+    estrellas = request.GET.get('estrellas', '').strip()
+
+    if q:
+        resenas = resenas.filter(
+            Q(usuario__username__icontains=q)
+            | Q(usuario__email__icontains=q)
+            | Q(producto__nombre__icontains=q)
+            | Q(comentario__icontains=q)
+        )
+    if estrellas in {'1', '2', '3', '4', '5'}:
+        resenas = resenas.filter(estrellas=int(estrellas))
+
+    return render(
+        request,
+        'admin_panel/resenas.html',
+        {
+            'resenas': resenas,
+            'busqueda': q,
+            'estrellas_actuales': estrellas,
+            'total_resenas': resenas.count(),
+        },
+    )
+
+
+@admin_required
+def admin_resena_editar(request, resena_id):
+    resena = get_object_or_404(Resena.objects.select_related('usuario', 'producto'), pk=resena_id)
+    form = ResenaForm(request.POST or None, instance=resena)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Reseña actualizada correctamente.')
+        return redirect('admin_resenas')
+
+    return render(
+        request,
+        'admin_panel/resena_form.html',
+        {'form': form, 'resena': resena},
+    )
+
+
+@admin_required
+def admin_resena_eliminar(request, resena_id):
+    resena = get_object_or_404(Resena, pk=resena_id)
+    if request.method == 'POST':
+        resena.delete()
+        messages.success(request, 'Reseña eliminada correctamente.')
+    return redirect('admin_resenas')
 
 
 @admin_required

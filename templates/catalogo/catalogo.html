@@ -83,6 +83,15 @@
 <section class="products-grid">
   {% for producto in productos %}
   <article class="product-card" onclick="window.location.href='{% url 'detalle_producto' producto.id %}'">
+    <button type="button" class="favorite-btn{% if producto.id in favoritos_ids %} active{% endif %}"
+            data-favorite-url="{% url 'toggle_favorito' producto.id %}"
+            data-favorite-product="{{ producto.id }}"
+            aria-pressed="{% if producto.id in favoritos_ids %}true{% else %}false{% endif %}"
+            aria-label="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}"
+            title="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}">
+      <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
+      <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
+    </button>
     <h2>{{ producto.nombre|upper }}</h2>
     <div class="price">${{ producto.precio|formato_precio }}</div>
 

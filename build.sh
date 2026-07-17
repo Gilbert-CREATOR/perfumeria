@@ -14,9 +14,6 @@ python manage.py migrate --noinput
 echo "🔐 Sincronizando administrador..."
 python manage.py sync_admin
 
-echo "🛒 Asegurando productos iniciales..."
-python manage.py crear_mis_productos
-
 # 🔹 Collect static files
 echo "🎨 Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput --clear

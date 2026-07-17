@@ -1,9 +1,9 @@
 services:
-  # Web Service Python 3.11
+  # Web Service Python 3.12; WhiteNoise sirve los archivos estáticos.
   - type: web
     name: perfumeria-darcy
     plan: free
-    runtime: python-3.11
+    runtime: python
     buildCommand: "./build.sh"
     startCommand: "python manage.py sync_admin && gunicorn perfumeria.wsgi:application"
     autoDeploy: true
@@ -11,14 +11,14 @@ services:
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: perfumeria.settings_prod
+      - key: PYTHON_VERSION
+        value: 3.12.12
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
         value: false
       - key: DATABASE_URL
-        fromDatabase:
-          name: perfumeria-db
-          property: connectionString
+        sync: false
       - key: ALLOWED_HOSTS
         value: perfumeria-darcy.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
@@ -33,8 +33,12 @@ services:
         value: gilbertandeliz04@gmail.com
       - key: EMAIL_HOST_PASSWORD
         sync: false
-      - key: DEFAULT_FROM_EMAIL
-        value: D.A.R.C.Y. <noreply@perfumeria.com>
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        value: gilbertandeliz04@gmail.com
+      - key: BREVO_SENDER_NAME
+        value: D.A.R.C.Y.
       - key: PUBLIC_SITE_URL
         value: https://perfumeria-darcy.onrender.com
       - key: PAYPAL_MODE
@@ -42,6 +46,8 @@ services:
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
         sync: false
       - key: DJANGO_SUPERUSER_USERNAME
         value: admin
@@ -51,17 +57,3 @@ services:
         sync: false
 
     healthCheckPath: /
-    staticDir: staticfiles
-    mountPath: /static
-
-  # Database (PostgreSQL)
-  - type: pserv
-    name: perfumeria-db
-    plan: free
-    env: postgres
-
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: perfumeria-db
-          property: connectionString

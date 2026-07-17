@@ -2,8 +2,12 @@
 {% load static %}
 
 {% block title %}{{ producto.nombre }} - D.A.R.C.Y.{% endblock %}
+{% block meta_description %}{{ producto.nombre }} de {{ producto.marca }}. {{ producto.descripcion|truncatechars:150 }}{% endblock %}
 
 {% block extra_css %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Product","name":"{{ producto.nombre|escapejs }}","brand":{"@type":"Brand","name":"{{ producto.marca|escapejs }}"},"description":"{{ producto.descripcion|truncatechars:300|escapejs }}","offers":{"@type":"Offer","price":"{{ producto.precio }}","priceCurrency":"DOP","availability":"{% if producto.stock > 0 and producto.disponible %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}","url":"{{ canonical_url|escapejs }}"}}
+</script>
 <style>
 /* Estilos Minimalistas */
 .product-detail-container {
@@ -124,7 +128,7 @@
 .season-icon > svg,
 .season-icon-fill svg {
     position: absolute;
-    left: -48px;
+    left: 0;
     bottom: 0;
     width: 40px;
     height: 40px;
@@ -372,7 +376,8 @@
 .detail-favorite-btn {
     width: 44px;
     height: 44px;
-    margin-top: 12px;
+    flex: 0 0 44px;
+    margin: 0;
     padding: 0;
     border: 0;
     background: var(--bg);
@@ -455,17 +460,22 @@
     }
     
     .product-actions {
-        flex-direction: column;
-        gap: 12px;
+        flex-direction: row;
+        gap: 8px;
+        width: 100%;
     }
     
     .quantity-selector {
-        width: 100%;
-        max-width: 200px;
+        flex: 0 0 auto;
+        width: auto;
+        max-width: none;
     }
     
     .add-to-cart-btn {
+        flex: 1 1 auto;
         width: 100%;
+        min-width: 0;
+        min-height: 44px;
     }
 
     .season-grid {
@@ -489,6 +499,30 @@
     
     .product-info-column {
         gap: 30px;
+    }
+
+    .season-grid {
+        column-gap: 8px;
+        row-gap: 20px;
+    }
+
+    .quantity-selector button {
+        width: 38px;
+    }
+
+    .quantity-selector input {
+        width: 40px;
+    }
+
+    .add-to-cart-btn {
+        padding-inline: 8px;
+        font-size: 0.7rem;
+        letter-spacing: 0.025em;
+    }
+
+    .detail-favorite-btn {
+        flex-basis: 40px;
+        width: 40px;
     }
 }
 
@@ -517,6 +551,26 @@
 .review-form select,.review-form textarea { box-sizing:border-box; width:100%; padding:14px; border:1px solid #000; background:var(--bg,#f4f2ee); color:#000; }
 .review-form button { height:48px; border:0; background:#000; color:#fff; font-weight:800; cursor:pointer; }
 .review-card { padding:20px 0; border-top:1px solid #d8d3cb; }
+.review-auth-prompt { max-width:620px; margin:0 0 38px; }
+.review-auth-prompt p { margin:0 0 18px; color:#6a665f; line-height:1.5; }
+.review-auth-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.review-auth-button {
+    min-width:160px;
+    padding:15px 22px;
+    border:1px solid #000;
+    background:#000;
+    color:#fff;
+    font-size:.72rem;
+    font-weight:900;
+    line-height:1;
+    letter-spacing:.04em;
+    text-align:center;
+    transition:background .2s ease,color .2s ease,transform .2s ease;
+}
+.review-auth-button--secondary { background:transparent; color:#000; }
+.review-auth-button:hover,
+.review-auth-button:focus-visible { background:#A31523; border-color:#A31523; color:#fff; transform:translateY(-2px); }
+.review-auth-button:focus-visible { outline:2px solid #000; outline-offset:3px; }
 
 .related-products-section {
     max-width: 1200px;
@@ -565,6 +619,8 @@
     .related-products-section > h2 { padding-right: 20px; }
     .related-products-scroll { gap: 14px; padding-right: 20px; }
     .related-products-scroll .product-card { flex-basis: min(82vw, 360px); }
+    .review-auth-actions { display:grid; grid-template-columns:1fr; }
+    .review-auth-button { width:100%; }
 }
 
 /* Breadcrumb minimalista */
@@ -730,17 +786,17 @@
                         Agotado
                     {% endif %}
                 </button>
+                <button type="button"
+                        class="detail-favorite-btn{% if producto.id in favoritos_ids %} active{% endif %}"
+                        data-favorite-url="{% url 'toggle_favorito' producto.id %}"
+                        data-favorite-product="{{ producto.id }}"
+                        aria-pressed="{% if producto.id in favoritos_ids %}true{% else %}false{% endif %}"
+                        aria-label="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}"
+                        title="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}">
+                    <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
+                    <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
+                </button>
             </div>
-            <button type="button"
-                    class="detail-favorite-btn{% if producto.id in favoritos_ids %} active{% endif %}"
-                    data-favorite-url="{% url 'toggle_favorito' producto.id %}"
-                    data-favorite-product="{{ producto.id }}"
-                    aria-pressed="{% if producto.id in favoritos_ids %}true{% else %}false{% endif %}"
-                    aria-label="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}"
-                    title="{% if producto.id in favoritos_ids %}Quitar de favoritos{% else %}Agregar a favoritos{% endif %}">
-                <svg class="favorite-icon favorite-icon-outline" aria-hidden="true"><use href="#heart-outline-icon"></use></svg>
-                <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
-            </button>
             
             {% if producto.stock > 0 %}
                 <div class="stock-info in-stock">
@@ -794,8 +850,16 @@
       <label for="id_comentario"><strong>TU EXPERIENCIA</strong></label>{{ resena_form.comentario }}
       <button type="submit">{% if resena_usuario %}ACTUALIZAR RESEÑA{% else %}PUBLICAR RESEÑA{% endif %}</button>
     </form>
+  {% elif not user.is_authenticated %}
+    <div class="review-auth-prompt">
+      <p>Inicia sesión o crea una cuenta para compartir tu experiencia con este producto.</p>
+      <div class="review-auth-actions">
+        <a class="review-auth-button" href="{% url 'login' %}?next={{ request.path|urlencode }}%23resena">INICIAR SESIÓN</a>
+        <a class="review-auth-button review-auth-button--secondary" href="{% url 'register' %}?next={{ request.path|urlencode }}%23resena">REGISTRARME</a>
+      </div>
+    </div>
   {% else %}
-    <p style="color:#6a665f;">Para dejar una reseña debes <a href="{% url 'login' %}?next={{ request.path|urlencode }}%23resena">iniciar sesión</a> o registrarte.</p>
+    <p style="color:#6a665f;">Tu cuenta no puede publicar una reseña en este momento.</p>
   {% endif %}
   {% for resena in resenas %}
     <article class="review-card"><strong>{{ resena.estrellas }}/5 · {{ resena.usuario.username }}</strong><p>{{ resena.comentario }}</p></article>

@@ -11,4 +11,5 @@ urlpatterns = [
     
     # Sitemap
     path('sitemap.xml', views.sitemap, name='sitemap'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
 ]

@@ -1,0 +1,6 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Configuración{% endblock %}
+{% block content %}
+<section class="admin-page-head"><div><p class="admin-kicker">Contenido público</p><h1>Configuración del sitio</h1><p class="admin-subtitle">Cambia marca, contacto, horarios, redes, mapa y textos sin editar plantillas.</p></div><a class="btn btn-outline-dark" href="/" target="_blank" rel="noopener">Ver tienda</a></section>
+<section class="admin-panel-card"><form method="post" class="admin-form-grid">{% csrf_token %}{% if form.non_field_errors %}<div class="alert alert-danger admin-form-span-2">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<div class="{% if 'texto_' in field.name %}admin-form-span-2{% endif %}{% if field.name == 'mostrar_newsletter' %} form-check{% endif %}">{% if field.name == 'mostrar_newsletter' %}{{ field }} {{ field.label_tag }}{% else %}{{ field.label_tag }}{{ field }}{% endif %}{% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}<div class="admin-form-span-2"><button class="btn btn-dark">Guardar configuración</button></div></form></section>
+{% endblock %}

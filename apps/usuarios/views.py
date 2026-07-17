@@ -12,6 +12,12 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.core import signing
 from django.contrib.auth import views as auth_views
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
+from django.views.decorators.http import require_POST
+import hashlib
 
 from apps.carrito.services import complete_pending_cart_item
 from .emails import VERIFICACION_SALT, enviar_email_bienvenida, enviar_email_cuenta_eliminada
@@ -51,7 +57,13 @@ def login_usuario(request):
     if request.method == 'POST':
         # Resuelve ambas credenciales sin depender de que el valor contenga "@".
         login_field = request.POST.get('username', '').strip()
-        password = request.POST['password']
+        password = request.POST.get('password', '')
+        remote = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
+        attempt_key = 'login-attempt:' + hashlib.sha256(f'{remote}:{login_field.lower()}'.encode()).hexdigest()
+        intentos = cache.get(attempt_key, 0)
+        if intentos >= 5:
+            messages.error(request, 'Demasiados intentos. Espera 15 minutos antes de volver a intentarlo.')
+            return render(request, 'usuarios/login.html', status=429)
 
         user_obj = User.objects.filter(username__iexact=login_field).order_by('id').first()
         if user_obj is None:
@@ -64,6 +76,7 @@ def login_usuario(request):
             user = None
 
         if user:
+            cache.delete(attempt_key)
             login(request, user)
             has_pending_cart = finish_pending_cart(request)
             # Si el usuario es admin, redirigir al panel de administración
@@ -76,11 +89,13 @@ def login_usuario(request):
             messages.success(request, f'¡Bienvenido {user.username}!')
             return redirect(next_url)
         else:
+            cache.set(attempt_key, intentos + 1, timeout=15 * 60)
             messages.error(request, 'Usuario, correo o contraseña incorrectos')
 
     return render(request, 'usuarios/login.html')
 
 
+@require_POST
 def logout_usuario(request):
     logout(request)
     messages.info(request, 'Has cerrado sesión correctamente')
@@ -92,18 +107,34 @@ def registro_usuario(request):
         return redirect('/')
         
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password1']
-        password_confirm = request.POST['password2']
-        email = request.POST.get('email', '')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password1', '')
+        password_confirm = request.POST.get('password2', '')
+        email = request.POST.get('email', '').strip().lower()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+
+        if not username:
+            messages.error(request, 'El nombre de usuario es obligatorio.')
+            return render(request, 'usuarios/register.html')
         
         if password != password_confirm:
             messages.error(request, 'Las contraseñas no coinciden')
             return render(request, 'usuarios/register.html')
+
+        if not email:
+            messages.error(request, 'El correo electrónico es obligatorio.')
+            return render(request, 'usuarios/register.html')
+
+        candidato = User(username=username, email=email, first_name=first_name, last_name=last_name)
+        try:
+            validate_password(password, user=candidato)
+        except ValidationError as exc:
+            for error in exc.messages:
+                messages.error(request, error)
+            return render(request, 'usuarios/register.html')
             
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username__iexact=username).exists():
             messages.error(request, 'El usuario ya existe')
             return render(request, 'usuarios/register.html')
 
@@ -111,13 +142,18 @@ def registro_usuario(request):
             messages.error(request, 'Ya existe una cuenta con ese correo electrónico')
             return render(request, 'usuarios/register.html')
         
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+        except IntegrityError:
+            messages.error(request, 'Ese usuario o correo ya está registrado.')
+            return render(request, 'usuarios/register.html')
         
         user = authenticate(request, username=username, password=password)
         if user:

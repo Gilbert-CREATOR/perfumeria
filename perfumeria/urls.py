@@ -4,10 +4,12 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.views.static import serve
+from apps.core import views as core_views
 
 urlpatterns = [
     # 🎯 URLs principales
     path('', include('apps.productos.urls')),
+    path('', include('apps.productos.urls_seo')),
     path('carrito/', include('apps.carrito.urls')),
     path('usuarios/', include('apps.usuarios.urls')),
     path('newsletter/', include('apps.newsletter.urls')),
@@ -16,9 +18,11 @@ urlpatterns = [
     path('admin/', include('apps.carrito.admin_urls')),
     
     # 📄 Páginas estáticas
-    path('contacto/', TemplateView.as_view(template_name='pages/contacto.html'), name='contacto'),
-    path('nosotros/', TemplateView.as_view(template_name='pages/nosotros.html'), name='nosotros'),
-    path('faq/', TemplateView.as_view(template_name='pages/faq.html'), name='faq'),
+    path('contacto/', core_views.contacto, name='contacto'),
+    path('nosotros/', core_views.nosotros, name='nosotros'),
+    path('faq/', core_views.faq, name='faq'),
+    path('blog/', core_views.blog, name='blog'),
+    path('blog/<slug:slug>/', core_views.articulo_blog, name='articulo_blog'),
     
     # 🚫 Error pages
     path('404/', TemplateView.as_view(template_name='404_moderno.html'), name='404'),

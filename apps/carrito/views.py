@@ -1,31 +1,32 @@
-from django.http import JsonResponse
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.urls import reverse
-from .models import Carrito, ItemCarrito, Pedido, ItemPedido, MetodoEnvio
+from .models import Carrito, ItemCarrito, Pedido, ItemPedido, MetodoEnvio, TransaccionPago
 from apps.productos.models import Producto
 import paypalrestsdk
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 import json
+from io import BytesIO
 
-from .services import add_product_to_cart, save_pending_cart_item
+from .services import (
+    CheckoutError,
+    add_product_to_cart,
+    confirmar_pago,
+    crear_pedido_desde_carrito,
+    liberar_reservas_vencidas,
+    reintegrar_stock_pedido,
+    save_pending_cart_item,
+)
 from .recommendations import productos_recomendados_por_temporada
-
-paypalrestsdk.configure({
-    "mode": "sandbox",  # cambiar a "live" en producción
-    "client_id": settings.PAYPAL_CLIENT_ID,
-    "client_secret": settings.PAYPAL_SECRET,
-})
-
 
 @login_required
 def ver_carrito(request):
-    if not request.user.is_authenticated:
-        return redirect('/admin/login/')  # temporal
+    liberar_reservas_vencidas(limite=25)
 
     carrito, created = Carrito.objects.get_or_create(usuario=request.user)
 
@@ -126,6 +127,7 @@ def disminuir_cantidad(request, item_id):
 
 @login_required
 def checkout(request):
+    liberar_reservas_vencidas(limite=25)
     carrito_obj, created = Carrito.objects.get_or_create(usuario=request.user)
     items = carrito_obj.items.select_related('producto').all()
 
@@ -137,8 +139,8 @@ def checkout(request):
     metodos_envio = MetodoEnvio.objects.filter(activo=True)
 
     if request.method == 'POST':
-        metodo_pago = request.POST.get('metodo_pago')
-        metodo_envio = request.POST.get('metodo_envio')  # Cambiado de metodo_envio_id
+        metodo_pago = request.POST.get('metodo_pago', '').strip()
+        metodo_envio_id = request.POST.get('metodo_envio', '').strip()
 
         # Obtener datos de dirección
         nombre_completo = request.POST.get('nombre_completo')
@@ -149,7 +151,7 @@ def checkout(request):
         codigo_postal = request.POST.get('codigo_postal')
 
         # Validar campos requeridos
-        if not all([nombre_completo, telefono, direccion, ciudad, provincia, codigo_postal, metodo_envio]):
+        if not all([nombre_completo, telefono, direccion, ciudad, provincia, codigo_postal, metodo_envio_id]):
             return render(request, 'carrito/checkout_moderno.html', {
                 'items': items,
                 'productos': items,
@@ -159,91 +161,29 @@ def checkout(request):
                 'error': 'Todos los campos son obligatorios'
             })
 
-        # Obtener método de envío (ahora usamos el valor directo)
-        costo_envio = 0
-        metodo_envio_obj = None
-        
-        if metodo_envio == 'estandar':
-            costo_envio = 5
-            metodo_envio_obj, _ = MetodoEnvio.objects.get_or_create(
-                nombre='Envío Estándar',
-                defaults={
-                    'costo': 5,
-                    'tiempo_entrega': '3-5 días',
-                    'activo': True
-                }
+        metodo_envio_obj = MetodoEnvio.objects.filter(pk=metodo_envio_id, activo=True).first()
+        metodos_pago_permitidos = {'paypal', 'transferencia', 'contra_entrega'}
+        if not metodo_envio_obj or metodo_pago not in metodos_pago_permitidos:
+            messages.error(request, 'Selecciona un método de envío y pago válido.')
+            return redirect('checkout')
+
+        try:
+            pedido = crear_pedido_desde_carrito(
+                usuario=request.user,
+                metodo_envio=metodo_envio_obj,
+                metodo_pago=metodo_pago,
+                datos_envio={
+                    'nombre_completo': nombre_completo,
+                    'telefono': telefono,
+                    'direccion': direccion,
+                    'ciudad': ciudad,
+                    'provincia': provincia,
+                    'codigo_postal': codigo_postal,
+                },
             )
-        elif metodo_envio == 'express':
-            costo_envio = 15
-            metodo_envio_obj, _ = MetodoEnvio.objects.get_or_create(
-                nombre='Envío Express',
-                defaults={
-                    'costo': 15,
-                    'tiempo_entrega': '1-2 días',
-                    'activo': True
-                }
-            )
-        elif metodo_envio == 'tienda':
-            costo_envio = 0
-            metodo_envio_obj, _ = MetodoEnvio.objects.get_or_create(
-                nombre='Recoger en Tienda',
-                defaults={
-                    'costo': 0,
-                    'tiempo_entrega': 'Mismo día',
-                    'activo': True
-                }
-            )
-
-        # Validar stock de todos los productos
-        for item in items:
-            if not item.producto.validar_stock(item.cantidad):
-                return render(request, 'carrito/checkout_moderno.html', {
-                    'items': items,
-                    'productos': items,
-                    'subtotal': sum(item.subtotal() for item in items),
-                    'total': sum(item.subtotal() for item in items) + 5,
-                    'metodos_envio': metodos_envio,
-                    'error': f'Stock insuficiente para {item.producto.nombre}. Solo quedan {item.producto.stock} unidades.'
-                })
-
-        subtotal = sum(item.subtotal() for item in items)
-        total = subtotal + costo_envio
-
-        pedido = Pedido.objects.create(
-            usuario=request.user,
-            metodo_pago=metodo_pago,
-            subtotal=subtotal,
-            costo_envio=costo_envio,
-            total=total,
-            nombre_completo=nombre_completo,
-            telefono=telefono,
-            direccion=direccion,
-            ciudad=ciudad,
-            provincia=provincia,
-            codigo_postal=codigo_postal
-        )
-
-        # Crear items del pedido
-        for item in items:
-            ItemPedido.objects.create(
-                pedido=pedido,
-                producto=item.producto,
-                cantidad=item.cantidad,
-                precio=item.producto.precio
-            )
-
-            # Descontar stock
-            item.producto.descontar_stock(item.cantidad)
-
-        # Crear envío
-        from .models import Envio
-        envio = Envio.objects.create(
-            pedido=pedido,
-            metodo_envio=metodo_envio_obj  # Usamos el objeto MetodoEnvio
-        )
-
-        # limpiar carrito
-        items.delete()
+        except (CheckoutError, Carrito.DoesNotExist) as exc:
+            messages.error(request, str(exc))
+            return redirect('ver_carrito')
 
         # 🆕 Enviar email de confirmación
         try:
@@ -260,22 +200,13 @@ def checkout(request):
         if metodo_pago == 'paypal':
             return redirect('pago_paypal', pedido_id=pedido.id)
 
-        elif metodo_pago == 'tarjeta':
-            return redirect('pago_stripe', pedido_id=pedido.id)
-
-        elif metodo_pago == 'transferencia':
-            return redirect('pago_azul', pedido_id=pedido.id)
-
-        elif metodo_pago == 'efectivo':
-            return redirect('pedido_exitoso')
-
         return redirect('pedido_exitoso')
 
     return render(request, 'carrito/checkout_moderno.html', {
         'items': items,
         'productos': items,
         'subtotal': sum(item.subtotal() for item in items),
-        'total': sum(item.subtotal() for item in items) + 5,  # Envío estándar por defecto
+        'total': sum(item.subtotal() for item in items) + (metodos_envio.first().costo if metodos_envio.exists() else 0),
         'metodos_envio': metodos_envio
     })
 
@@ -291,38 +222,17 @@ def pedido_exitoso(request):
 
 @login_required
 def historial_pedidos(request):
-    # Obtener TODOS los pedidos del usuario sin filtros
-    todos_los_pedidos = Pedido.objects.all().order_by('-creado')
     pedidos_usuario = Pedido.objects.filter(usuario=request.user).order_by('-creado')
-    
-    # Debug: imprimir información detallada
-    print("=" * 50)
-    print("DEBUG - HISTORIAL DE PEDIDOS")
-    print(f"Usuario actual: {request.user.username} (ID: {request.user.id})")
-    print(f"Total de pedidos en DB: {todos_los_pedidos.count()}")
-    print(f"Pedidos del usuario: {pedidos_usuario.count()}")
-    
-    # Mostrar todos los pedidos en DB
-    print("\nTodos los pedidos en la base de datos:")
-    for p in todos_los_pedidos:
-        print(f"  Pedido #{p.id}: Usuario={p.usuario.username} (ID:{p.usuario.id}) - Estado={p.estado} - Total=${p.total} - Fecha={p.creado}")
-    
-    # Mostrar pedidos del usuario
-    print(f"\nPedidos de {request.user.username}:")
-    for p in pedidos_usuario:
-        print(f"  Pedido #{p.id}: Estado={p.estado} - Total=${p.total} - Fecha={p.creado}")
-    
-    print("=" * 50)
     
     # Pre-cargar los items de cada pedido para optimizar
     pedidos = pedidos_usuario.prefetch_related('items__producto')
 
     return render(request, 'carrito/historial_moderno.html', {
         'pedidos': pedidos,
-        'debug': True  # Forzar debug en el template
     })
 
 
+@login_required
 @login_required
 def detalle_pedido(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
@@ -332,6 +242,26 @@ def detalle_pedido(request, pedido_id):
         'pedido': pedido,
         'items': items
     })
+
+
+@login_required
+def descargar_factura(request, pedido_id):
+    pedidos = Pedido.objects.all() if request.user.is_staff else Pedido.objects.filter(usuario=request.user)
+    pedido = get_object_or_404(pedidos.prefetch_related('items__producto'), pk=pedido_id)
+    if pedido.estado == 'cancelado':
+        messages.error(request, 'No se puede generar una factura para un pedido cancelado.')
+        return redirect('detalle_pedido', pedido_id=pedido.pk)
+
+    from .facturas import generar_factura_pdf
+    buffer = BytesIO()
+    generar_factura_pdf(pedido, output_path=buffer)
+    buffer.seek(0)
+    return FileResponse(
+        buffer,
+        as_attachment=True,
+        filename=f'factura_DARCY_{pedido.pk:06d}.pdf',
+        content_type='application/pdf',
+    )
 
 
 
@@ -383,9 +313,20 @@ def pago_paypal(request, pedido_id):
     })
 
     if pago.create():
-        # Guardar el payment ID en el pedido
+        # Guardar la referencia para reconciliación e idempotencia.
         pedido.metodo_pago = 'paypal'
-        pedido.save()
+        pedido.referencia_pago = pago.id
+        pedido.save(update_fields=['metodo_pago', 'referencia_pago', 'actualizado'])
+        TransaccionPago.objects.update_or_create(
+            referencia=pago.id,
+            defaults={
+                'pedido': pedido,
+                'proveedor': 'paypal',
+                'estado': 'pendiente',
+                'monto': pedido.total,
+                'moneda': 'USD',
+            },
+        )
         
         for link in pago.links:
             if link.rel == "approval_url":
@@ -409,9 +350,8 @@ def api_cart_count(request):
         return JsonResponse({'count': 0})
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='/admin/login/')
 def paypal_exito(request):
-    """Procesar éxito de PayPal (solo admin)"""
+    """Procesa el retorno de PayPal para el dueño del pedido."""
     # Configurar PayPal
     from .paypal_config import configure_paypal, is_paypal_configured
     
@@ -431,20 +371,29 @@ def paypal_exito(request):
         messages.error(request, 'Error en la confirmación del pago')
         return redirect('historial_pedidos')
     
-    pedido = get_object_or_404(Pedido, id=pedido_id)
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
     
     # Verificación de seguridad: solo admin o dueño del pedido
-    if pedido.usuario != request.user and not request.user.is_staff:
-        messages.error(request, 'No tienes permiso para acceder a este pedido')
-        return redirect('ver_carrito')
+    if pedido.referencia_pago and pedido.referencia_pago != payment_id:
+        messages.error(request, 'La referencia de pago no corresponde a este pedido.')
+        return redirect('detalle_pedido', pedido_id=pedido.id)
     
     # Ejecutar el pago
     payment = paypalrestsdk.Payment.find(payment_id)
     
     if payment.execute({"payer_id": payer_id}):
-        # Pago exitoso - actualizar estado del pedido
-        pedido.estado = 'pagado'
-        pedido.save()
+        try:
+            pedido, actualizado = confirmar_pago(pedido, referencia=payment_id)
+        except CheckoutError as exc:
+            messages.error(request, str(exc))
+            return redirect('detalle_pedido', pedido_id=pedido.id)
+        TransaccionPago.objects.update_or_create(
+            referencia=payment_id,
+            defaults={
+                'pedido': pedido, 'proveedor': 'paypal', 'estado': 'aprobada',
+                'monto': pedido.total, 'moneda': 'USD',
+            },
+        )
         
         messages.success(request, f'¡Pago del pedido #{pedido.id} confirmado con éxito!')
         return redirect('detalle_pedido', pedido_id=pedido.id)
@@ -454,18 +403,18 @@ def paypal_exito(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='/admin/login/')
 def paypal_cancelado(request):
-    """Procesar cancelación de PayPal (solo admin)"""
+    """Cancela una reserva de PayPal perteneciente al usuario."""
     pedido_id = request.GET.get('pedido_id')
     
     if pedido_id:
-        pedido = get_object_or_404(Pedido, id=pedido_id)
-        
-        # Verificación de seguridad: solo admin o dueño del pedido
-        if pedido.usuario != request.user and not request.user.is_staff:
-            messages.error(request, 'No tienes permiso para acceder a este pedido')
-            return redirect('ver_carrito')
+        pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+        if pedido.estado == 'pendiente':
+            reintegrar_stock_pedido(pedido)
+            pedido.estado = 'cancelado'
+            pedido.save(update_fields=['estado', 'actualizado'])
+            if pedido.referencia_pago:
+                TransaccionPago.objects.filter(referencia=pedido.referencia_pago).update(estado='cancelada')
         
         messages.warning(request, f'Pago del pedido #{pedido.id} cancelado. Puedes intentarlo nuevamente.')
         return redirect('detalle_pedido', pedido_id=pedido.id)
@@ -476,20 +425,15 @@ def paypal_cancelado(request):
 
 
 
+@login_required
 def pago_stripe(request, pedido_id):
-    return render(request, 'carrito/pago_stripe.html', {'pedido_id': pedido_id})
+    get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+    messages.error(request, 'El pago con tarjeta todavía no está habilitado.')
+    return redirect('detalle_pedido', pedido_id=pedido_id)
 
 
+@login_required
 def pago_azul(request, pedido_id):
-    return render(request, 'carrito/pago_azul.html', {'pedido_id': pedido_id})
-
-def paypal_cancelado(request):
-    pedido_id = request.GET.get('pedido_id')
-    
-    if pedido_id:
-        pedido = get_object_or_404(Pedido, id=pedido_id)
-        messages.warning(request, f'Pago del pedido #{pedido.id} cancelado. Puedes intentarlo nuevamente.')
-        return redirect('detalle_pedido', pedido_id=pedido.id)
-    else:
-        messages.warning(request, 'Pago cancelado')
-        return redirect('historial_pedidos')
+    get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+    messages.error(request, 'Azul todavía no está habilitado.')
+    return redirect('detalle_pedido', pedido_id=pedido_id)

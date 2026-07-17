@@ -36,13 +36,22 @@ class ItemCarrito(models.Model):
     
     
 class Pedido(models.Model):
-    usuario = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='pedidos',
+    )
     creado = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     costo_envio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS_PEDIDO, default='pendiente')
     metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, blank=True, null=True)
+    referencia_pago = models.CharField(max_length=160, blank=True, db_index=True)
+    stock_reservado = models.BooleanField(default=False)
+    stock_reintegrado = models.BooleanField(default=False)
+    reserva_expira_en = models.DateTimeField(null=True, blank=True)
+    pagado_en = models.DateTimeField(null=True, blank=True)
+    actualizado = models.DateTimeField(auto_now=True)
     
     # Campos simples para dirección (temporal)
     nombre_completo = models.CharField(max_length=100, blank=True)
@@ -53,14 +62,94 @@ class Pedido(models.Model):
     codigo_postal = models.CharField(max_length=10, blank=True)
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.usuario.username} ({self.get_estado_display()})"
+        cliente = self.usuario.username if self.usuario else self.nombre_completo or 'Cliente eliminado'
+        return f"Pedido #{self.id} - {cliente} ({self.get_estado_display()})"
 
 
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
-    producto = models.ForeignKey('productos.Producto', on_delete=models.CASCADE)
+    producto = models.ForeignKey(
+        'productos.Producto', on_delete=models.SET_NULL, null=True, blank=True,
+    )
+    nombre_producto = models.CharField(max_length=200, blank=True)
+    marca_producto = models.CharField(max_length=100, blank=True)
     cantidad = models.PositiveIntegerField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def save(self, *args, **kwargs):
+        if self.producto:
+            self.nombre_producto = self.nombre_producto or self.producto.nombre
+            self.marca_producto = self.marca_producto or self.producto.marca
+        super().save(*args, **kwargs)
+
+    @property
+    def nombre_visible(self):
+        return self.nombre_producto or (self.producto.nombre if self.producto else 'Producto eliminado')
+
+    def subtotal(self):
+        return self.precio * self.cantidad
+
+
+class TransaccionPago(models.Model):
+    ESTADOS = [
+        ('creada', 'Creada'),
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+        ('cancelada', 'Cancelada'),
+        ('reembolsada', 'Reembolsada'),
+    ]
+
+    pedido = models.ForeignKey(Pedido, on_delete=models.PROTECT, related_name='transacciones')
+    proveedor = models.CharField(max_length=30)
+    referencia = models.CharField(max_length=160, unique=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='creada')
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    moneda = models.CharField(max_length=3, default='USD')
+    respuesta = models.JSONField(default=dict, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.proveedor} {self.referencia} - {self.estado}'
+
+
+class MovimientoInventario(models.Model):
+    TIPOS = [
+        ('reserva', 'Reserva por pedido'),
+        ('reintegro', 'Reintegro por cancelacion'),
+        ('ajuste', 'Ajuste manual'),
+        ('entrada', 'Entrada de inventario'),
+        ('salida', 'Salida de inventario'),
+    ]
+
+    producto = models.ForeignKey(
+        'productos.Producto', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimientos_inventario',
+    )
+    producto_nombre = models.CharField(max_length=200)
+    pedido = models.ForeignKey(
+        Pedido, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimientos_inventario',
+    )
+    usuario = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimientos_inventario_realizados',
+    )
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    cantidad = models.IntegerField(
+        help_text='Valor positivo para entradas y negativo para salidas.',
+    )
+    stock_anterior = models.PositiveIntegerField()
+    stock_resultante = models.PositiveIntegerField()
+    motivo = models.CharField(max_length=240, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-creado', '-id']
+
+    def __str__(self):
+        return f'{self.producto_nombre}: {self.cantidad:+d}'
 
 class MetodoEnvio(models.Model):
     nombre = models.CharField(max_length=100)

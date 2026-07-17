@@ -5,8 +5,14 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from django.conf import settings
+from django.utils import timezone
+from apps.core.models import ConfiguracionSitio
 import os
-from datetime import datetime
+import logging
+from decimal import Decimal
+
+
+logger = logging.getLogger(__name__)
 
 def generar_factura_pdf(pedido, output_path=None):
     """
@@ -16,8 +22,9 @@ def generar_factura_pdf(pedido, output_path=None):
     if not output_path:
         output_path = os.path.join(settings.MEDIA_ROOT, f'facturas/factura_{pedido.id}.pdf')
     
-    # Crear directorio si no existe
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # Crear directorio únicamente cuando se genera en disco. También admite BytesIO.
+    if isinstance(output_path, (str, bytes, os.PathLike)):
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # Crear el documento PDF
     doc = SimpleDocTemplate(output_path, pagesize=letter)
@@ -34,12 +41,12 @@ def generar_factura_pdf(pedido, output_path=None):
     story.append(Spacer(1, 12))
     
     # Información de la empresa
+    configuracion = ConfiguracionSitio.cargar()
     empresa_data = [
-        ["Perfumería RD", ""],
-        ["RNC: 123456789", ""],
-        ["Dirección: Calle Principal #123, Santo Domingo", ""],
-        ["Teléfono: +1 (809) 123-4567", ""],
-        ["Email: info@perfumeria.com", ""],
+        [configuracion.marca, ""],
+        [f"Dirección: {configuracion.direccion_linea_1} {configuracion.direccion_linea_2}".strip(), ""],
+        [f"Teléfono: {configuracion.telefono_contacto}", ""],
+        [f"Email: {configuracion.email_contacto}", ""],
     ]
     
     empresa_table = Table(empresa_data, colWidths=[4*inch, 2*inch])
@@ -53,15 +60,16 @@ def generar_factura_pdf(pedido, output_path=None):
     story.append(Spacer(1, 20))
     
     # Información del cliente y pedido
+    usuario = pedido.usuario
     cliente_data = [
-        ["FACTURA A:", f"{pedido.nombre_completo or pedido.usuario.username}"],
-        ["Email:", pedido.usuario.email],
+        ["FACTURA A:", f"{pedido.nombre_completo or (usuario.username if usuario else 'Cliente')}"],
+        ["Email:", usuario.email if usuario else "Cuenta eliminada"],
         ["Teléfono:", pedido.telefono or "N/A"],
         ["Dirección:", f"{pedido.direccion}, {pedido.ciudad}, {pedido.provincia}"],
         ["Código Postal:", pedido.codigo_postal],
         ["", ""],
         ["No. Factura:", f"F{pedido.id:06d}"],
-        ["Fecha:", datetime.now().strftime("%d/%m/%Y")],
+        ["Fecha:", timezone.localtime().strftime("%d/%m/%Y")],
         ["No. Pedido:", f"P{pedido.id:06d}"],
         ["Estado:", pedido.get_estado_display()],
     ]
@@ -71,8 +79,8 @@ def generar_factura_pdf(pedido, output_path=None):
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('TEXTCOLOR', (6, 0), (6, -1), colors.blue),
-        ('FONTNAME', (6, 0), (6, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (0, 6), (0, -1), colors.blue),
+        ('FONTNAME', (0, 6), (0, -1), 'Helvetica-Bold'),
     ]))
     
     story.append(cliente_table)
@@ -83,8 +91,13 @@ def generar_factura_pdf(pedido, output_path=None):
     data = [headers]
     
     for item in pedido.items.select_related('producto').all():
+        marca = item.marca_producto or (item.producto.marca if item.producto else '')
+        tamano = item.producto.tamano_ml if item.producto else None
+        descripcion = f"{item.nombre_visible}\n{marca}"
+        if tamano:
+            descripcion += f" - {tamano}ml"
         data.append([
-            f"{item.producto.nombre}\n{item.producto.marca} - {item.producto.tamano_ml}ml",
+            descripcion,
             str(item.cantidad),
             f"${item.precio:.2f}",
             f"${item.subtotal():.2f}"
@@ -93,7 +106,8 @@ def generar_factura_pdf(pedido, output_path=None):
     # Totales
     data.append(["", "", "Subtotal:", f"${pedido.subtotal:.2f}"])
     data.append(["", "", "Envío:", f"${pedido.costo_envio:.2f}"])
-    data.append(["", "", "ITBIS (18%):", f"${pedido.subtotal * 0.18:.2f}"])
+    itbis_incluido = pedido.subtotal - (pedido.subtotal / Decimal('1.18'))
+    data.append(["", "", "ITBIS incluido:", f"${itbis_incluido:.2f}"])
     data.append(["", "", "TOTAL:", f"${pedido.total:.2f}"])
     
     # Tabla de productos
@@ -118,7 +132,7 @@ def generar_factura_pdf(pedido, output_path=None):
     # Términos y condiciones
     terminos = """
     <b>Términos y Condiciones:</b><br/>
-    • Los precios están en dólares estadounidenses<br/>
+    • Los precios están expresados en la moneda indicada en el pedido<br/>
     • El ITBIS (18%) está incluido en el total<br/>
     • Los productos tienen 30 días de garantía<br/>
     • Las devoluciones deben estar en su estado original<br/>
@@ -138,7 +152,7 @@ def generar_factura_pdf(pedido, output_path=None):
         ["", ""],
         ["", ""],
         ["", "_________________________"],
-        ["", "Perfumería RD"],
+        ["", configuracion.marca],
     ]
     
     firma_table = Table(firma_data, colWidths=[4*inch, 2*inch])
@@ -161,8 +175,8 @@ def generar_factura_para_pedido(pedido):
     """
     try:
         ruta = generar_factura_pdf(pedido)
-        print(f"✅ Factura generada: {ruta}")
+        logger.info('Factura generada para el pedido %s', pedido.pk)
         return ruta
-    except Exception as e:
-        print(f"❌ Error generando factura: {e}")
+    except Exception:
+        logger.exception('Error generando factura para el pedido %s', pedido.pk)
         return None

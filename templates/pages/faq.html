@@ -21,6 +21,14 @@
     <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 40px; text-align: center;">Frequently Asked Questions</h2>
     
     <div style="space-y: 20px;">
+      {% if preguntas_frecuentes %}
+        {% for item in preguntas_frecuentes %}
+          <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">{{ item.pregunta }}</h3>
+            <p style="color: #666; line-height: 1.6;">{{ item.respuesta|linebreaksbr }}</p>
+          </div>
+        {% endfor %}
+      {% else %}
       <div style="border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
         <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px;">What makes D.A.R.C.Y. different?</h3>
         <p style="color: #666; line-height: 1.6;">
@@ -84,8 +92,16 @@
           All transactions are secure and encrypted.
         </p>
       </div>
+      {% endif %}
     </div>
   </div>
+
+  {% if configuracion_sitio.texto_terminos %}
+  <div style="background: var(--card); padding: 40px; border-radius: 8px; margin-bottom: 40px;">
+    <h3 style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">Terms &amp; Conditions</h3>
+    <div style="color: #666; line-height: 1.7;">{{ configuracion_sitio.texto_terminos|linebreaks }}</div>
+  </div>
+  {% endif %}
   
   <div style="background: var(--card); padding: 40px; border-radius: 8px; text-align: center;">
     <h3 style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">Still have questions?</h3>
@@ -97,7 +113,7 @@
       <a href="{% url 'contacto' %}" class="view-more" style="display: inline-block; text-decoration: none;">
         CONTACT US
       </a>
-      <a href="tel:+380983212003" class="view-more" style="display: inline-block; text-decoration: none; background: transparent; color: #000; border: 2px solid #000;">
+      <a href="tel:{{ configuracion_sitio.telefono_contacto }}" class="view-more" style="display: inline-block; text-decoration: none; background: transparent; color: #000; border: 2px solid #000;">
         CALL US
       </a>
     </div>

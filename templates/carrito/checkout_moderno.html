@@ -117,50 +117,22 @@
                 </div>
                 
                 <div class="shipping-options">
-                    <label class="shipping-option selected">
-                        <input type="radio" name="metodo_envio" value="estandar" checked>
+                    {% for metodo in metodos_envio %}
+                    <label class="shipping-option{% if forloop.first %} selected{% endif %}">
+                        <input type="radio" name="metodo_envio" value="{{ metodo.id }}"{% if forloop.first %} checked{% endif %} required>
                         <div class="shipping-option-content">
                             <div class="shipping-radio"></div>
                             <div class="shipping-info">
-                                <div class="shipping-name">Envío Estándar</div>
-                                <div class="shipping-description">Entrega regular en todo el país</div>
+                                <div class="shipping-name">{{ metodo.nombre }}</div>
+                                <div class="shipping-description">{{ metodo.descripcion }}</div>
                                 <div class="shipping-time">
-                                    <span>⏱️</span> 3-5 días hábiles
+                                    <span>⏱️</span> {{ metodo.tiempo_entrega }}
                                 </div>
                             </div>
-                            <div class="shipping-price">$5.00</div>
+                            <div class="shipping-price">${{ metodo.costo|floatformat:2 }}</div>
                         </div>
                     </label>
-                    
-                    <label class="shipping-option">
-                        <input type="radio" name="metodo_envio" value="express">
-                        <div class="shipping-option-content">
-                            <div class="shipping-radio"></div>
-                            <div class="shipping-info">
-                                <div class="shipping-name">Envío Express</div>
-                                <div class="shipping-description">Entrega rápida prioritaria</div>
-                                <div class="shipping-time">
-                                    <span>⏱️</span> 1-2 días hábiles
-                                </div>
-                            </div>
-                            <div class="shipping-price">$15.00</div>
-                        </div>
-                    </label>
-                    
-                    <label class="shipping-option">
-                        <input type="radio" name="metodo_envio" value="tienda">
-                        <div class="shipping-option-content">
-                            <div class="shipping-radio"></div>
-                            <div class="shipping-info">
-                                <div class="shipping-name">Recoger en Tienda</div>
-                                <div class="shipping-description">Recoge tu pedido sin costo</div>
-                                <div class="shipping-time">
-                                    <span>⏱️</span> Mismo día
-                                </div>
-                            </div>
-                            <div class="shipping-price">$0.00</div>
-                        </div>
-                    </label>
+                    {% empty %}<p>No hay métodos de envío disponibles.</p>{% endfor %}
                 </div>
             </div>
 
@@ -179,21 +151,15 @@
                     </label>
                     
                     <label class="payment-method">
-                        <input type="radio" name="metodo_pago" value="tarjeta">
-                        <div class="payment-icon">💳</div>
-                        <div class="payment-name">Tarjeta</div>
-                    </label>
-                    
-                    <label class="payment-method">
                         <input type="radio" name="metodo_pago" value="transferencia">
                         <div class="payment-icon">🏦</div>
                         <div class="payment-name">Transferencia</div>
                     </label>
                     
                     <label class="payment-method">
-                        <input type="radio" name="metodo_pago" value="efectivo">
+                        <input type="radio" name="metodo_pago" value="contra_entrega">
                         <div class="payment-icon">💵</div>
-                        <div class="payment-name">Efectivo</div>
+                        <div class="payment-name">Contra entrega</div>
                     </label>
                 </div>
             </div>
@@ -229,7 +195,7 @@
                     </div>
                     <div class="total-row shipping">
                         <span>Envío:</span>
-                        <span id="shippingCost">$5.00</span>
+                        <span id="shippingCost">${% if metodos_envio.first %}{{ metodos_envio.first.costo|floatformat:2 }}{% else %}0.00{% endif %}</span>
                     </div>
                     <div class="total-row total">
                         <span>Total:</span>

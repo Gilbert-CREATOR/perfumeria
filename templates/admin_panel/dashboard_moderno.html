@@ -7,7 +7,7 @@
     <div>
         <p class="admin-kicker">Panel central</p>
         <h1>Control total de la tienda</h1>
-        <p class="admin-subtitle">Gestiona productos, pedidos, envíos y stock desde páginas HTML propias del proyecto.</p>
+        <p class="admin-subtitle">Gestiona operaciones, clientes, contenido, comunicaciones y configuración desde un solo lugar.</p>
     </div>
     <div class="admin-hero-actions">
         <a href="{% url 'admin_producto_crear' %}" class="btn btn-dark">
@@ -50,6 +50,9 @@
         <strong>{{ stats.envios_activos }}</strong>
         <small>En preparación o tránsito</small>
     </article>
+    <article class="admin-stat"><span class="admin-stat-label">Usuarios</span><strong>{{ stats.usuarios }}</strong><small>Cuentas registradas</small></article>
+    <article class="admin-stat"><span class="admin-stat-label">Suscriptores</span><strong>{{ stats.suscriptores }}</strong><small>Activos en newsletter</small></article>
+    <article class="admin-stat"><span class="admin-stat-label">Mensajes nuevos</span><strong>{{ stats.mensajes_nuevos }}</strong><small>Esperando atención</small></article>
 </section>
 
 <div class="row g-4">
@@ -123,6 +126,9 @@
                     <i class="fa-solid fa-route"></i>
                     <span>Métodos de envío</span>
                 </a>
+                <a href="{% url 'admin_usuarios' %}" class="admin-quick-link"><i class="fa-solid fa-users"></i><span>Gestionar usuarios</span></a>
+                <a href="{% url 'admin_mensajes' %}" class="admin-quick-link"><i class="fa-solid fa-inbox"></i><span>Revisar mensajes</span></a>
+                <a href="{% url 'admin_configuracion' %}" class="admin-quick-link"><i class="fa-solid fa-gear"></i><span>Editar sitio</span></a>
             </div>
         </section>
 

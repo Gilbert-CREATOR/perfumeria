@@ -7,6 +7,7 @@ import hashlib
 import mimetypes
 import os
 from django.urls import reverse
+from django.utils.text import slugify
 
 class Producto(models.Model):
 
@@ -27,6 +28,7 @@ class Producto(models.Model):
     ]
     
     nombre = models.CharField(max_length=200, blank=True, default='')
+    slug = models.SlugField(max_length=230, unique=True, null=True, blank=True)
     marca = models.CharField(max_length=100, blank=True, default='')
     descripcion = models.TextField(blank=True, default='')
     precio = models.DecimalField(max_digits=10, decimal_places=2, blank=True, default=0)
@@ -84,6 +86,15 @@ class Producto(models.Model):
         # antigua todavía envía una sola temporada como texto.
         if isinstance(self.temporada, str):
             self.temporada = [self.temporada] if self.temporada else []
+
+        if not self.slug:
+            base = slugify(self.nombre) or f'producto-{self.pk or "nuevo"}'
+            slug = base
+            numero = 2
+            while Producto.objects.exclude(pk=self.pk).filter(slug=slug).exists():
+                slug = f'{base}-{numero}'
+                numero += 1
+            self.slug = slug
 
         # Render usa un disco efímero. Guardamos una copia de la imagen en la
         # base de datos antes de que el archivo temporal desaparezca.

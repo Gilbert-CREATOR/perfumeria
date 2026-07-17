@@ -1,15 +1,19 @@
 import json
-from unittest.mock import patch
+from types import ModuleType
+from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import User
 from django.core import mail
-from django.http import HttpResponse
-from django.test import Client, TestCase, override_settings
+from django.http import Http404, HttpResponse
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from apps.productos.models import AlertaStock, Producto, Resena
-from .models import Carrito, Envio, ItemCarrito, ItemPedido, MetodoEnvio, Pedido
-from .services import PENDING_CART_SESSION_KEY
+from .models import (
+    Carrito, Envio, ItemCarrito, ItemPedido, MetodoEnvio, MovimientoInventario,
+    Pedido, TransaccionPago,
+)
+from .services import PENDING_CART_SESSION_KEY, crear_pedido_desde_carrito, reintegrar_stock_pedido
 from .recommendations import productos_recomendados_por_temporada
 from .emails import (
     enviar_email_carrito_abandonado,
@@ -24,6 +28,8 @@ from .emails import (
     enviar_email_solicitud_resena,
 )
 from .admin_views import notificar_cambio_envio
+from .webhooks import handle_payment_completed, handle_payment_refunded
+from .views import descargar_factura
 
 
 @override_settings(
@@ -134,6 +140,110 @@ class DesignedEmailTemplatesTests(TestCase):
         self.assertIsNotNone(alerta.enviada)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('volvió a estar disponible', mail.outbox[0].subject)
+
+
+class InventarioTransaccionalTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='inventario', password='Clave-segura-123')
+        self.producto = Producto.objects.create(
+            nombre='Producto auditable', precio='1000.00', stock=5, disponible=True,
+        )
+        self.metodo = MetodoEnvio.objects.create(
+            nombre='Normal', costo='100.00', tiempo_entrega='2 dias', activo=True,
+        )
+        carrito = Carrito.objects.create(usuario=self.user)
+        ItemCarrito.objects.create(carrito=carrito, producto=self.producto, cantidad=2)
+
+    def test_reserva_y_reintegro_crean_movimientos_idempotentes(self):
+        pedido = crear_pedido_desde_carrito(
+            usuario=self.user,
+            metodo_envio=self.metodo,
+            metodo_pago='paypal',
+            datos_envio={'nombre_completo': 'Cliente Prueba'},
+        )
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock, 3)
+        reserva = MovimientoInventario.objects.get(tipo='reserva')
+        self.assertEqual((reserva.cantidad, reserva.stock_anterior, reserva.stock_resultante), (-2, 5, 3))
+
+        self.assertTrue(reintegrar_stock_pedido(pedido))
+        self.assertFalse(reintegrar_stock_pedido(pedido))
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock, 5)
+        self.assertEqual(MovimientoInventario.objects.filter(tipo='reintegro').count(), 1)
+
+
+class PayPalWebhookHandlerTests(TestCase):
+    def setUp(self):
+        self.producto = Producto.objects.create(
+            nombre='Producto PayPal', precio='500.00', stock=3, disponible=True,
+        )
+        self.pedido = Pedido.objects.create(
+            subtotal='1000.00', total='1000.00', metodo_pago='paypal',
+            estado='pendiente', stock_reservado=True,
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido, producto=self.producto, cantidad=2, precio='500.00',
+        )
+        self.resource = {
+            'id': 'PAYPAL-PRUEBA-1',
+            'custom': str(self.pedido.pk),
+            'amount': {'total': '1000.00', 'currency': 'USD'},
+        }
+
+    @patch('apps.carrito.emails.enviar_email_pago_confirmado')
+    def test_confirmacion_es_idempotente(self, enviar_correo):
+        facturas = ModuleType('apps.carrito.facturas')
+        facturas.generar_factura_para_pedido = Mock()
+        with patch.dict('sys.modules', {'apps.carrito.facturas': facturas}):
+            self.assertEqual(handle_payment_completed(self.resource).status_code, 200)
+            self.assertEqual(handle_payment_completed(self.resource).status_code, 200)
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.estado, 'pagado')
+        self.assertEqual(enviar_correo.call_count, 1)
+        self.assertEqual(facturas.generar_factura_para_pedido.call_count, 1)
+        self.assertEqual(TransaccionPago.objects.count(), 1)
+
+    @patch('apps.carrito.emails.enviar_email_cancelacion_reembolso')
+    def test_reembolso_reintegra_stock_una_sola_vez(self, enviar_correo):
+        self.pedido.estado = 'pagado'
+        self.pedido.save(update_fields=['estado'])
+        refund = {**self.resource, 'id': 'PAYPAL-REFUND-1'}
+        self.assertEqual(handle_payment_refunded(refund).status_code, 200)
+        self.assertEqual(handle_payment_refunded(refund).status_code, 200)
+        self.pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        self.assertEqual(self.pedido.estado, 'cancelado')
+        self.assertEqual(self.producto.stock, 5)
+        self.assertEqual(enviar_correo.call_count, 1)
+        self.assertEqual(MovimientoInventario.objects.filter(tipo='reintegro').count(), 1)
+
+
+class InvoiceDownloadTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='factura', password='Clave-segura-123')
+        self.other = User.objects.create_user(username='otro', password='Clave-segura-123')
+        self.producto = Producto.objects.create(
+            nombre='Producto facturado', marca='D.A.R.C.Y.', precio='750.00', stock=2,
+        )
+        self.pedido = Pedido.objects.create(
+            usuario=self.user, subtotal='750.00', costo_envio='0.00', total='750.00',
+            estado='pagado', nombre_completo='Cliente Factura',
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido, producto=self.producto, cantidad=1, precio='750.00',
+        )
+
+    def test_propietario_descarga_pdf_y_otro_usuario_no(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('descargar_factura', args=[self.pedido.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+        request = RequestFactory().get(reverse('descargar_factura', args=[self.pedido.pk]))
+        request.user = self.other
+        with self.assertRaises(Http404):
+            descargar_factura(request, self.pedido.pk)
 
 
 class CartSeasonRecommendationsTests(TestCase):

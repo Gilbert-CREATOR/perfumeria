@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.core import signing
 from django.core.mail import send_mail
@@ -7,6 +9,7 @@ from django.utils.html import strip_tags
 
 
 VERIFICACION_SALT = 'darcy-verificacion-email'
+logger = logging.getLogger(__name__)
 
 
 def _site_url():
@@ -32,6 +35,7 @@ def _enviar(asunto, plantilla, contexto, destinatario):
             fail_silently=False,
         )
     except Exception:
+        logger.exception('No se pudo enviar %s a %s.', plantilla, destinatario)
         return False
     return True
 

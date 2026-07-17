@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'apps.carrito',
     'apps.usuarios',
     'apps.newsletter',
+    'apps.core',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.core.middleware.AuditoriaAdminMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -73,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.carrito.context_processors.carrito_total',
                 'apps.productos.context_processors.favoritos_usuario',
+                'apps.core.context_processors.configuracion_sitio',
             ],
         },
     },
@@ -153,18 +156,23 @@ LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# 📧 Email settings (para desarrollo)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'D.A.R.C.Y. <noreply@perfumeria.com>'
+# Correo local seguro. Producción lo reemplaza con Brevo/SMTP desde settings_prod.
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'D.A.R.C.Y. <noreply@perfumeria.com>'
+)
 PUBLIC_SITE_URL = os.environ.get(
     'PUBLIC_SITE_URL',
     'https://perfumeria-darcy.onrender.com',
 ).rstrip('/')
 
-# 💳 PayPal settings (sandbox)
-PAYPAL_CLIENT_ID = 'your-paypal-client-id'
-PAYPAL_SECRET = 'your-paypal-secret'
-PAYPAL_MODE = 'sandbox'
+# PayPal: nunca guardar credenciales en el código.
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', '').strip()
+PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET', '').strip()
+PAYPAL_WEBHOOK_ID = os.environ.get('PAYPAL_WEBHOOK_ID', '').strip()
+PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox').strip().lower()
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

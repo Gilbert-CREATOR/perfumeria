@@ -80,7 +80,7 @@
                     <div class="productos-lista">
                         {% for item in pedido.items.all %}
                         <div class="producto-item">
-                            {{ item.producto.nombre }} x{{ item.cantidad }}
+                            {{ item.nombre_visible }} x{{ item.cantidad }}
                         </div>
                         {% endfor %}
                     </div>

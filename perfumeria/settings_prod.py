@@ -1,5 +1,6 @@
 from .settings import *
 import os
+from email.utils import formataddr
 import dj_database_url
 from decouple import config
 
@@ -26,7 +27,11 @@ SECRET_KEY = config('SECRET_KEY')
 import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.parse(config('DATABASE_URL'))
+    'default': dj_database_url.parse(
+        config('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 # 🔑 Configuración de autenticación para PostgreSQL
@@ -34,15 +39,36 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-#  EMAIL
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST')
+# EMAIL: Brevo usa HTTPS y funciona incluso en instancias gratuitas de Render.
+BREVO_API_KEY = config('BREVO_API_KEY', default='').strip()
+BREVO_SENDER_EMAIL = config(
+    'BREVO_SENDER_EMAIL',
+    default=config('EMAIL_HOST_USER', default=''),
+).strip()
+BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='D.A.R.C.Y.').strip()
+
+EMAIL_BACKEND = (
+    'perfumeria.email_backends.BrevoEmailBackend'
+    if BREVO_API_KEY
+    else 'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
+# Google muestra sus contraseñas de aplicación separadas por espacios.
+EMAIL_HOST_PASSWORD = ''.join(config('EMAIL_HOST_PASSWORD', default='').split())
+DEFAULT_FROM_EMAIL = formataddr((
+    BREVO_SENDER_NAME,
+    BREVO_SENDER_EMAIL if BREVO_API_KEY else EMAIL_HOST_USER,
+))
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=15, cast=int)
+
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID', default='').strip()
+PAYPAL_SECRET = config('PAYPAL_SECRET', default='').strip()
+PAYPAL_WEBHOOK_ID = config('PAYPAL_WEBHOOK_ID', default='').strip()
+PAYPAL_MODE = config('PAYPAL_MODE', default='sandbox').strip().lower()
 
 # STATIC FILES
 STATIC_URL = '/static/'
@@ -101,5 +127,3 @@ LOGGING = {
         },
     },
 }
-
-print("🚀 Configuración de producción cargada correctamente")

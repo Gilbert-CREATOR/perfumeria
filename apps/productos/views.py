@@ -14,6 +14,8 @@ from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from apps.carrito.models import Pedido
+from django.conf import settings
 
 def format_price(price):
     """Formatear precio para que sea más legible"""
@@ -206,6 +208,14 @@ def detalle_producto(request, producto_id):
     
     productos_relacionados = productos_relacionados_para(producto)
 
+    puede_resenar = False
+    if request.user.is_authenticated:
+        puede_resenar = Pedido.objects.filter(
+            usuario=request.user,
+            estado='entregado',
+            items__producto=producto,
+        ).exists()
+
     context = {
         'producto': producto,
         'resenas': resenas,
@@ -214,9 +224,12 @@ def detalle_producto(request, producto_id):
             request.user.is_authenticated
             and AlertaStock.objects.filter(usuario=request.user, producto=producto, enviada__isnull=True).exists()
         ),
-        'puede_resenar': request.user.is_authenticated,
+        'puede_resenar': puede_resenar,
         'resena_form': ResenaForm(instance=resena_usuario),
         'resena_usuario': resena_usuario,
+        'canonical_url': request.build_absolute_uri(
+            reverse('detalle_producto_seo', args=[producto.slug])
+        ) if producto.slug else request.build_absolute_uri(),
     }
     return render(request, 'productos/detalle_producto_minimalista.html', context)
 
@@ -245,6 +258,14 @@ def crear_resena(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
     if request.method != 'POST':
         messages.error(request, 'Envía la reseña desde el formulario del producto.')
+        return redirect(f'{reverse("detalle_producto", args=[producto.id])}#resena')
+
+    if not Pedido.objects.filter(
+        usuario=request.user,
+        estado='entregado',
+        items__producto=producto,
+    ).exists():
+        messages.error(request, 'Puedes reseñar el producto después de recibir un pedido que lo incluya.')
         return redirect(f'{reverse("detalle_producto", args=[producto.id])}#resena')
 
     form = ResenaForm(request.POST)
@@ -350,6 +371,42 @@ def buscar_ajax(request):
         })
     
     return JsonResponse({'results': results})
+
+
+def detalle_producto_seo(request, slug):
+    producto = get_object_or_404(Producto, slug=slug, disponible=True)
+    return detalle_producto(request, producto.id)
+
+
+def catalogo_seo(request, categoria=None, marca=None):
+    parametros = request.GET.copy()
+    if categoria:
+        parametros['temporada'] = categoria
+    if marca:
+        parametros['marca'] = marca.replace('-', ' ')
+    request.GET = parametros
+    return catalogo(request)
+
+
+def sitemap(request):
+    base = getattr(settings, 'PUBLIC_SITE_URL', '').rstrip('/')
+    urls = [f'{base}/', f'{base}/catalogo/', f'{base}/contacto/', f'{base}/nosotros/', f'{base}/faq/']
+    urls.extend(
+        f'{base}{reverse("detalle_producto_seo", args=[producto.slug])}'
+        for producto in Producto.objects.filter(disponible=True).exclude(slug__isnull=True)
+    )
+    contenido = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    contenido += ''.join(f'<url><loc>{url}</loc></url>' for url in urls)
+    contenido += '</urlset>'
+    return HttpResponse(contenido, content_type='application/xml')
+
+
+def robots_txt(request):
+    base = getattr(settings, 'PUBLIC_SITE_URL', '').rstrip('/')
+    return HttpResponse(
+        f'User-agent: *\nAllow: /\nDisallow: /admin/\nSitemap: {base}/sitemap.xml\n',
+        content_type='text/plain',
+    )
 
 
 def producto_imagen(request, producto_id):

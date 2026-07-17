@@ -7,6 +7,12 @@
   --text: #050505;
 }
 
+html,
+body,
+body * {
+  touch-action: manipulation;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -352,6 +358,7 @@ img { display: block; max-width: 100%; }
 .site-footer { background: var(--footer); padding: 58px max(32px, calc((100vw - 1216px) / 2)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 42px; }
 .footer-col h4 { font-size: 16px; font-weight: 900; margin-bottom: 18px; }
 .footer-col a { display: block; font-size: 12px; margin-bottom: 10px; }
+.footer-col > span { display: block; font-size: 12px; margin-bottom: 10px; }
 .footer-col .footer-social-link {
   width: fit-content;
   display: flex;

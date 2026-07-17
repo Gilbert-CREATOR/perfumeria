@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from django.contrib.auth.models import User
@@ -12,6 +13,9 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .emails import enviar_bienvenida_suscripcion
 from .models import SuscriptorNewsletter
+
+
+logger = logging.getLogger(__name__)
 
 
 def _respuesta_json(request):
@@ -70,6 +74,7 @@ def suscribirse(request):
     try:
         enviar_bienvenida_suscripcion(suscriptor)
     except Exception:
+        logger.exception('No se pudo enviar la bienvenida del newsletter a %s.', suscriptor.email)
         # Permite que la persona vuelva a intentarlo si el servidor SMTP falla.
         suscriptor.activo = False
         suscriptor.save(update_fields=('activo', 'fecha_actualizacion'))

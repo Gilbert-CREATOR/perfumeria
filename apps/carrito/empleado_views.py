@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Sum, Count
+from django.views.decorators.http import require_POST
 from .models import PerfilUsuario, Pedido
 
 def es_admin_o_empleado(user):
@@ -170,6 +171,7 @@ def editar_empleado(request, user_id):
 
 @login_required
 @user_passes_test(es_admin, login_url='/admin/login/')
+@require_POST
 def eliminar_empleado(request, user_id):
     """Eliminar empleado (solo admin)"""
     if not es_admin(request.user):

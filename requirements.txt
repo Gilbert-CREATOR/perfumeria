@@ -6,3 +6,4 @@ paypalrestsdk==1.13.3
 python-decouple==3.8
 Pillow>=10.0.0
 dj-database-url>=1.1.0
+reportlab>=4.2,<5

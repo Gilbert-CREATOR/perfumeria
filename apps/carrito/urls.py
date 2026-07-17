@@ -3,6 +3,7 @@ from . import views
 from . import views_debug
 from . import admin_views_extra
 from . import empleado_views
+from . import webhooks
 
 urlpatterns = [
     # Rutas públicas (clientes)
@@ -14,6 +15,7 @@ urlpatterns = [
     path('exito/', views.pedido_exitoso, name='pedido_exitoso'),
     path('historial/', views.historial_pedidos, name='historial_pedidos'),
     path('pedido/<int:pedido_id>/', views.detalle_pedido, name='detalle_pedido'),
+    path('pedido/<int:pedido_id>/factura/', views.descargar_factura, name='descargar_factura'),
     
     # Rutas de pago (clientes) - pero protegidas
     path('pago/paypal/<int:pedido_id>/', views.pago_paypal, name='pago_paypal'),
@@ -25,8 +27,9 @@ urlpatterns = [
     path('admin/pedidos/', admin_views_extra.admin_pedidos_todos, name='admin_pedidos_todos'),
     path('admin/usuario/<int:user_id>/pedidos/', admin_views_extra.admin_usuario_pedidos, name='admin_usuario_pedidos'),
     path('admin/estadisticas/', admin_views_extra.admin_estadisticas, name='admin_estadisticas'),
-    path('admin/paypal/success/', views.paypal_exito, name='paypal_exito'),  # Movido a admin
-    path('admin/paypal/cancel/', views.paypal_cancelado, name='paypal_cancelado'),  # Movido a admin
+    path('pago/paypal/success/', views.paypal_exito, name='paypal_exito'),
+    path('pago/paypal/cancel/', views.paypal_cancelado, name='paypal_cancelado'),
+    path('webhooks/paypal/', webhooks.paypal_webhook, name='paypal_webhook'),
     path('debug/', views_debug.debug_pedidos, name='debug_pedidos'),
     
     # Rutas de empleados (admin y empleados)

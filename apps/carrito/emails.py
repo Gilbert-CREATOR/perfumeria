@@ -22,10 +22,15 @@ def _absolute_url(path):
 
 def _pedido_context(pedido):
     items = list(pedido.items.select_related('producto').all())
+    usuario = pedido.usuario
     return {
         'pedido': pedido,
         'items': items,
-        'nombre_cliente': pedido.nombre_completo or pedido.usuario.get_full_name() or pedido.usuario.username,
+        'nombre_cliente': (
+            pedido.nombre_completo
+            or (usuario.get_full_name() if usuario else '')
+            or (usuario.username if usuario else 'Cliente')
+        ),
         'site_url': _site_url(),
         'pedido_url': _absolute_url(reverse('detalle_pedido', args=[pedido.id])),
         'catalogo_url': _absolute_url(reverse('catalogo')),
@@ -50,6 +55,10 @@ def _enviar_correo_html(subject, template, context, destinatario):
         print(f'Error enviando {template}: {error}')
         return False
 
+
+def _email_pedido(pedido):
+    return pedido.usuario.email if pedido.usuario else ''
+
 def enviar_email_confirmacion_pedido(pedido):
     """
     Envía email de confirmación cuando se crea un pedido
@@ -70,7 +79,7 @@ def enviar_email_confirmacion_pedido(pedido):
             subject=subject,
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[pedido.usuario.email],
+            recipient_list=[_email_pedido(pedido)],
             html_message=html_message,
             fail_silently=False
         )
@@ -97,7 +106,7 @@ def enviar_email_pago_confirmado(pedido):
             subject=subject,
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[pedido.usuario.email],
+            recipient_list=[_email_pedido(pedido)],
             html_message=html_message,
             fail_silently=False
         )
@@ -131,7 +140,7 @@ def enviar_email_envio_despachado(pedido):
             subject=subject,
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[pedido.usuario.email],
+            recipient_list=[_email_pedido(pedido)],
             html_message=html_message,
             fail_silently=False
         )
@@ -158,7 +167,7 @@ def enviar_email_pedido_entregado(pedido):
             subject=subject,
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[pedido.usuario.email],
+            recipient_list=[_email_pedido(pedido)],
             html_message=html_message,
             fail_silently=False
         )
@@ -220,7 +229,7 @@ def enviar_email_pago_rechazado(pedido, motivo='El procesador de pago rechazó l
         f'D.A.R.C.Y. — No pudimos procesar el pago del pedido #{pedido.id}',
         'emails/pago_rechazado.html',
         context,
-        pedido.usuario.email,
+        _email_pedido(pedido),
     )
 
 
@@ -230,7 +239,7 @@ def enviar_email_pedido_preparacion(pedido):
         f'D.A.R.C.Y. — Estamos preparando tu pedido #{pedido.id}',
         'emails/pedido_preparacion.html',
         context,
-        pedido.usuario.email,
+        _email_pedido(pedido),
     )
 
 
@@ -244,7 +253,7 @@ def enviar_email_cancelacion_reembolso(pedido, reembolsado=False):
         f'D.A.R.C.Y. — {asunto_estado} para el pedido #{pedido.id}',
         'emails/cancelacion_reembolso.html',
         context,
-        pedido.usuario.email,
+        _email_pedido(pedido),
     )
 
 
@@ -278,7 +287,7 @@ def enviar_email_recomendaciones(pedido):
         'D.A.R.C.Y. — Seleccionamos estas fragancias para ti',
         'emails/recomendaciones.html',
         context,
-        pedido.usuario.email,
+        _email_pedido(pedido),
     )
 
 
@@ -288,5 +297,5 @@ def enviar_email_solicitud_resena(pedido):
         f'D.A.R.C.Y. — ¿Qué te pareció tu pedido #{pedido.id}?',
         'emails/solicitud_resena.html',
         context,
-        pedido.usuario.email,
+        _email_pedido(pedido),
     )

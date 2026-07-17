@@ -2,6 +2,7 @@ import base64
 from decimal import Decimal
 
 from django import forms
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.db import OperationalError, ProgrammingError
 from .models import Pedido, MetodoEnvio, Envio
@@ -255,3 +256,54 @@ class EnvioForm(forms.ModelForm):
             'fecha_entrega_estimada': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+class UsuarioPanelForm(forms.ModelForm):
+    nueva_contrasena = forms.CharField(
+        required=False,
+        min_length=8,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'}),
+        help_text='Déjala vacía para conservar la contraseña actual.',
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_staff': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, actor=None, **kwargs):
+        self.actor = actor
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            self.fields['nueva_contrasena'].required = True
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if email and User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('Ese correo ya pertenece a otra cuenta.')
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.instance.pk and self.actor and self.instance.pk == self.actor.pk:
+            if not cleaned.get('is_active', True):
+                self.add_error('is_active', 'No puedes desactivar tu propia cuenta.')
+            if not cleaned.get('is_staff', True):
+                self.add_error('is_staff', 'No puedes quitarte el acceso al panel.')
+        return cleaned
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        password = self.cleaned_data.get('nueva_contrasena')
+        if password:
+            usuario.set_password(password)
+        if commit:
+            usuario.save()
+        return usuario

@@ -1,0 +1,2 @@
+{% extends 'admin_panel/base_admin.html' %}{% block title %}{% if articulo %}Editar{% else %}Nuevo{% endif %} artículo{% endblock %}
+{% block content %}<section class="admin-section-header"><div><p class="admin-eyebrow">BLOG</p><h1>{% if articulo %}Editar artículo{% else %}Nuevo artículo{% endif %}</h1></div></section><section class="admin-card"><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-dark" type="submit">Guardar</button> <a class="btn btn-outline-dark" href="{% url 'admin_blog' %}">Cancelar</a></form></section>{% endblock %}

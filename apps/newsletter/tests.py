@@ -1,10 +1,14 @@
+import json
 from django.core import mail
+from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+
+from perfumeria.email_backends import BrevoEmailBackend
 
 from .emails import enviar_bienvenida_suscripcion
 from .models import SuscriptorNewsletter
@@ -130,3 +134,30 @@ class NewsletterTests(TestCase):
         self.assertContains(response, 'SUSCRIPCIÓN')
         suscriptor.refresh_from_db()
         self.assertFalse(suscriptor.activo)
+
+    @override_settings(
+        BREVO_API_KEY='api-key-prueba',
+        BREVO_SENDER_EMAIL='remitente@example.com',
+        BREVO_SENDER_NAME='D.A.R.C.Y.',
+    )
+    def test_backend_brevo_envia_html_por_https(self):
+        message = EmailMultiAlternatives(
+            subject='Correo de prueba',
+            body='Versión de texto',
+            from_email='D.A.R.C.Y. <remitente@example.com>',
+            to=['Cliente <cliente@example.com>'],
+        )
+        message.attach_alternative('<strong>Correo diseñado</strong>', 'text/html')
+        response = MagicMock(status=201)
+        response.__enter__.return_value = response
+
+        with patch('perfumeria.email_backends.urlopen', return_value=response) as urlopen_mock:
+            sent = BrevoEmailBackend().send_messages([message])
+
+        self.assertEqual(sent, 1)
+        request = urlopen_mock.call_args.args[0]
+        payload = json.loads(request.data.decode('utf-8'))
+        self.assertEqual(request.full_url, 'https://api.brevo.com/v3/smtp/email')
+        self.assertEqual(payload['sender']['email'], 'remitente@example.com')
+        self.assertEqual(payload['to'][0]['email'], 'cliente@example.com')
+        self.assertEqual(payload['htmlContent'], '<strong>Correo diseñado</strong>')

@@ -4,15 +4,22 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import DecimalField, F, Q, Sum
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponse
+from django.conf import settings
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.productos.forms import ResenaForm
 from apps.productos.models import Producto, Resena
-from .admin_forms import EnvioForm, MetodoEnvioForm, PedidoAdminForm, ProductoAdminForm
+from apps.core.forms import ArticuloBlogForm, ConfiguracionSitioForm, MensajeContactoAdminForm, PreguntaFrecuenteForm
+from apps.core.models import ArticuloBlog, ConfiguracionSitio, MensajeContacto, PreguntaFrecuente, RegistroAuditoria
+from apps.newsletter.models import SuscriptorNewsletter
+from .admin_forms import EnvioForm, MetodoEnvioForm, PedidoAdminForm, ProductoAdminForm, UsuarioPanelForm
 from .emails import (
     enviar_email_cancelacion_reembolso,
     enviar_email_envio_despachado,
@@ -21,7 +28,8 @@ from .emails import (
     enviar_email_recomendaciones,
     enviar_email_solicitud_resena,
 )
-from .models import ESTADOS_PEDIDO, Envio, ItemPedido, MetodoEnvio, Pedido
+from .models import ESTADOS_PEDIDO, Envio, ItemPedido, MetodoEnvio, MovimientoInventario, Pedido
+from .services import reintegrar_stock_pedido
 
 ADMIN_LOGIN_URL = '/usuarios/login/'
 PEDIDO_ESTADOS_COBRADOS = ['pagado', 'enviado', 'entregado']
@@ -41,6 +49,10 @@ def admin_required(view_func):
     return wrapped_view
 
 
+def puede_gestionar_usuario(actor, objetivo):
+    return actor.is_superuser or not objetivo.is_superuser
+
+
 def parse_bool(value, default=False):
     if value is None:
         return default
@@ -56,9 +68,8 @@ def count_by_choices(queryset, field_name, choices):
 
 def notificar_cambio_envio(envio, estado_anterior=None):
     """Envía una sola notificación cuando el envío alcanza un hito nuevo."""
-    if not envio.pedido.usuario.email:
+    if not envio.pedido.usuario or not envio.pedido.usuario.email:
         return
-
     if envio.estado == 'entregado' and estado_anterior != 'entregado':
         enviar_email_pedido_entregado(envio.pedido)
         enviar_email_recomendaciones(envio.pedido)
@@ -70,6 +81,75 @@ def notificar_cambio_envio(envio, estado_anterior=None):
         and estado_anterior not in {'despachado', 'en_transito', 'entregado'}
     ):
         enviar_email_envio_despachado(envio.pedido)
+
+
+@admin_required
+def admin_auditoria(request):
+    registros = RegistroAuditoria.objects.select_related('usuario')[:500]
+    return render(request, 'admin_panel/auditoria.html', {'registros': registros})
+
+
+@admin_required
+def admin_diagnostico(request):
+    resultado_email = None
+    if request.method == 'POST' and request.POST.get('accion') == 'probar_email':
+        destino = request.POST.get('email', '').strip() or request.user.email
+        if not destino:
+            messages.error(request, 'Indica un correo para la prueba.')
+        else:
+            try:
+                enviados = send_mail(
+                    'D.A.R.C.Y. — Prueba de correo',
+                    'La configuración de correo está funcionando correctamente.',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [destino],
+                    fail_silently=False,
+                )
+                resultado_email = bool(enviados)
+                messages.success(request, f'Correo de prueba enviado a {destino}.')
+            except Exception as error:
+                resultado_email = False
+                messages.error(request, f'No se pudo enviar: {error}')
+
+    contexto = {
+        'resultado_email': resultado_email,
+        'email_backend': settings.EMAIL_BACKEND,
+        'email_remitente': settings.DEFAULT_FROM_EMAIL,
+        'brevo_configurado': bool(getattr(settings, 'BREVO_API_KEY', '')),
+        'paypal_configurado': bool(
+            getattr(settings, 'PAYPAL_CLIENT_ID', '')
+            and getattr(settings, 'PAYPAL_SECRET', '')
+            and getattr(settings, 'PAYPAL_WEBHOOK_ID', '')
+        ),
+    }
+    return render(request, 'admin_panel/diagnostico.html', contexto)
+
+
+@admin_required
+def admin_blog(request):
+    return render(request, 'admin_panel/blog.html', {'articulos': ArticuloBlog.objects.select_related('autor')})
+
+
+@admin_required
+def admin_blog_form(request, articulo_id=None):
+    articulo = get_object_or_404(ArticuloBlog, pk=articulo_id) if articulo_id else None
+    form = ArticuloBlogForm(request.POST or None, instance=articulo)
+    if request.method == 'POST' and form.is_valid():
+        articulo = form.save(commit=False)
+        articulo.autor = articulo.autor or request.user
+        articulo.save()
+        messages.success(request, 'Artículo guardado correctamente.')
+        return redirect('admin_blog')
+    return render(request, 'admin_panel/blog_form.html', {'form': form, 'articulo': articulo})
+
+
+@admin_required
+def admin_blog_eliminar(request, articulo_id):
+    articulo = get_object_or_404(ArticuloBlog, pk=articulo_id)
+    if request.method == 'POST':
+        articulo.delete()
+        messages.success(request, 'Artículo eliminado.')
+    return redirect('admin_blog')
 
 
 def shift_month(date_value, delta):
@@ -106,6 +186,9 @@ def admin_panel(request):
         'stock_bajo': Producto.objects.filter(stock__gt=0, stock__lt=5).count(),
         'agotados': Producto.objects.filter(stock=0).count(),
         'envios_activos': Envio.objects.exclude(estado='entregado').count(),
+        'usuarios': User.objects.count(),
+        'suscriptores': SuscriptorNewsletter.objects.filter(activo=True).count(),
+        'mensajes_nuevos': MensajeContacto.objects.filter(estado='nuevo').count(),
     }
 
     return render(
@@ -118,6 +201,208 @@ def admin_panel(request):
             'pedidos_sin_envio': pedidos_sin_envio,
         },
     )
+
+
+@admin_required
+def admin_usuarios(request):
+    usuarios = User.objects.all().order_by('-date_joined')
+    q = request.GET.get('q', '').strip()
+    estado = request.GET.get('estado', '').strip()
+    if q:
+        usuarios = usuarios.filter(
+            Q(username__icontains=q) | Q(email__icontains=q)
+            | Q(first_name__icontains=q) | Q(last_name__icontains=q)
+        )
+    if estado == 'activos':
+        usuarios = usuarios.filter(is_active=True)
+    elif estado == 'inactivos':
+        usuarios = usuarios.filter(is_active=False)
+    elif estado == 'staff':
+        usuarios = usuarios.filter(is_staff=True)
+    elif estado == 'clientes':
+        usuarios = usuarios.filter(is_staff=False)
+    return render(request, 'admin_panel/usuarios.html', {
+        'usuarios': usuarios,
+        'busqueda': q,
+        'estado_actual': estado,
+        'total_usuarios': User.objects.count(),
+        'usuarios_activos': User.objects.filter(is_active=True).count(),
+        'usuarios_staff': User.objects.filter(is_staff=True).count(),
+    })
+
+
+@admin_required
+def admin_usuario_crear(request):
+    form = UsuarioPanelForm(request.POST or None, actor=request.user)
+    if request.method == 'POST' and form.is_valid():
+        usuario = form.save()
+        messages.success(request, f'Cuenta de {usuario.username} creada correctamente.')
+        return redirect('admin_usuarios')
+    return render(request, 'admin_panel/usuario_form.html', {
+        'form': form, 'usuario_objetivo': None, 'titulo': 'Nuevo usuario',
+    })
+
+
+@admin_required
+def admin_usuario_editar(request, usuario_id):
+    usuario = get_object_or_404(User, pk=usuario_id)
+    if not puede_gestionar_usuario(request.user, usuario):
+        messages.error(request, 'Solo otro superusuario puede modificar esa cuenta.')
+        return redirect('admin_usuarios')
+    form = UsuarioPanelForm(request.POST or None, instance=usuario, actor=request.user)
+    if request.method == 'POST' and form.is_valid():
+        usuario = form.save()
+        messages.success(request, f'Cuenta de {usuario.username} actualizada.')
+        return redirect('admin_usuarios')
+    return render(request, 'admin_panel/usuario_form.html', {
+        'form': form, 'usuario_objetivo': usuario, 'titulo': f'Editar {usuario.username}',
+    })
+
+
+@admin_required
+def admin_usuario_toggle(request, usuario_id):
+    usuario = get_object_or_404(User, pk=usuario_id)
+    if request.method == 'POST':
+        if usuario.pk == request.user.pk:
+            messages.error(request, 'No puedes desactivar tu propia cuenta.')
+        elif not puede_gestionar_usuario(request.user, usuario):
+            messages.error(request, 'Solo otro superusuario puede modificar esa cuenta.')
+        else:
+            usuario.is_active = not usuario.is_active
+            usuario.save(update_fields=['is_active'])
+            messages.success(request, f'{usuario.username} ahora está {"activo" if usuario.is_active else "inactivo"}.')
+    return redirect('admin_usuarios')
+
+
+@admin_required
+def admin_newsletter(request):
+    suscriptores = SuscriptorNewsletter.objects.select_related('usuario').all()
+    q = request.GET.get('q', '').strip()
+    estado = request.GET.get('estado', '').strip()
+    if q:
+        suscriptores = suscriptores.filter(email__icontains=q)
+    if estado == 'activos':
+        suscriptores = suscriptores.filter(activo=True)
+    elif estado == 'inactivos':
+        suscriptores = suscriptores.filter(activo=False)
+    return render(request, 'admin_panel/newsletter.html', {
+        'suscriptores': suscriptores, 'busqueda': q, 'estado_actual': estado,
+        'total_suscriptores': SuscriptorNewsletter.objects.count(),
+        'suscriptores_activos': SuscriptorNewsletter.objects.filter(activo=True).count(),
+    })
+
+
+@admin_required
+def admin_newsletter_toggle(request, suscriptor_id):
+    suscriptor = get_object_or_404(SuscriptorNewsletter, pk=suscriptor_id)
+    if request.method == 'POST':
+        suscriptor.activo = not suscriptor.activo
+        suscriptor.save(update_fields=['activo', 'fecha_actualizacion'])
+        messages.success(request, f'{suscriptor.email} ahora está {"activo" if suscriptor.activo else "inactivo"}.')
+    return redirect('admin_newsletter')
+
+
+@admin_required
+def admin_newsletter_eliminar(request, suscriptor_id):
+    suscriptor = get_object_or_404(SuscriptorNewsletter, pk=suscriptor_id)
+    if request.method == 'POST':
+        email = suscriptor.email
+        suscriptor.delete()
+        messages.success(request, f'Suscripción de {email} eliminada.')
+    return redirect('admin_newsletter')
+
+
+@admin_required
+def admin_newsletter_exportar(request):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="suscriptores.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Correo', 'Activo', 'Usuario', 'Fecha de suscripción'])
+    for item in SuscriptorNewsletter.objects.select_related('usuario').all():
+        writer.writerow([item.email, 'Sí' if item.activo else 'No', item.usuario.username if item.usuario else '', item.fecha_suscripcion.isoformat()])
+    return response
+
+
+@admin_required
+def admin_configuracion(request):
+    configuracion = ConfiguracionSitio.cargar()
+    form = ConfiguracionSitioForm(request.POST or None, instance=configuracion)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Configuración pública actualizada.')
+        return redirect('admin_configuracion')
+    return render(request, 'admin_panel/configuracion.html', {'form': form, 'configuracion': configuracion})
+
+
+@admin_required
+def admin_faq(request):
+    return render(request, 'admin_panel/faq.html', {'preguntas': PreguntaFrecuente.objects.all()})
+
+
+@admin_required
+def admin_faq_crear(request):
+    form = PreguntaFrecuenteForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Pregunta frecuente creada.')
+        return redirect('admin_faq')
+    return render(request, 'admin_panel/faq_form.html', {'form': form, 'titulo': 'Nueva pregunta'})
+
+
+@admin_required
+def admin_faq_editar(request, pregunta_id):
+    pregunta = get_object_or_404(PreguntaFrecuente, pk=pregunta_id)
+    form = PreguntaFrecuenteForm(request.POST or None, instance=pregunta)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Pregunta frecuente actualizada.')
+        return redirect('admin_faq')
+    return render(request, 'admin_panel/faq_form.html', {'form': form, 'titulo': 'Editar pregunta'})
+
+
+@admin_required
+def admin_faq_eliminar(request, pregunta_id):
+    pregunta = get_object_or_404(PreguntaFrecuente, pk=pregunta_id)
+    if request.method == 'POST':
+        pregunta.delete()
+        messages.success(request, 'Pregunta frecuente eliminada.')
+    return redirect('admin_faq')
+
+
+@admin_required
+def admin_mensajes(request):
+    mensajes_qs = MensajeContacto.objects.all()
+    estado = request.GET.get('estado', '').strip()
+    q = request.GET.get('q', '').strip()
+    if estado:
+        mensajes_qs = mensajes_qs.filter(estado=estado)
+    if q:
+        mensajes_qs = mensajes_qs.filter(Q(nombre__icontains=q) | Q(email__icontains=q) | Q(asunto__icontains=q))
+    return render(request, 'admin_panel/mensajes.html', {
+        'mensajes_contacto': mensajes_qs, 'estado_actual': estado, 'busqueda': q,
+        'mensajes_nuevos': MensajeContacto.objects.filter(estado='nuevo').count(),
+        'estados_mensaje': MensajeContacto.ESTADOS,
+    })
+
+
+@admin_required
+def admin_mensaje_detalle(request, mensaje_id):
+    mensaje = get_object_or_404(MensajeContacto, pk=mensaje_id)
+    form = MensajeContactoAdminForm(request.POST or None, instance=mensaje)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Mensaje actualizado.')
+        return redirect('admin_mensaje_detalle', mensaje_id=mensaje.id)
+    return render(request, 'admin_panel/mensaje_detalle.html', {'mensaje_contacto': mensaje, 'form': form})
+
+
+@admin_required
+def admin_mensaje_eliminar(request, mensaje_id):
+    mensaje = get_object_or_404(MensajeContacto, pk=mensaje_id)
+    if request.method == 'POST':
+        mensaje.delete()
+        messages.success(request, 'Mensaje eliminado.')
+    return redirect('admin_mensajes')
 
 
 @admin_required
@@ -353,6 +638,7 @@ def admin_detalle_pedido(request, pedido_id):
             if pedido_form.is_valid():
                 pedido_actualizado = pedido_form.save()
                 if pedido_actualizado.estado == 'cancelado' and estado_anterior != 'cancelado':
+                    reintegrar_stock_pedido(pedido_actualizado)
                     enviar_email_cancelacion_reembolso(pedido_actualizado)
                 messages.success(request, f'Pedido #{pedido.id} actualizado correctamente.')
                 return redirect('admin_detalle_pedido', pedido_id=pedido.id)
@@ -493,10 +779,24 @@ def admin_productos_stock(request):
                 if nuevo_stock < 0:
                     messages.error(request, 'El stock no puede ser negativo.')
                 else:
-                    producto.stock = nuevo_stock
-                    if 'disponible' in request.POST:
-                        producto.disponible = parse_bool(request.POST.get('disponible'))
-                    producto.save()
+                    with transaction.atomic():
+                        producto = Producto.objects.select_for_update().get(pk=producto.pk)
+                        stock_anterior = producto.stock
+                        producto.stock = nuevo_stock
+                        if 'disponible' in request.POST:
+                            producto.disponible = parse_bool(request.POST.get('disponible'))
+                        producto.save()
+                        if stock_anterior != nuevo_stock:
+                            MovimientoInventario.objects.create(
+                                producto=producto,
+                                producto_nombre=producto.nombre,
+                                usuario=request.user,
+                                tipo='ajuste',
+                                cantidad=nuevo_stock - stock_anterior,
+                                stock_anterior=stock_anterior,
+                                stock_resultante=nuevo_stock,
+                                motivo=(request.POST.get('motivo') or 'Ajuste manual desde el panel')[:240],
+                            )
                     messages.success(request, f'Stock de "{producto.nombre}" actualizado.')
 
         elif accion == 'toggle_disponibilidad':
@@ -535,6 +835,18 @@ def admin_productos_stock(request):
             'busqueda': q,
             'estado_actual': estado,
         },
+    )
+
+
+@admin_required
+def admin_movimientos_inventario(request):
+    movimientos = MovimientoInventario.objects.select_related(
+        'producto', 'pedido', 'usuario',
+    )[:500]
+    return render(
+        request,
+        'admin_panel/movimientos_inventario.html',
+        {'movimientos': movimientos},
     )
 
 

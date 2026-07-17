@@ -1,0 +1,7 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Mensaje de {{ mensaje_contacto.nombre }}{% endblock %}
+{% block content %}
+<section class="admin-page-head"><div><p class="admin-kicker">Mensaje #{{ mensaje_contacto.id }}</p><h1>{{ mensaje_contacto.asunto }}</h1><p class="admin-subtitle">{{ mensaje_contacto.nombre }} · <a href="mailto:{{ mensaje_contacto.email }}">{{ mensaje_contacto.email }}</a>{% if mensaje_contacto.telefono %} · <a href="tel:{{ mensaje_contacto.telefono }}">{{ mensaje_contacto.telefono }}</a>{% endif %}</p></div><a class="btn btn-outline-dark" href="{% url 'admin_mensajes' %}">Volver</a></section>
+<section class="admin-panel-card"><p style="white-space:pre-wrap">{{ mensaje_contacto.mensaje }}</p></section>
+<section class="admin-panel-card admin-panel-card-narrow"><form method="post" class="admin-form-stack">{% csrf_token %}{{ form.as_p }}<button class="btn btn-dark">Guardar seguimiento</button></form><hr><form method="post" action="{% url 'admin_mensaje_eliminar' mensaje_contacto.id %}" onsubmit="return confirm('¿Eliminar definitivamente este mensaje?');">{% csrf_token %}<button class="btn btn-outline-danger">Eliminar mensaje</button></form></section>
+{% endblock %}

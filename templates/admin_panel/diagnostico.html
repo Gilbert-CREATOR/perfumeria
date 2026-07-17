@@ -1,0 +1,24 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Diagnóstico{% endblock %}
+{% block content %}
+<section class="admin-section-header"><div><p class="admin-eyebrow">SISTEMA</p><h1>Diagnóstico</h1>
+<p class="admin-subtitle">Comprueba integraciones sin exponer las credenciales.</p></div></section>
+<div class="admin-grid">
+  <section class="admin-card">
+    <h2>Correo</h2>
+    <p><strong>Backend:</strong> {{ email_backend }}</p>
+    <p><strong>Remitente:</strong> {{ email_remitente }}</p>
+    <p><strong>Brevo:</strong> {% if brevo_configurado %}Configurado{% else %}No configurado; se usará SMTP{% endif %}</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="probar_email">
+      <label for="testEmail">Enviar prueba a</label>
+      <input id="testEmail" class="form-control mb-3" type="email" name="email" value="{{ user.email }}" required>
+      <button class="btn btn-dark" type="submit">Enviar correo de prueba</button>
+    </form>
+  </section>
+  <section class="admin-card"><h2>PayPal</h2>
+    {% if paypal_configurado %}<p>Cliente, secreto y webhook configurados.</p>
+    {% else %}<p>Falta configurar al menos una variable de PayPal.</p>{% endif %}
+    <p>Las claves se administran en Render y nunca se muestran aquí.</p>
+  </section>
+</div>
+{% endblock %}

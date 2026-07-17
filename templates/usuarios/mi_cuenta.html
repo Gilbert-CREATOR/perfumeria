@@ -22,13 +22,16 @@
                         <a href="{% url 'historial_pedidos' %}" class="list-group-item list-group-item-action">
                             <i class="fas fa-history me-2"></i> Mis Pedidos
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action">
+                        <a href="{% url 'ver_favoritos' %}" class="list-group-item list-group-item-action">
                             <i class="fas fa-heart me-2"></i> Favoritos
                             <span class="badge bg-primary float-end">{{ total_favoritos }}</span>
                         </a>
-                        <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger">
-                            <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                        </a>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="list-group-item list-group-item-action text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 from PIL import Image
 
 from apps.carrito.admin_forms import ProductoAdminForm
+from apps.carrito.models import ItemPedido, Pedido
 from .context_processors import favoritos_usuario
 from .models import AlertaStock, Favorito, Producto, Resena
 from .image_processing import MAX_IMAGE_DIMENSION, remove_uniform_background
@@ -39,7 +40,16 @@ class AlertasYResenasTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(AlertaStock.objects.filter(usuario=self.user, producto=self.producto).exists())
 
-    def test_cliente_registrado_puede_resenar_sin_haber_comprado(self):
+    def entregar_producto(self):
+        pedido = Pedido.objects.create(
+            usuario=self.user, total='1900.00', subtotal='1900.00', estado='entregado',
+        )
+        ItemPedido.objects.create(
+            pedido=pedido, producto=self.producto, cantidad=1, precio='1900.00',
+        )
+
+    def test_cliente_puede_resenar_despues_de_recibir_el_producto(self):
+        self.entregar_producto()
         response = self.client.post(reverse('crear_resena', args=[self.producto.id]), {
             'estrellas': 5, 'comentario': 'Excelente fragancia.',
         })
@@ -49,6 +59,7 @@ class AlertasYResenasTests(TestCase):
         ).exists())
 
     def test_cliente_actualiza_su_unica_resena(self):
+        self.entregar_producto()
         Resena.objects.create(
             usuario=self.user, producto=self.producto, estrellas=3, comentario='Inicial.'
         )
@@ -62,6 +73,13 @@ class AlertasYResenasTests(TestCase):
         self.assertEqual(resena.estrellas, 5)
         self.assertEqual(resena.comentario, 'Ahora me encanta.')
 
+    def test_cliente_sin_compra_entregada_no_puede_resenar(self):
+        response = self.client.post(reverse('crear_resena', args=[self.producto.id]), {
+            'estrellas': 5, 'comentario': 'No debe guardarse.',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Resena.objects.exists())
+
     def test_visitante_debe_iniciar_sesion_para_resenar(self):
         self.client.logout()
 
@@ -72,6 +90,15 @@ class AlertasYResenasTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('login'), response.url)
         self.assertFalse(Resena.objects.exists())
+
+    def test_visitante_ve_botones_de_login_y_registro_en_resenas(self):
+        source = get_template('productos/detalle_producto_minimalista.html').template.source
+
+        self.assertIn('{% elif not user.is_authenticated %}', source)
+        self.assertIn('INICIAR SESIÓN', source)
+        self.assertIn('REGISTRARME', source)
+        self.assertIn("{% url 'login' %}?next=", source)
+        self.assertIn("{% url 'register' %}?next=", source)
 
 
 class ProductoImagenPersistenteTests(TestCase):

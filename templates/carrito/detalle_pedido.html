@@ -41,8 +41,8 @@
                                 {% for item in items %}
                                 <tr>
                                     <td>
-                                        <strong>{{ item.producto.nombre }}</strong><br>
-                                        <small class="text-muted">{{ item.producto.marca }}</small>
+                                        <strong>{{ item.nombre_visible }}</strong><br>
+                                        <small class="text-muted">{{ item.marca_producto }}</small>
                                     </td>
                                     <td>{{ item.cantidad }}</td>
                                     <td>${{ item.precio }}</td>
@@ -68,8 +68,8 @@
                     <h5>Información de Envío</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Cliente:</strong> {{ pedido.usuario.username }}</p>
-                    <p><strong>Email:</strong> {{ pedido.usuario.email }}</p>
+                    <p><strong>Cliente:</strong> {{ pedido.usuario.username|default:pedido.nombre_completo }}</p>
+                    <p><strong>Email:</strong> {{ pedido.usuario.email|default:"Cuenta eliminada" }}</p>
                     
                     {% if pedido.estado == 'pendiente' %}
                     <div class="alert alert-info">
@@ -96,6 +96,11 @@
             </div>
             
             <div class="mt-3">
+                {% if pedido.estado != 'cancelado' %}
+                <a href="{% url 'descargar_factura' pedido.id %}" class="btn btn-dark">
+                    Descargar factura PDF
+                </a>
+                {% endif %}
                 <a href="{% url 'historial_pedidos' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Volver al historial
                 </a>

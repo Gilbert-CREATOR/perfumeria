@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="{% static 'css/catalogo.css' %}" />
   <script src="{% static 'js/language.js' %}" defer></script>
   {% block extra_css %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
 </head>
 <body>
   <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
@@ -64,9 +65,9 @@
 
     <div class="footer-col">
       <h4 data-i18n="FOLLOW">FOLLOW</h4>
-      <a class="footer-social-link" href="{{ configuracion_sitio.instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram (abre en una pestaña nueva)">INSTAGRAM <span aria-hidden="true">↗</span></a>
-      <a class="footer-social-link" href="{{ configuracion_sitio.facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook (abre en una pestaña nueva)">FACEBOOK <span aria-hidden="true">↗</span></a>
-      <a class="footer-social-link" href="{{ configuracion_sitio.twitter_url }}" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter (abre en una pestaña nueva)">X / TWITTER <span aria-hidden="true">↗</span></a>
+      <a class="footer-social-link" href="{{ configuracion_sitio.instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram (abre en una pestaña nueva)">INSTAGRAM</a>
+      <a class="footer-social-link" href="{{ configuracion_sitio.facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook (abre en una pestaña nueva)">FACEBOOK</a>
+      <a class="footer-social-link" href="{{ configuracion_sitio.twitter_url }}" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter (abre en una pestaña nueva)">X / TWITTER</a>
     </div>
 
     <div class="footer-col">

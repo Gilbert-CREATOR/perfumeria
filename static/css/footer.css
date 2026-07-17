@@ -1,0 +1,78 @@
+/* Footer global. Se carga después de los estilos de cada página para que el
+   comportamiento responsive sea consistente en toda la tienda. */
+.site-footer {
+  width: 100%;
+  min-width: 0;
+  padding: 58px max(32px, calc((100vw - 1216px) / 2));
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 42px;
+  text-align: left;
+  overflow: hidden;
+}
+
+.site-footer .footer-col {
+  min-width: 0;
+}
+
+.site-footer .footer-col h4 {
+  margin: 0 0 18px;
+}
+
+.site-footer .footer-col a,
+.site-footer .footer-col > span {
+  overflow-wrap: anywhere;
+}
+
+.site-footer .footer-social-link {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.site-footer .newsletter,
+.site-footer .newsletter-form,
+.site-footer .newsletter input,
+.site-footer .newsletter button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .site-footer {
+    padding: 48px 28px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 42px 32px;
+  }
+}
+
+@media (max-width: 620px) {
+  .site-footer {
+    padding: 42px 24px 48px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+    text-align: left;
+  }
+
+  .site-footer .footer-col h4 {
+    margin-bottom: 14px;
+    font-size: 15px;
+  }
+
+  .site-footer .footer-col a,
+  .site-footer .footer-col > span {
+    width: fit-content;
+    max-width: 100%;
+    margin-bottom: 9px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .site-footer .newsletter {
+    width: 100%;
+  }
+
+  .site-footer .newsletter input,
+  .site-footer .newsletter button {
+    width: 100%;
+  }
+}

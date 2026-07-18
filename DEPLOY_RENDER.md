@@ -12,15 +12,17 @@ DATABASE_URL=<cadena pooled de Neon>
 SECRET_KEY=<cadena aleatoria larga>
 DJANGO_SUPERUSER_EMAIL=<correo del administrador>
 DJANGO_SUPERUSER_PASSWORD=<contraseña robusta>
-BREVO_API_KEY=<api key de Brevo>
+RESEND_API_KEY=<api key nueva de Resend>
+RESEND_FROM_EMAIL=<remitente de un dominio verificado en Resend>
 PAYPAL_CLIENT_ID=<credencial de PayPal>
 PAYPAL_SECRET=<secreto de PayPal>
 PAYPAL_WEBHOOK_ID=<id del webhook verificado>
 ```
 
 Las demás variables no secretas están documentadas en `render.yaml`. Para correo
-en una instancia gratuita se recomienda Brevo por HTTPS; el SMTP de Gmail puede
-estar bloqueado por la red del proveedor.
+en una instancia gratuita se usa Resend por HTTPS; el SMTP está bloqueado por la
+red del proveedor. `onboarding@resend.dev` solo debe usarse para una prueba hacia
+el correo propietario de la cuenta. Para clientes reales verifica un dominio.
 
 ## Base de datos Neon
 

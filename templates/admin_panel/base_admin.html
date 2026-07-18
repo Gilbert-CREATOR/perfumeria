@@ -42,6 +42,9 @@
                 <a class="admin-nav-link {% if 'admin_newsletter' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'admin_newsletter' %}">
                     <i class="fa-solid fa-envelope-open-text"></i><span>Suscriptores</span>
                 </a>
+                <a class="admin-nav-link {% if request.resolver_match.url_name == 'admin_correos' %}active{% endif %}" href="{% url 'admin_correos' %}">
+                    <i class="fa-solid fa-palette"></i><span>Diseño de correos</span>
+                </a>
                 <a class="admin-nav-link {% if 'admin_mensaje' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'admin_mensajes' %}">
                     <i class="fa-solid fa-inbox"></i><span>Mensajes</span>
                 </a>

@@ -8,7 +8,7 @@
     <h2>Correo</h2>
     <p><strong>Backend:</strong> {{ email_backend }}</p>
     <p><strong>Remitente:</strong> {{ email_remitente }}</p>
-    <p><strong>Brevo:</strong> {% if brevo_configurado %}Configurado{% else %}No configurado; se usará SMTP{% endif %}</p>
+    <p><strong>Resend:</strong> {% if resend_configurado %}Configurado{% else %}No configurado; se usará SMTP{% endif %}</p>
     <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="probar_email">
       <label for="testEmail">Enviar prueba a</label>
       <input id="testEmail" class="form-control mb-3" type="email" name="email" value="{{ user.email }}" required>

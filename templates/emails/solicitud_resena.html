@@ -3,9 +3,9 @@
 {% block preheader %}Tu opinión ayuda a otras personas a elegir su fragancia.{% endblock %}
 {% block content %}
 <tr><td class="mobile-pad" style="padding:48px 42px;">
-  <p style="margin:0 0 12px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }} · TU OPINIÓN</p>
+  <p style="margin:0 0 12px;color:{{ email_theme.color_acento }};font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }} · TU OPINIÓN</p>
   <h1 class="hero-title" style="margin:0 0 18px;font-size:48px;line-height:49px;">¿QUÉ TE<br>PARECIÓ?</h1>
   <p style="margin:0 0 28px;font-size:15px;line-height:24px;">Tu pedido ya fue entregado. Inicia sesión, elige un producto y comparte tu experiencia con la comunidad D.A.R.C.Y.</p>
-  {% for item in items %}<table role="presentation" width="100%"><tr><td style="padding:14px 0;border-top:1px solid #d8d3cb;font-weight:800;">{{ item.producto.nombre }}</td><td align="right" style="padding:14px 0;border-top:1px solid #d8d3cb;"><a href="{{ site_url }}{% url 'detalle_producto' item.producto.id %}#resena" style="color:#A31523;font-size:11px;font-weight:800;">ESCRIBIR RESEÑA</a></td></tr></table>{% endfor %}
+  {% for item in items %}<table role="presentation" width="100%"><tr><td style="padding:14px 0;border-top:1px solid {{ email_theme.color_borde }};font-weight:800;">{{ item.producto.nombre }}</td><td align="right" style="padding:14px 0;border-top:1px solid {{ email_theme.color_borde }};"><a href="{{ site_url }}{% url 'detalle_producto' item.producto.id %}#resena" style="color:{{ email_theme.color_acento }};font-size:11px;font-weight:800;">ESCRIBIR RESEÑA</a></td></tr></table>{% endfor %}
 </td></tr>
 {% endblock %}

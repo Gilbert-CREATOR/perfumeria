@@ -1,3 +1,4 @@
+{% load email_tags %}{% diseno_correo as email_theme %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -8,48 +9,50 @@
   <style>
     @media only screen and (max-width: 620px) {
       .email-shell { width: 100% !important; }
-      .mobile-pad { padding-left: 24px !important; padding-right: 24px !important; }
-      .hero-title { font-size: 42px !important; line-height: 42px !important; }
-      .stat-cell { display: block !important; width: 100% !important; border-left: 0 !important; border-top: 1px solid #d8d3cb !important; }
+      .email-wrap { padding: 0 !important; }
+      .mobile-pad { padding-left: 22px !important; padding-right: 22px !important; }
+      .hero-title { font-size: 43px !important; line-height: 42px !important; letter-spacing:-1.8px !important; }
+      .stat-cell { display: block !important; width: 100% !important; border-left: 0 !important; border-top: 1px solid {{ email_theme.color_borde }} !important; }
       .product-image-cell { width: 84px !important; }
       .product-image { width: 68px !important; height: 84px !important; }
     }
   </style>
 </head>
-<body style="margin:0; padding:0; background:#ddd8d0; color:#000000; font-family:Arial, Helvetica, sans-serif;">
+<body style="margin:0; padding:0; background:{{ email_theme.color_fondo }}; color:{{ email_theme.color_texto }}; font-family:Arial, Helvetica, sans-serif;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
     {% block preheader %}Una actualización de D.A.R.C.Y.{% endblock %}
   </div>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ddd8d0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:{{ email_theme.color_fondo }};">
     <tr>
-      <td align="center" style="padding:30px 12px;">
-        <table role="presentation" class="email-shell" width="600" cellspacing="0" cellpadding="0" border="0" style="width:600px; max-width:600px; background:#F3F1ED; border-collapse:separate;">
+      <td class="email-wrap" align="center" style="padding:30px 12px;">
+        <table role="presentation" class="email-shell" width="600" cellspacing="0" cellpadding="0" border="0" style="width:600px; max-width:600px; background:{{ email_theme.color_contenido }}; border-collapse:separate;">
           <tr>
-            <td style="height:8px; background:#A31523; font-size:0; line-height:0;">&nbsp;</td>
+            <td style="height:8px; background:{{ email_theme.color_acento }}; font-size:0; line-height:0;">&nbsp;</td>
           </tr>
           <tr>
-            <td class="mobile-pad" style="padding:28px 42px 24px; border-bottom:1px solid #d8d3cb;">
+            <td class="mobile-pad" style="padding:25px 42px 22px; border-bottom:1px solid {{ email_theme.color_borde }};">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="font-size:25px; line-height:28px; font-weight:900; letter-spacing:6px; color:#000000;">D.A.R.C.Y.</td>
-                  <td align="right" style="font-size:10px; line-height:14px; font-weight:700; letter-spacing:1.5px; color:#6a665f;">PERFUMERÍA<br>CURADA</td>
+                  <td style="font-size:25px; line-height:28px; font-weight:900; letter-spacing:5px; color:{{ email_theme.color_texto }};">{% if email_theme.logo_url %}<img src="{{ email_theme.logo_url }}" alt="{{ email_theme.marca }}" style="display:block;max-width:190px;max-height:52px;border:0;">{% else %}{{ email_theme.marca }}{% endif %}</td>
+                  <td align="right" style="font-size:9px; line-height:14px; font-weight:800; letter-spacing:1.7px; color:{{ email_theme.color_texto_secundario }};">{{ email_theme.descriptor|linebreaksbr }}</td>
                 </tr>
               </table>
             </td>
           </tr>
           {% block content %}{% endblock %}
           <tr>
-            <td class="mobile-pad" style="padding:34px 42px; background:#111111; color:#F3F1ED;">
-              <p style="margin:0 0 12px; font-size:18px; line-height:24px; font-weight:800;">Tu aroma. Tu momento.</p>
-              <p style="margin:0 0 22px; color:#c8c4bd; font-size:12px; line-height:19px;">Selecciones especiales para cada temporada, día y noche.</p>
+            <td class="mobile-pad" style="padding:38px 42px 34px; background:{{ email_theme.color_pie }}; color:{{ email_theme.color_texto_pie }};">
+              <p style="margin:0 0 9px; color:{{ email_theme.color_acento }}; font-size:9px; line-height:13px; font-weight:900; letter-spacing:1.8px;">{{ email_theme.etiqueta_pie }}</p>
+              <p style="margin:0 0 12px; font-size:21px; line-height:26px; font-weight:900;">{{ email_theme.titulo_pie }}</p>
+              <p style="margin:0 0 24px; color:{{ email_theme.color_texto_pie }}; opacity:.72; font-size:12px; line-height:19px;">{{ email_theme.texto_pie }}</p>
               <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="border:1px solid #F3F1ED;">
-                    <a href="{{ catalogo_url|default:site_url }}" style="display:inline-block; padding:12px 20px; color:#F3F1ED; text-decoration:none; font-size:11px; font-weight:800; letter-spacing:1px;">EXPLORAR CATÁLOGO</a>
+                  <td style="border:1px solid {{ email_theme.color_texto_pie }};">
+                    <a href="{{ catalogo_url|default:site_url }}" style="display:inline-block; padding:12px 20px; color:{{ email_theme.color_texto_pie }}; text-decoration:none; font-size:11px; font-weight:800; letter-spacing:1px;">{{ email_theme.texto_boton }}</a>
                   </td>
                 </tr>
               </table>
-              <p style="margin:28px 0 0; color:#8f8b84; font-size:10px; line-height:16px;">Recibiste este correo por una actividad realizada en D.A.R.C.Y.<br>© {% now "Y" %} D.A.R.C.Y. Todos los derechos reservados.</p>
+              <p style="margin:30px 0 0; padding-top:20px; border-top:1px solid {{ email_theme.color_texto_pie }}; color:{{ email_theme.color_texto_pie }}; opacity:.55; font-size:9px; line-height:15px;">Recibiste este correo por una actividad realizada en {{ email_theme.marca }}.<br>© {% now "Y" %} {{ email_theme.marca }} · Santiago, República Dominicana.</p>
             </td>
           </tr>
         </table>

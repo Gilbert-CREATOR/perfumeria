@@ -1,0 +1,118 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Diseño de correos{% endblock %}
+{% block extra_css %}
+<style>
+  .email-studio-grid{display:grid;grid-template-columns:minmax(360px,.8fr) minmax(520px,1.2fr);gap:24px;align-items:start}
+  .email-editor{display:grid;gap:22px}.email-editor-section{padding-bottom:22px;border-bottom:1px solid #e1dbd2}.email-editor-section:last-child{border:0;padding-bottom:0}
+  .email-editor-title{margin:0 0 15px;font-size:13px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}.email-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.email-field-wide{grid-column:1/-1}
+  .email-fields label{display:block;margin-bottom:6px;font-size:12px;font-weight:800}.email-fields .form-control{min-height:45px;border-color:#d9d1c6;border-radius:10px;background:#fff}
+  .email-color-control{display:grid;grid-template-columns:46px 1fr;gap:8px}.email-color-control input[type=color]{width:46px;height:45px;padding:3px;border:1px solid #d9d1c6;border-radius:10px;background:#fff}
+  .email-template-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:260px;overflow:auto;padding-right:4px}.email-template-option{display:flex;align-items:center;gap:10px;width:100%;padding:12px;border:1px solid #ddd5ca;border-radius:10px;background:#fff;color:#000;text-align:left;font-size:12px;font-weight:800}.email-template-option:hover,.email-template-option.active{border-color:#A31523;background:#f8eeed;color:#A31523}.email-template-option i{width:18px;text-align:center}
+  .email-preview-card{position:sticky;top:20px;overflow:hidden}.email-preview-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.email-device-controls{display:flex;border:1px solid #d9d1c6;border-radius:10px;overflow:hidden}.email-device-button{border:0;border-right:1px solid #d9d1c6;background:#fff;padding:9px 13px}.email-device-button:last-child{border:0}.email-device-button.active{background:#111;color:#fff}
+  .email-stage{min-height:740px;padding:28px 18px;overflow:auto;background:#d8d3cb;border-radius:14px;transition:.25s}.email-frame{width:600px;max-width:100%;margin:0 auto;background:#F3F1ED;color:#000;font-family:Arial,sans-serif;box-shadow:0 18px 45px rgba(20,18,15,.18);transition:width .3s ease}.email-frame.mobile{width:360px}.email-accent-bar{height:8px;background:#A31523}.email-preview-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 40px;border-bottom:1px solid #d8d3cb}.email-preview-brand{font-size:23px;font-weight:900;letter-spacing:4px}.email-preview-descriptor{font-size:9px;font-weight:800;line-height:1.45;letter-spacing:1.4px;text-align:right;white-space:pre-line;color:#57534d}.email-preview-logo{max-width:180px;max-height:48px;display:none}
+  .email-preview-hero{padding:48px 40px;background:#A31523;color:#F3F1ED}.email-preview-eyebrow{margin:0 0 32px;font-size:10px;font-weight:900;letter-spacing:2px}.email-preview-title{margin:0 0 18px;font-size:46px;line-height:.98;font-weight:900;letter-spacing:-2px}.email-preview-copy{max-width:420px;margin:0;font-size:14px;line-height:1.6}.email-preview-body{padding:32px 40px 42px}.email-preview-body-label{margin:0 0 14px;color:#A31523;font-size:10px;font-weight:900;letter-spacing:1.8px}.email-preview-product{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:12px;padding:17px 0;border-top:1px solid #d8d3cb}.email-preview-index{color:#A31523;font-size:22px;font-weight:900}.email-preview-product strong{font-size:14px}.email-preview-product span{font-size:11px;color:#57534d}.email-preview-surface{margin-top:20px;padding:20px;background:#e6e1d9;font-size:12px;line-height:1.6}.email-preview-footer{padding:34px 40px;background:#111;color:#F3F1ED}.email-preview-footer-label{color:#A31523;font-size:9px;font-weight:900;letter-spacing:1.8px}.email-preview-footer h3{margin:9px 0;font-size:20px}.email-preview-footer p{margin:0 0 20px;font-size:11px;line-height:1.6;opacity:.72}.email-preview-cta{display:inline-block;padding:11px 17px;border:1px solid currentColor;font-size:10px;font-weight:900;letter-spacing:1px}
+  .email-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:end}.email-test{flex:1;min-width:210px}.email-test label{display:block;margin-bottom:6px;font-size:12px;font-weight:800}
+  @media(max-width:1200px){.email-studio-grid{grid-template-columns:1fr}.email-preview-card{position:static}}
+  @media(max-width:640px){.email-fields,.email-template-list{grid-template-columns:1fr}.email-stage{padding:12px 6px;min-height:620px}.email-preview-head,.email-preview-hero,.email-preview-body,.email-preview-footer{padding-left:22px;padding-right:22px}.email-preview-title{font-size:38px}.email-device-label{display:none}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="admin-page-head">
+  <div><p class="admin-kicker">Identidad visual</p><h1>Diseño de correos</h1><p class="admin-subtitle">Edita la apariencia de todas las notificaciones y comprueba cómo se ven antes de enviarlas.</p></div>
+  <a class="btn btn-outline-dark" href="{% url 'admin_diagnostico' %}"><i class="fa-solid fa-stethoscope me-2"></i>Diagnóstico SMTP</a>
+</section>
+
+<form method="post" id="emailDesignForm">{% csrf_token %}
+  <div class="email-studio-grid">
+    <section class="admin-panel-card email-editor">
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="email-editor-section">
+        <h2 class="email-editor-title">Plantilla a visualizar</h2>
+        <div class="email-template-list" id="emailTemplateList">
+          {% for plantilla in plantillas %}
+          <button type="button" class="email-template-option{% if forloop.first %} active{% endif %}" data-label="{{ plantilla.etiqueta }}" data-title="{{ plantilla.titulo }}" data-copy="{{ plantilla.texto }}">
+            <i class="fa-solid {{ plantilla.icono }}"></i><span>{{ plantilla.nombre }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="email-editor-section">
+        <h2 class="email-editor-title">Encabezado</h2>
+        <div class="email-fields">
+          <div><label for="{{ form.marca.id_for_label }}">{{ form.marca.label }}</label>{{ form.marca }}{{ form.marca.errors }}</div>
+          <div><label for="{{ form.descriptor.id_for_label }}">{{ form.descriptor.label }}</label>{{ form.descriptor }}{{ form.descriptor.errors }}</div>
+          <div class="email-field-wide"><label for="{{ form.logo_url.id_for_label }}">{{ form.logo_url.label }}</label>{{ form.logo_url }}<small class="text-muted">{{ form.logo_url.help_text }}</small>{{ form.logo_url.errors }}</div>
+        </div>
+      </div>
+
+      <div class="email-editor-section">
+        <h2 class="email-editor-title">Paleta</h2>
+        <div class="email-fields">
+          {% for field in form %}{% if 'color_' in field.name %}
+          <div><label for="{{ field.id_for_label }}">{{ field.label }}</label><div class="email-color-control"><input type="color" value="{{ field.value }}" data-picker-for="{{ field.id_for_label }}" aria-label="Elegir {{ field.label }}">{{ field }}</div>{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>
+          {% endif %}{% endfor %}
+        </div>
+      </div>
+
+      <div class="email-editor-section">
+        <h2 class="email-editor-title">Pie del correo</h2>
+        <div class="email-fields">
+          <div><label for="{{ form.etiqueta_pie.id_for_label }}">{{ form.etiqueta_pie.label }}</label>{{ form.etiqueta_pie }}</div>
+          <div><label for="{{ form.titulo_pie.id_for_label }}">{{ form.titulo_pie.label }}</label>{{ form.titulo_pie }}</div>
+          <div class="email-field-wide"><label for="{{ form.texto_pie.id_for_label }}">{{ form.texto_pie.label }}</label>{{ form.texto_pie }}</div>
+          <div class="email-field-wide"><label for="{{ form.texto_boton.id_for_label }}">{{ form.texto_boton.label }}</label>{{ form.texto_boton }}</div>
+        </div>
+      </div>
+
+      <div class="email-actions">
+        <button class="btn btn-dark" name="accion" value="guardar"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar diseño</button>
+        <div class="email-test"><label for="email_prueba">Enviar prueba a</label><input class="form-control" id="email_prueba" name="email_prueba" type="email" value="{{ request.user.email }}" placeholder="correo@ejemplo.com"></div>
+        <button class="btn btn-outline-dark" name="accion" value="enviar_prueba"><i class="fa-regular fa-paper-plane me-2"></i>Enviar prueba</button>
+      </div>
+    </section>
+
+    <section class="admin-panel-card email-preview-card">
+      <div class="email-preview-toolbar"><div><strong>Vista previa</strong><div class="small text-muted">Los datos de pedido son demostrativos.</div></div><div class="email-device-controls"><button type="button" class="email-device-button active" data-device="desktop"><i class="fa-solid fa-desktop"></i><span class="email-device-label ms-2">Escritorio</span></button><button type="button" class="email-device-button" data-device="mobile"><i class="fa-solid fa-mobile-screen"></i><span class="email-device-label ms-2">Móvil</span></button></div></div>
+      <div class="email-stage" id="emailStage">
+        <article class="email-frame" id="emailFrame">
+          <div class="email-accent-bar"></div>
+          <header class="email-preview-head"><img class="email-preview-logo" id="previewLogo" alt="Logo"><div class="email-preview-brand" id="previewBrand">{{ diseno.marca }}</div><div class="email-preview-descriptor" id="previewDescriptor">{{ diseno.descriptor }}</div></header>
+          <div class="email-preview-hero"><p class="email-preview-eyebrow" id="previewEyebrow">{{ plantillas.0.etiqueta }}</p><h2 class="email-preview-title" id="previewTitle">{{ plantillas.0.titulo }}</h2><p class="email-preview-copy" id="previewCopy">{{ plantillas.0.texto }}</p></div>
+          <div class="email-preview-body"><p class="email-preview-body-label">SELECCIÓN PERSONAL</p><div class="email-preview-product"><b class="email-preview-index">01</b><strong>INVICTUS</strong><span>$7,500</span></div><div class="email-preview-product"><b class="email-preview-index">02</b><strong>VERSACE EROS</strong><span>$5,500</span></div><div class="email-preview-surface">Esta zona representa información variable: productos, seguimiento, dirección, recomendaciones o instrucciones de seguridad.</div></div>
+          <footer class="email-preview-footer"><div class="email-preview-footer-label" id="previewFooterLabel">{{ diseno.etiqueta_pie }}</div><h3 id="previewFooterTitle">{{ diseno.titulo_pie }}</h3><p id="previewFooterCopy">{{ diseno.texto_pie }}</p><span class="email-preview-cta" id="previewCta">{{ diseno.texto_boton }}</span></footer>
+        </article>
+      </div>
+    </section>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const frame = $('emailFrame');
+  const stage = $('emailStage');
+  const rootStyle = frame.style;
+  const read = (id, fallback='') => $(id)?.value || fallback;
+  const color = (name, fallback) => read(`id_${name}`, fallback);
+
+  function updatePreview() {
+    const accent = color('color_acento','#A31523'), content = color('color_contenido','#F3F1ED'), text = color('color_texto','#000000'), secondary = color('color_texto_secundario','#57534D'), border = color('color_borde','#D8D3CB'), surface = color('color_superficie','#E6E1D9'), footer = color('color_pie','#111111'), footerText = color('color_texto_pie','#F3F1ED');
+    stage.style.background = color('color_fondo','#DDD8D0'); frame.style.background = content; frame.style.color = text;
+    frame.querySelector('.email-accent-bar').style.background = accent; frame.querySelector('.email-preview-hero').style.background = accent; frame.querySelector('.email-preview-hero').style.color = content;
+    frame.querySelector('.email-preview-head').style.borderColor = border; frame.querySelector('.email-preview-descriptor').style.color = secondary;
+    frame.querySelectorAll('.email-preview-product').forEach(el => el.style.borderColor = border); frame.querySelectorAll('.email-preview-index,.email-preview-body-label').forEach(el => el.style.color = accent); frame.querySelectorAll('.email-preview-product span').forEach(el => el.style.color = secondary);
+    frame.querySelector('.email-preview-surface').style.background = surface; frame.querySelector('.email-preview-footer').style.background = footer; frame.querySelector('.email-preview-footer').style.color = footerText; frame.querySelector('.email-preview-footer-label').style.color = accent;
+    $('previewBrand').textContent = read('id_marca','D.A.R.C.Y.'); $('previewDescriptor').textContent = read('id_descriptor',''); $('previewFooterLabel').textContent = read('id_etiqueta_pie',''); $('previewFooterTitle').textContent = read('id_titulo_pie',''); $('previewFooterCopy').textContent = read('id_texto_pie',''); $('previewCta').textContent = read('id_texto_boton','');
+    const logo = read('id_logo_url'); $('previewLogo').style.display = logo ? 'block' : 'none'; $('previewBrand').style.display = logo ? 'none' : 'block'; if (logo) $('previewLogo').src = logo;
+  }
+
+  document.querySelectorAll('#emailDesignForm input,#emailDesignForm textarea').forEach(el => el.addEventListener('input', updatePreview));
+  document.querySelectorAll('[data-picker-for]').forEach(picker => { const field = $(picker.dataset.pickerFor); picker.addEventListener('input', () => { field.value = picker.value.toUpperCase(); updatePreview(); }); field?.addEventListener('input', () => { if(/^#[0-9a-f]{6}$/i.test(field.value)) picker.value = field.value; }); });
+  document.querySelectorAll('.email-template-option').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.email-template-option').forEach(el => el.classList.remove('active')); button.classList.add('active'); $('previewEyebrow').textContent = button.dataset.label; $('previewTitle').textContent = button.dataset.title; $('previewCopy').textContent = button.dataset.copy; }));
+  document.querySelectorAll('.email-device-button').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.email-device-button').forEach(el => el.classList.remove('active')); button.classList.add('active'); frame.classList.toggle('mobile', button.dataset.device === 'mobile'); }));
+  updatePreview();
+})();
+</script>
+{% endblock %}

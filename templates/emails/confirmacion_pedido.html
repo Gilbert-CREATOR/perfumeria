@@ -3,7 +3,7 @@
 {% block preheader %}Recibimos tu pedido #{{ pedido.id }} y ya estamos trabajando en él.{% endblock %}
 {% block content %}
 <tr>
-  <td class="mobile-pad" style="padding:52px 42px 46px; background:#A31523; color:#F3F1ED;">
+  <td class="mobile-pad" style="padding:52px 42px 46px; background:{{ email_theme.color_acento }}; color:{{ email_theme.color_contenido }};">
     <p style="margin:0 0 18px; font-size:11px; font-weight:800; letter-spacing:2px;">PEDIDO #{{ pedido.id }}</p>
     <h1 class="hero-title" style="margin:0; font-size:58px; line-height:56px; letter-spacing:-2px; font-weight:900;">TU SELECCIÓN<br>ESTÁ CONFIRMADA.</h1>
   </td>
@@ -11,22 +11,22 @@
 <tr>
   <td class="mobile-pad" style="padding:38px 42px 12px;">
     <p style="margin:0 0 12px; font-size:21px; line-height:29px; font-weight:800;">Hola, {{ nombre_cliente }}.</p>
-    <p style="margin:0; color:#57534d; font-size:14px; line-height:23px;">Recibimos tu pedido y comenzaremos a prepararlo. Te avisaremos en cada etapa hasta que llegue a tus manos.</p>
+    <p style="margin:0; color:{{ email_theme.color_texto_secundario }}; font-size:14px; line-height:23px;">Recibimos tu pedido y comenzaremos a prepararlo. Te avisaremos en cada etapa hasta que llegue a tus manos.</p>
   </td>
 </tr>
 <tr>
   <td class="mobile-pad" style="padding:26px 42px 8px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #d8d3cb;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid {{ email_theme.color_borde }};">
       <tr>
         <td class="stat-cell" width="33.33%" style="padding:17px 14px;">
           <span style="display:block; color:#77726b; font-size:9px; font-weight:800; letter-spacing:1px;">FECHA</span>
           <strong style="display:block; margin-top:6px; font-size:13px;">{{ pedido.creado|date:"d M Y"|upper }}</strong>
         </td>
-        <td class="stat-cell" width="33.33%" style="padding:17px 14px; border-left:1px solid #d8d3cb;">
+        <td class="stat-cell" width="33.33%" style="padding:17px 14px; border-left:1px solid {{ email_theme.color_borde }};">
           <span style="display:block; color:#77726b; font-size:9px; font-weight:800; letter-spacing:1px;">ESTADO</span>
           <strong style="display:block; margin-top:6px; font-size:13px;">{{ pedido.get_estado_display|upper }}</strong>
         </td>
-        <td class="stat-cell" width="33.33%" style="padding:17px 14px; border-left:1px solid #d8d3cb;">
+        <td class="stat-cell" width="33.33%" style="padding:17px 14px; border-left:1px solid {{ email_theme.color_borde }};">
           <span style="display:block; color:#77726b; font-size:9px; font-weight:800; letter-spacing:1px;">TOTAL</span>
           <strong style="display:block; margin-top:6px; font-size:13px;">${{ pedido.total|floatformat:2 }}</strong>
         </td>
@@ -37,10 +37,10 @@
 {% include "emails/includes/productos_pedido.html" %}
 <tr>
   <td class="mobile-pad" style="padding:20px 42px 10px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#e6e1d9;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:{{ email_theme.color_superficie }};">
       <tr><td style="padding:22px;">
         <p style="margin:0 0 8px; font-size:10px; font-weight:800; letter-spacing:1.5px;">ENTREGA</p>
-        <p style="margin:0; color:#57534d; font-size:13px; line-height:21px;">{{ pedido.nombre_completo }}<br>{{ direccion_completa }}<br>{{ pedido.telefono }}</p>
+        <p style="margin:0; color:{{ email_theme.color_texto_secundario }}; font-size:13px; line-height:21px;">{{ pedido.nombre_completo }}<br>{{ direccion_completa }}<br>{{ pedido.telefono }}</p>
       </td></tr>
     </table>
   </td>

@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import ArticuloBlog, ConfiguracionSitio, MensajeContacto, PreguntaFrecuente
+from .models import ArticuloBlog, ConfiguracionSitio, DisenoCorreo, MensajeContacto, PreguntaFrecuente
 
 
 class ArticuloBlogForm(forms.ModelForm):
@@ -38,6 +38,32 @@ class ConfiguracionSitioForm(forms.ModelForm):
                 field.widget.attrs['class'] = 'form-check-input'
             else:
                 field.widget.attrs['class'] = 'form-control'
+
+
+class DisenoCorreoForm(forms.ModelForm):
+    CAMPOS_COLOR = (
+        'color_acento', 'color_fondo', 'color_contenido', 'color_superficie',
+        'color_texto', 'color_texto_secundario', 'color_borde', 'color_pie',
+        'color_texto_pie',
+    )
+
+    class Meta:
+        model = DisenoCorreo
+        exclude = ('actualizado',)
+        widgets = {
+            'texto_pie': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for nombre, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            if nombre in self.CAMPOS_COLOR:
+                field.widget = forms.TextInput(attrs={
+                    'class': 'form-control email-color-text',
+                    'data-color-field': nombre,
+                    'maxlength': 7,
+                })
 
 
 class PreguntaFrecuenteForm(forms.ModelForm):

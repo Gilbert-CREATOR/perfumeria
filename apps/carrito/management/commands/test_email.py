@@ -51,7 +51,20 @@ class Command(BaseCommand):
                 'pedido_id': 'TEST-001',
                 'cliente_nombre': 'Cliente de Prueba',
                 'total': 100.00,
-                'productos': ['Perfume Test 1', 'Perfume Test 2']
+                'productos': ['Versace Eros', 'Invictus'],
+                'site_url': getattr(
+                    settings,
+                    'PUBLIC_SITE_URL',
+                    'https://perfumeria-darcy.onrender.com',
+                ).rstrip('/'),
+                'catalogo_url': '{}{}'.format(
+                    getattr(
+                        settings,
+                        'PUBLIC_SITE_URL',
+                        'https://perfumeria-darcy.onrender.com',
+                    ).rstrip('/'),
+                    '/catalogo/',
+                ),
             }
             
             subject = '🧪 Test de Email con Template - Perfumería D.A.R.C.Y.'

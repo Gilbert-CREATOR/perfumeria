@@ -23,21 +23,11 @@ services:
         value: perfumeria-darcy.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
         value: https://perfumeria-darcy.onrender.com
-      - key: EMAIL_HOST
-        value: smtp.gmail.com
-      - key: EMAIL_PORT
-        value: 587
-      - key: EMAIL_USE_TLS
-        value: true
-      - key: EMAIL_HOST_USER
-        value: gilbertandeliz04@gmail.com
-      - key: EMAIL_HOST_PASSWORD
+      - key: RESEND_API_KEY
         sync: false
-      - key: BREVO_API_KEY
+      - key: RESEND_FROM_EMAIL
         sync: false
-      - key: BREVO_SENDER_EMAIL
-        value: gilbertandeliz04@gmail.com
-      - key: BREVO_SENDER_NAME
+      - key: RESEND_FROM_NAME
         value: D.A.R.C.Y.
       - key: PUBLIC_SITE_URL
         value: https://perfumeria-darcy.onrender.com

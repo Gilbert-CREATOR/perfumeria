@@ -3,9 +3,9 @@
 {% block preheader %}Actualización importante sobre tu pedido #{{ pedido.id }}.{% endblock %}
 {% block content %}
 <tr><td class="mobile-pad" style="padding:48px 42px;">
-  <p style="margin:0 0 12px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }}</p>
+  <p style="margin:0 0 12px;color:{{ email_theme.color_acento }};font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }}</p>
   <h1 class="hero-title" style="margin:0 0 18px;font-size:48px;line-height:49px;">{% if reembolsado %}REEMBOLSO<br>PROCESADO.{% else %}PEDIDO<br>CANCELADO.{% endif %}</h1>
   {% if reembolsado %}<p style="margin:0 0 28px;font-size:15px;line-height:24px;">La devolución fue procesada al método de pago original. El tiempo para verla reflejada depende de tu banco.</p>{% else %}<p style="margin:0 0 28px;font-size:15px;line-height:24px;">Tu pedido fue cancelado y no continuará a preparación o envío.</p>{% endif %}
-  <div style="padding:18px;border:1px solid #d8d3cb;font-size:14px;"><strong>Total del pedido:</strong> ${{ pedido.total|floatformat:2 }}</div>
+  <div style="padding:18px;border:1px solid {{ email_theme.color_borde }};font-size:14px;"><strong>Total del pedido:</strong> ${{ pedido.total|floatformat:2 }}</div>
 </td></tr>
 {% endblock %}

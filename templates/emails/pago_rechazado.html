@@ -3,7 +3,7 @@
 {% block preheader %}Tu pedido sigue pendiente: intenta el pago nuevamente.{% endblock %}
 {% block content %}
 <tr><td class="mobile-pad" style="padding:48px 42px;">
-  <p style="margin:0 0 12px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }}</p>
+  <p style="margin:0 0 12px;color:{{ email_theme.color_acento }};font-size:11px;font-weight:800;letter-spacing:2px;">PEDIDO #{{ pedido.id }}</p>
   <h1 class="hero-title" style="margin:0 0 18px;font-size:48px;line-height:49px;">EL PAGO NO<br>SE COMPLETÓ.</h1>
   <p style="margin:0 0 12px;font-size:15px;line-height:23px;">{{ motivo }}</p>
   <p style="margin:0 0 28px;color:#6a665f;font-size:13px;line-height:21px;">No se realizó ningún cargo confirmado. Puedes volver al catálogo y crear un pedido nuevo cuando quieras.</p>

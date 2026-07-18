@@ -12,12 +12,14 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.html import strip_tags
 
 from apps.productos.forms import ResenaForm
 from apps.productos.models import Producto, Resena
-from apps.core.forms import ArticuloBlogForm, ConfiguracionSitioForm, MensajeContactoAdminForm, PreguntaFrecuenteForm
-from apps.core.models import ArticuloBlog, ConfiguracionSitio, MensajeContacto, PreguntaFrecuente, RegistroAuditoria
+from apps.core.forms import ArticuloBlogForm, ConfiguracionSitioForm, DisenoCorreoForm, MensajeContactoAdminForm, PreguntaFrecuenteForm
+from apps.core.models import ArticuloBlog, ConfiguracionSitio, DisenoCorreo, MensajeContacto, PreguntaFrecuente, RegistroAuditoria
 from apps.newsletter.models import SuscriptorNewsletter
 from .admin_forms import EnvioForm, MetodoEnvioForm, PedidoAdminForm, ProductoAdminForm, UsuarioPanelForm
 from .emails import (
@@ -115,7 +117,7 @@ def admin_diagnostico(request):
         'resultado_email': resultado_email,
         'email_backend': settings.EMAIL_BACKEND,
         'email_remitente': settings.DEFAULT_FROM_EMAIL,
-        'brevo_configurado': bool(getattr(settings, 'BREVO_API_KEY', '')),
+        'resend_configurado': bool(getattr(settings, 'RESEND_API_KEY', '')),
         'paypal_configurado': bool(
             getattr(settings, 'PAYPAL_CLIENT_ID', '')
             and getattr(settings, 'PAYPAL_SECRET', '')
@@ -332,6 +334,70 @@ def admin_configuracion(request):
         messages.success(request, 'Configuración pública actualizada.')
         return redirect('admin_configuracion')
     return render(request, 'admin_panel/configuracion.html', {'form': form, 'configuracion': configuracion})
+
+
+PLANTILLAS_CORREO = (
+    {'id': 'confirmacion', 'nombre': 'Pedido confirmado', 'etiqueta': 'PEDIDO #1042', 'titulo': 'TU PEDIDO ESTÁ CONFIRMADO.', 'texto': 'Recibimos tu selección y comenzaremos a prepararla.', 'icono': 'fa-bag-shopping'},
+    {'id': 'pago', 'nombre': 'Pago confirmado', 'etiqueta': 'PAGO APROBADO', 'titulo': 'TODO LISTO PARA CONTINUAR.', 'texto': 'El pago fue confirmado y tu pedido pasa a preparación.', 'icono': 'fa-credit-card'},
+    {'id': 'preparacion', 'nombre': 'Pedido en preparación', 'etiqueta': 'EN PREPARACIÓN', 'titulo': 'TU SELECCIÓN ESTÁ EN PROCESO.', 'texto': 'Estamos preparando cada producto antes del despacho.', 'icono': 'fa-box-open'},
+    {'id': 'envio', 'nombre': 'Pedido enviado', 'etiqueta': 'EN CAMINO', 'titulo': 'TU PEDIDO YA SALIÓ.', 'texto': 'Consulta el seguimiento y la fecha estimada de entrega.', 'icono': 'fa-truck-fast'},
+    {'id': 'entregado', 'nombre': 'Pedido entregado', 'etiqueta': 'ENTREGA COMPLETADA', 'titulo': 'DISFRUTA TU NUEVA FRAGANCIA.', 'texto': 'Esperamos que cada aroma sea exactamente lo que buscabas.', 'icono': 'fa-circle-check'},
+    {'id': 'rechazado', 'nombre': 'Pago rechazado', 'etiqueta': 'ACCIÓN REQUERIDA', 'titulo': 'NO PUDIMOS PROCESAR EL PAGO.', 'texto': 'Puedes volver e intentarlo con otro método de pago.', 'icono': 'fa-circle-exclamation'},
+    {'id': 'cancelado', 'nombre': 'Cancelación y reembolso', 'etiqueta': 'PEDIDO CANCELADO', 'titulo': 'TU REEMBOLSO ESTÁ EN PROCESO.', 'texto': 'Te informaremos cuando la devolución haya sido completada.', 'icono': 'fa-rotate-left'},
+    {'id': 'bienvenida', 'nombre': 'Bienvenida y verificación', 'etiqueta': 'BIENVENIDO A D.A.R.C.Y.', 'titulo': 'TU EXPERIENCIA COMIENZA AQUÍ.', 'texto': 'Verifica tu dirección de correo para activar tu cuenta.', 'icono': 'fa-user-check'},
+    {'id': 'password', 'nombre': 'Recuperar contraseña', 'etiqueta': 'SEGURIDAD DE CUENTA', 'titulo': 'RESTABLECE TU CONTRASEÑA.', 'texto': 'Usa el enlace seguro para volver a entrar a tu cuenta.', 'icono': 'fa-key'},
+    {'id': 'disponible', 'nombre': 'Producto disponible', 'etiqueta': 'NUEVAMENTE DISPONIBLE', 'titulo': 'VOLVIÓ UNO DE TUS FAVORITOS.', 'texto': 'El perfume que estabas esperando ya tiene existencias.', 'icono': 'fa-spray-can-sparkles'},
+    {'id': 'recomendaciones', 'nombre': 'Recomendaciones', 'etiqueta': 'CURADO PARA TI', 'titulo': 'AROMAS QUE PUEDEN GUSTARTE.', 'texto': 'Una selección basada en tu historial y temporadas favoritas.', 'icono': 'fa-wand-magic-sparkles'},
+    {'id': 'resena', 'nombre': 'Solicitud de reseña', 'etiqueta': 'TU OPINIÓN IMPORTA', 'titulo': 'CUÉNTANOS TU EXPERIENCIA.', 'texto': 'Comparte una reseña del perfume que recibiste.', 'icono': 'fa-star'},
+    {'id': 'carrito', 'nombre': 'Carrito abandonado', 'etiqueta': 'GUARDAMOS TU SELECCIÓN', 'titulo': 'TODAVÍA ESTÁN EN TU CARRITO.', 'texto': 'Vuelve cuando estés listo para completar la compra.', 'icono': 'fa-cart-shopping'},
+    {'id': 'newsletter', 'nombre': 'Newsletter', 'etiqueta': 'D.A.R.C.Y. JOURNAL', 'titulo': 'NUEVAS HISTORIAS EN PERFUMERÍA.', 'texto': 'Lanzamientos, selecciones y novedades de la tienda.', 'icono': 'fa-envelope-open-text'},
+)
+
+
+@admin_required
+def admin_correos(request):
+    diseno = DisenoCorreo.cargar()
+    form = DisenoCorreoForm(request.POST or None, instance=diseno)
+    accion = request.POST.get('accion') if request.method == 'POST' else ''
+
+    if request.method == 'POST' and accion in {'guardar', 'enviar_prueba'} and form.is_valid():
+        diseno = form.save()
+        if accion == 'guardar':
+            messages.success(request, 'Diseño de correos actualizado. Los próximos envíos usarán estos cambios.')
+            return redirect('admin_correos')
+
+        destino = request.POST.get('email_prueba', '').strip() or request.user.email
+        if not destino:
+            messages.error(request, 'Indica un correo para enviar la prueba.')
+        else:
+            contexto = {
+                'pedido_id': '#PREVIEW-1042',
+                'cliente_nombre': request.user.get_full_name() or request.user.username,
+                'total': 7500,
+                'productos': ['Invictus', 'Versace Eros'],
+                'site_url': getattr(settings, 'PUBLIC_SITE_URL', 'http://127.0.0.1:8000').rstrip('/'),
+                'catalogo_url': f"{getattr(settings, 'PUBLIC_SITE_URL', 'http://127.0.0.1:8000').rstrip('/')}/catalogo/",
+            }
+            try:
+                html = render_to_string('emails/pedido_confirmado_test.html', contexto)
+                send_mail(
+                    subject='D.A.R.C.Y. — Vista previa del diseño de correo',
+                    message=strip_tags(html),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[destino],
+                    html_message=html,
+                    fail_silently=False,
+                )
+                messages.success(request, f'Vista previa enviada a {destino}.')
+            except Exception as error:
+                messages.error(request, f'El diseño se guardó, pero la prueba no pudo enviarse: {error}')
+        return redirect('admin_correos')
+
+    return render(request, 'admin_panel/correos.html', {
+        'form': form,
+        'diseno': diseno,
+        'plantillas': PLANTILLAS_CORREO,
+    })
 
 
 @admin_required

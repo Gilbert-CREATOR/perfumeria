@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -60,6 +61,60 @@ class ConfiguracionSitio(models.Model):
 
     def __str__(self):
         return self.marca
+
+
+class DisenoCorreo(models.Model):
+    validar_color = RegexValidator(
+        regex=r'^#[0-9A-Fa-f]{6}$',
+        message='Usa un color hexadecimal de 6 dígitos, por ejemplo #A31523.',
+    )
+
+    marca = models.CharField(max_length=80, default='D.A.R.C.Y.', verbose_name='Marca del encabezado')
+    descriptor = models.CharField(
+        max_length=80,
+        default='PERFUMERÍA\nCURADA · RD',
+        verbose_name='Descriptor del encabezado',
+        help_text='Usa un salto de línea para dividirlo en dos renglones.',
+    )
+    logo_url = models.URLField(
+        max_length=1000,
+        blank=True,
+        verbose_name='URL del logo (opcional)',
+        help_text='Debe ser una URL pública HTTPS. Si se deja vacío se muestra el nombre de la marca.',
+    )
+    color_acento = models.CharField(max_length=7, default='#A31523', validators=[validar_color], verbose_name='Color de acento')
+    color_fondo = models.CharField(max_length=7, default='#DDD8D0', validators=[validar_color], verbose_name='Fondo exterior')
+    color_contenido = models.CharField(max_length=7, default='#F3F1ED', validators=[validar_color], verbose_name='Fondo del correo')
+    color_superficie = models.CharField(max_length=7, default='#E6E1D9', validators=[validar_color], verbose_name='Tarjetas y bloques')
+    color_texto = models.CharField(max_length=7, default='#000000', validators=[validar_color], verbose_name='Texto principal')
+    color_texto_secundario = models.CharField(max_length=7, default='#57534D', validators=[validar_color], verbose_name='Texto secundario')
+    color_borde = models.CharField(max_length=7, default='#D8D3CB', validators=[validar_color], verbose_name='Bordes')
+    color_pie = models.CharField(max_length=7, default='#111111', validators=[validar_color], verbose_name='Fondo del pie')
+    color_texto_pie = models.CharField(max_length=7, default='#F3F1ED', validators=[validar_color], verbose_name='Texto del pie')
+    etiqueta_pie = models.CharField(max_length=80, default='D.A.R.C.Y. JOURNAL', verbose_name='Etiqueta del pie')
+    titulo_pie = models.CharField(max_length=120, default='Tu aroma. Tu momento.', verbose_name='Título del pie')
+    texto_pie = models.TextField(
+        default='Una selección de fragancias para cada temporada, cada hora y cada historia.',
+        verbose_name='Descripción del pie',
+    )
+    texto_boton = models.CharField(max_length=80, default='EXPLORAR CATÁLOGO', verbose_name='Texto del botón')
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'diseño de correo'
+        verbose_name_plural = 'diseño de correos'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def cargar(cls):
+        objeto, _ = cls.objects.get_or_create(pk=1)
+        return objeto
+
+    def __str__(self):
+        return f'Diseño de correos · {self.marca}'
 
 
 class PreguntaFrecuente(models.Model):

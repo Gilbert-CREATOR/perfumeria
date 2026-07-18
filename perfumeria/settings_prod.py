@@ -39,17 +39,14 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# EMAIL: Brevo usa HTTPS y funciona incluso en instancias gratuitas de Render.
-BREVO_API_KEY = config('BREVO_API_KEY', default='').strip()
-BREVO_SENDER_EMAIL = config(
-    'BREVO_SENDER_EMAIL',
-    default=config('EMAIL_HOST_USER', default=''),
-).strip()
-BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='D.A.R.C.Y.').strip()
+# EMAIL: Resend usa HTTPS y funciona en instancias gratuitas de Render.
+RESEND_API_KEY = config('RESEND_API_KEY', default='').strip()
+RESEND_FROM_EMAIL = config('RESEND_FROM_EMAIL', default='').strip()
+RESEND_FROM_NAME = config('RESEND_FROM_NAME', default='D.A.R.C.Y.').strip()
 
 EMAIL_BACKEND = (
-    'perfumeria.email_backends.BrevoEmailBackend'
-    if BREVO_API_KEY
+    'perfumeria.email_backends.ResendEmailBackend'
+    if RESEND_API_KEY
     else 'django.core.mail.backends.smtp.EmailBackend'
 )
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
@@ -59,8 +56,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
 # Google muestra sus contraseñas de aplicación separadas por espacios.
 EMAIL_HOST_PASSWORD = ''.join(config('EMAIL_HOST_PASSWORD', default='').split())
 DEFAULT_FROM_EMAIL = formataddr((
-    BREVO_SENDER_NAME,
-    BREVO_SENDER_EMAIL if BREVO_API_KEY else EMAIL_HOST_USER,
+    RESEND_FROM_NAME,
+    RESEND_FROM_EMAIL if RESEND_API_KEY else EMAIL_HOST_USER,
 ))
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=15, cast=int)

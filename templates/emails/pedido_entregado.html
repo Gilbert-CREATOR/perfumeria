@@ -3,14 +3,14 @@
 {% block preheader %}Tu pedido #{{ pedido.id }} fue entregado. Esperamos que lo disfrutes.{% endblock %}
 {% block content %}
 <tr>
-  <td class="mobile-pad" style="padding:52px 42px 48px; background:#111111; color:#F3F1ED; text-align:center;">
-    <div style="width:58px; height:58px; margin:0 auto 24px; border-radius:58px; background:#A31523; color:#fff; font-size:30px; line-height:58px;">✓</div>
+  <td class="mobile-pad" style="padding:52px 42px 48px; background:{{ email_theme.color_pie }}; color:{{ email_theme.color_contenido }}; text-align:center;">
+    <div style="width:58px; height:58px; margin:0 auto 24px; border-radius:58px; background:{{ email_theme.color_acento }}; color:#fff; font-size:30px; line-height:58px;">✓</div>
     <p style="margin:0 0 15px; color:#c8c4bd; font-size:11px; font-weight:800; letter-spacing:2px;">ENTREGA COMPLETADA</p>
     <h1 class="hero-title" style="margin:0; font-size:54px; line-height:53px; letter-spacing:-2px; font-weight:900;">ES TODO TUYO.</h1>
   </td>
 </tr>
-<tr><td class="mobile-pad" style="padding:38px 42px 12px; text-align:center;"><p style="margin:0 0 12px; font-size:21px; line-height:29px; font-weight:800;">Disfrútalo, {{ nombre_cliente }}.</p><p style="margin:0; color:#57534d; font-size:14px; line-height:23px;">El pedido #{{ pedido.id }} fue marcado como entregado. Esperamos que cada fragancia sea exactamente lo que buscabas.</p></td></tr>
+<tr><td class="mobile-pad" style="padding:38px 42px 12px; text-align:center;"><p style="margin:0 0 12px; font-size:21px; line-height:29px; font-weight:800;">Disfrútalo, {{ nombre_cliente }}.</p><p style="margin:0; color:{{ email_theme.color_texto_secundario }}; font-size:14px; line-height:23px;">El pedido #{{ pedido.id }} fue marcado como entregado. Esperamos que cada fragancia sea exactamente lo que buscabas.</p></td></tr>
 {% include "emails/includes/productos_pedido.html" %}
-<tr><td class="mobile-pad" style="padding:24px 42px 10px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#A31523; color:#F3F1ED;"><tr><td style="padding:28px; text-align:center;"><p style="margin:0 0 8px; font-size:10px; font-weight:800; letter-spacing:1.5px;">TU OPINIÓN IMPORTA</p><p style="margin:0; font-size:20px; line-height:27px; font-weight:800;">Cuéntanos cómo fue tu experiencia.</p></td></tr></table></td></tr>
+<tr><td class="mobile-pad" style="padding:24px 42px 10px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:{{ email_theme.color_acento }}; color:{{ email_theme.color_contenido }};"><tr><td style="padding:28px; text-align:center;"><p style="margin:0 0 8px; font-size:10px; font-weight:800; letter-spacing:1.5px;">TU OPINIÓN IMPORTA</p><p style="margin:0; font-size:20px; line-height:27px; font-weight:800;">Cuéntanos cómo fue tu experiencia.</p></td></tr></table></td></tr>
 {% include "emails/includes/boton_pedido.html" %}
 {% endblock %}

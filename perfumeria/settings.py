@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from email.utils import formataddr
+
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -156,16 +159,30 @@ LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Correo local seguro. Producción lo reemplaza con Brevo/SMTP desde settings_prod.
-EMAIL_BACKEND = os.environ.get(
+# Correo local. Las credenciales se leen desde .env, que está excluido de Git.
+# Producción reemplaza esta configuración con Resend desde settings_prod.
+EMAIL_BACKEND = config(
     'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend'
 )
-DEFAULT_FROM_EMAIL = os.environ.get(
-    'DEFAULT_FROM_EMAIL', 'D.A.R.C.Y. <noreply@perfumeria.com>'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com').strip()
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
+# Gmail presenta las contraseñas de aplicación separadas por espacios.
+EMAIL_HOST_PASSWORD = ''.join(
+    config('EMAIL_HOST_PASSWORD', default='').split()
 )
-PUBLIC_SITE_URL = os.environ.get(
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=15, cast=int)
+EMAIL_FROM_NAME = config('EMAIL_FROM_NAME', default='D.A.R.C.Y.').strip()
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default=formataddr((EMAIL_FROM_NAME, EMAIL_HOST_USER))
+    if EMAIL_HOST_USER
+    else 'D.A.R.C.Y. <noreply@perfumeria.com>',
+)
+PUBLIC_SITE_URL = config(
     'PUBLIC_SITE_URL',
-    'https://perfumeria-darcy.onrender.com',
+    default='https://perfumeria-darcy.onrender.com',
 ).rstrip('/')
 
 # PayPal: nunca guardar credenciales en el código.

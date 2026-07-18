@@ -4,7 +4,7 @@
 {% block content %}
 <tr>
   <td class="mobile-pad" style="padding:50px 42px 34px;">
-    <p style="margin:0 0 14px;color:#A31523;font-size:11px;font-weight:800;letter-spacing:2px;">BIENVENIDO AL NEWSLETTER</p>
+    <p style="margin:0 0 14px;color:{{ email_theme.color_acento }};font-size:11px;font-weight:800;letter-spacing:2px;">BIENVENIDO AL NEWSLETTER</p>
     <h1 class="hero-title" style="margin:0 0 20px;font-size:52px;line-height:51px;letter-spacing:-2px;">ESTÁS EN<br>LA LISTA.</h1>
     <p style="margin:0 0 12px;font-size:16px;line-height:25px;font-weight:700;">Gracias por suscribirte a D.A.R.C.Y.</p>
     <p style="margin:0;font-size:14px;line-height:23px;color:#4e4b46;">Desde ahora recibirás una selección cuidada de novedades y recordatorios para que no pierdas la fragancia que estabas buscando.</p>
@@ -12,25 +12,25 @@
 </tr>
 <tr>
   <td class="mobile-pad" style="padding:0 42px 42px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top:1px solid #d8d3cb;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top:1px solid {{ email_theme.color_borde }};">
       <tr>
-        <td style="padding:22px 14px 22px 0;border-bottom:1px solid #d8d3cb;vertical-align:top;width:34px;color:#A31523;font-size:21px;font-weight:900;">01</td>
-        <td style="padding:22px 0;border-bottom:1px solid #d8d3cb;"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">NUEVOS PERFUMES</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Lanzamientos, nuevas colecciones y productos que acaban de llegar.</p></td>
+        <td style="padding:22px 14px 22px 0;border-bottom:1px solid {{ email_theme.color_borde }};vertical-align:top;width:34px;color:{{ email_theme.color_acento }};font-size:21px;font-weight:900;">01</td>
+        <td style="padding:22px 0;border-bottom:1px solid {{ email_theme.color_borde }};"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">NUEVOS PERFUMES</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Lanzamientos, nuevas colecciones y productos que acaban de llegar.</p></td>
       </tr>
       <tr>
-        <td style="padding:22px 14px 22px 0;border-bottom:1px solid #d8d3cb;vertical-align:top;color:#A31523;font-size:21px;font-weight:900;">02</td>
-        <td style="padding:22px 0;border-bottom:1px solid #d8d3cb;"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">TUS FAVORITOS Y TU CARRITO</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Avisos relevantes sobre productos guardados, disponibilidad y artículos que dejaste pendientes.</p></td>
+        <td style="padding:22px 14px 22px 0;border-bottom:1px solid {{ email_theme.color_borde }};vertical-align:top;color:{{ email_theme.color_acento }};font-size:21px;font-weight:900;">02</td>
+        <td style="padding:22px 0;border-bottom:1px solid {{ email_theme.color_borde }};"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">TUS FAVORITOS Y TU CARRITO</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Avisos relevantes sobre productos guardados, disponibilidad y artículos que dejaste pendientes.</p></td>
       </tr>
       <tr>
-        <td style="padding:22px 14px 22px 0;border-bottom:1px solid #d8d3cb;vertical-align:top;color:#A31523;font-size:21px;font-weight:900;">03</td>
-        <td style="padding:22px 0;border-bottom:1px solid #d8d3cb;"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">SELECCIONES PARA TI</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Recomendaciones basadas en tus temporadas favoritas, compras e historial dentro de la tienda.</p></td>
+        <td style="padding:22px 14px 22px 0;border-bottom:1px solid {{ email_theme.color_borde }};vertical-align:top;color:{{ email_theme.color_acento }};font-size:21px;font-weight:900;">03</td>
+        <td style="padding:22px 0;border-bottom:1px solid {{ email_theme.color_borde }};"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">SELECCIONES PARA TI</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Recomendaciones basadas en tus temporadas favoritas, compras e historial dentro de la tienda.</p></td>
       </tr>
       <tr>
-        <td style="padding:22px 14px 22px 0;vertical-align:top;color:#A31523;font-size:21px;font-weight:900;">04</td>
+        <td style="padding:22px 14px 22px 0;vertical-align:top;color:{{ email_theme.color_acento }};font-size:21px;font-weight:900;">04</td>
         <td style="padding:22px 0;"><p style="margin:0 0 5px;font-size:14px;line-height:18px;font-weight:900;">MOVIMIENTOS DE D.A.R.C.Y.</p><p style="margin:0;color:#6a665f;font-size:12px;line-height:19px;">Noticias, selecciones de temporada y comunicaciones especiales de la tienda.</p></td>
       </tr>
     </table>
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:8px;"><tr><td style="background:#A31523;"><a href="{{ catalogo_url }}" style="display:inline-block;padding:16px 25px;color:#fff;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:1px;">DESCUBRIR PERFUMES</a></td></tr></table>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:8px;"><tr><td style="background:{{ email_theme.color_acento }};"><a href="{{ catalogo_url }}" style="display:inline-block;padding:16px 25px;color:#fff;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:1px;">DESCUBRIR PERFUMES</a></td></tr></table>
     <p style="margin:28px 0 0;color:#77726b;font-size:10px;line-height:16px;">Este correo fue enviado a {{ email }} porque solicitaste recibir novedades de D.A.R.C.Y. Puedes <a href="{{ cancelar_url }}" style="color:#77726b;text-decoration:underline;">cancelar tu suscripción</a> cuando quieras.</p>
   </td>
 </tr>

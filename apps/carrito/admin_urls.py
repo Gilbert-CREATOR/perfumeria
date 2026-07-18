@@ -12,6 +12,7 @@ urlpatterns = [
     path('newsletter/<int:suscriptor_id>/toggle/', admin_views.admin_newsletter_toggle, name='admin_newsletter_toggle'),
     path('newsletter/<int:suscriptor_id>/eliminar/', admin_views.admin_newsletter_eliminar, name='admin_newsletter_eliminar'),
     path('configuracion/', admin_views.admin_configuracion, name='admin_configuracion'),
+    path('correos/', admin_views.admin_correos, name='admin_correos'),
     path('faq/', admin_views.admin_faq, name='admin_faq'),
     path('faq/nueva/', admin_views.admin_faq_crear, name='admin_faq_crear'),
     path('faq/<int:pregunta_id>/editar/', admin_views.admin_faq_editar, name='admin_faq_editar'),

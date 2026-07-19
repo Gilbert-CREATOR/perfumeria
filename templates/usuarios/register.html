@@ -42,42 +42,42 @@
       
       <div style="margin-bottom: 25px;">
         <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">USERNAME</label>
-        <input type="text" name="username" required 
+        <input type="text" name="username" value="{{ request.POST.username|default:'' }}" maxlength="150" autocomplete="username" required
                style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
                placeholder="Choose a username">
       </div>
       
       <div style="margin-bottom: 25px;">
         <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">EMAIL</label>
-        <input type="email" name="email" required 
+        <input type="email" name="email" value="{{ request.POST.email|default:'' }}" maxlength="254" autocomplete="email" required
                style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
                placeholder="Enter your email">
       </div>
       
       <div style="margin-bottom: 25px;">
         <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">FIRST NAME</label>
-        <input type="text" name="first_name" required 
+        <input type="text" name="first_name" value="{{ request.POST.first_name|default:'' }}" maxlength="150" autocomplete="given-name"
                style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
                placeholder="Enter your first name">
       </div>
       
       <div style="margin-bottom: 25px;">
         <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">LAST NAME</label>
-        <input type="text" name="last_name" required 
+        <input type="text" name="last_name" value="{{ request.POST.last_name|default:'' }}" maxlength="150" autocomplete="family-name"
                style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
                placeholder="Enter your last name">
       </div>
       
       <div style="margin-bottom: 25px;">
         <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">PASSWORD</label>
-        <input type="password" name="password1" required 
+        <input type="password" name="password1" maxlength="128" autocomplete="new-password" required
                style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
                placeholder="Create a password">
       </div>
       
       <div style="margin-bottom: 25px;">
         <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">CONFIRM PASSWORD</label>
-        <input type="password" name="password2" required 
+        <input type="password" name="password2" maxlength="128" autocomplete="new-password" required
                style="width: 100%; padding: 15px; border: 1px solid #ddd; background: white; font-size: 14px;" 
                placeholder="Confirm your password">
       </div>

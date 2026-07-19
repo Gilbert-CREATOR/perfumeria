@@ -40,6 +40,8 @@ def _redirect_estado(request, estado):
 def suscribirse(request):
     email = request.POST.get('email', '').strip().lower()
     try:
+        if len(email) > 254:
+            raise ValidationError('Dirección demasiado larga.')
         validate_email(email)
     except ValidationError:
         mensaje = 'Escribe una dirección de correo válida.'

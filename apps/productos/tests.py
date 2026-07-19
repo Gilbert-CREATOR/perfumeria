@@ -2,6 +2,7 @@ import base64
 from decimal import Decimal
 from io import BytesIO
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlencode, urlparse
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -439,6 +440,21 @@ class FavoritosTests(TestCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertIn(reverse('login'), response.json()['redirect'])
+        self.assertIn(reverse('register'), response.json()['register_url'])
+        self.assertFalse(Favorito.objects.exists())
+
+    def test_visitante_regresa_a_la_vista_desde_donde_pulso_el_corazon(self):
+        return_url = '/catalogo/?temporada=noche'
+        favorite_url = reverse('toggle_favorito', args=[self.producto.pk])
+
+        response = self.client.post(f'{favorite_url}?{urlencode({"next": return_url})}')
+
+        self.assertEqual(response.status_code, 401)
+        data = response.json()
+        login_next = parse_qs(urlparse(data['login_url']).query)['next'][0]
+        register_next = parse_qs(urlparse(data['register_url']).query)['next'][0]
+        self.assertEqual(login_next, return_url)
+        self.assertEqual(register_next, return_url)
         self.assertFalse(Favorito.objects.exists())
 
     def test_solo_post_puede_cambiar_favoritos(self):

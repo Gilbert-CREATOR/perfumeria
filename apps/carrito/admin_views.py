@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.views.decorators.debug import sensitive_post_parameters
 
 from apps.productos.forms import ResenaForm
 from apps.productos.models import Producto, Resena
@@ -233,6 +234,7 @@ def admin_usuarios(request):
     })
 
 
+@sensitive_post_parameters('nueva_contrasena')
 @admin_required
 def admin_usuario_crear(request):
     form = UsuarioPanelForm(request.POST or None, actor=request.user)
@@ -245,6 +247,7 @@ def admin_usuario_crear(request):
     })
 
 
+@sensitive_post_parameters('nueva_contrasena')
 @admin_required
 def admin_usuario_editar(request, usuario_id):
     usuario = get_object_or_404(User, pk=usuario_id)

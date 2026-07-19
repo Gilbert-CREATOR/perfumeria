@@ -75,7 +75,7 @@ class PanelOperativoTests(TestCase):
 class ContactoPublicoTests(TestCase):
     def test_formulario_guarda_mensaje_para_el_panel(self):
         respuesta = self.client.post(reverse('contacto'), {
-            'nombre': 'Cliente', 'email': 'cliente@example.com', 'telefono': '123',
+            'nombre': 'Cliente', 'email': 'cliente@example.com', 'telefono': '809-555-0101',
             'asunto': 'producto', 'mensaje': 'Necesito información.', 'urgente': 'on',
         })
         self.assertRedirects(respuesta, reverse('contacto'), fetch_redirect_response=False)

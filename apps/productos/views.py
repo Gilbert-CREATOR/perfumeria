@@ -16,6 +16,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from apps.carrito.models import Pedido
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
+from urllib.parse import urlencode
 
 def format_price(price):
     """Formatear precio para que sea más legible"""
@@ -287,8 +289,23 @@ def crear_resena(request, producto_id):
 def toggle_favorito(request, producto_id):
     """Toggle favorito para un producto"""
     if not request.user.is_authenticated:
-        login_url = f'{reverse("login")}?next={reverse("detalle_producto", args=[producto_id])}'
-        return JsonResponse({'success': False, 'redirect': login_url}, status=401)
+        return_url = request.GET.get('next', '')
+        if not url_has_allowed_host_and_scheme(
+            url=return_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return_url = reverse('detalle_producto', args=[producto_id])
+
+        next_query = urlencode({'next': return_url})
+        login_url = f'{reverse("login")}?{next_query}'
+        register_url = f'{reverse("register")}?{next_query}'
+        return JsonResponse({
+            'success': False,
+            'redirect': login_url,
+            'login_url': login_url,
+            'register_url': register_url,
+        }, status=401)
 
     producto = get_object_or_404(Producto, id=producto_id)
     favorito, created = Favorito.objects.get_or_create(

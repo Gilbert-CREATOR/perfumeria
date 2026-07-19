@@ -1,6 +1,35 @@
 from django import forms
 
+from apps.usuarios.forms import TELEFONO_RE, normalizar_texto_usuario
+
 from .models import ArticuloBlog, ConfiguracionSitio, DisenoCorreo, MensajeContacto, PreguntaFrecuente
+
+
+class MensajeContactoPublicoForm(forms.ModelForm):
+    class Meta:
+        model = MensajeContacto
+        fields = ('nombre', 'email', 'telefono', 'asunto', 'mensaje', 'urgente')
+
+    def clean_email(self):
+        return self.cleaned_data['email'].strip().lower()
+
+    def clean_telefono(self):
+        telefono = normalizar_texto_usuario(
+            self.cleaned_data.get('telefono', ''), compactar_espacios=False
+        )
+        if telefono and not TELEFONO_RE.fullmatch(telefono):
+            raise forms.ValidationError('Ingresa un número de teléfono válido.')
+        return telefono
+
+    def clean(self):
+        cleaned = super().clean()
+        for campo in ('nombre', 'asunto', 'mensaje'):
+            if campo in cleaned:
+                try:
+                    cleaned[campo] = normalizar_texto_usuario(cleaned[campo])
+                except forms.ValidationError as exc:
+                    self.add_error(campo, exc)
+        return cleaned
 
 
 class ArticuloBlogForm(forms.ModelForm):

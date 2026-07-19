@@ -1,12 +1,17 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import identify_hasher
+from django.core.cache import cache
 from django.core import mail
 from django.core.management import call_command
 from django.http import HttpResponse
+from django.contrib.messages import get_messages
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.template.loader import render_to_string
+from django.utils import timezone
+from datetime import timedelta
 
 from .emails import crear_token_verificacion, enviar_email_bienvenida, enviar_email_cuenta_eliminada
 from .models import PerfilUsuario
@@ -23,6 +28,7 @@ class CuentaYCorreosTests(TestCase):
             response = self.client.post(reverse('register'), {
                 'username': 'nueva', 'email': 'nueva@example.com',
                 'password1': 'clave-segura-123', 'password2': 'clave-segura-123',
+                'terms_accepted': 'on',
             })
         self.assertEqual(response.status_code, 302)
         bienvenida.assert_called_once()
@@ -87,6 +93,9 @@ class CuentaYCorreosTests(TestCase):
 
 
 class AutenticacionTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
     def test_login_acepta_email_sin_importar_mayusculas(self):
         get_user_model().objects.create_user(
             username='cliente', email='Cliente@Example.com', password='clave-segura-123'
@@ -108,6 +117,92 @@ class AutenticacionTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(int(self.client.session['_auth_user_id']), user.id)
+
+    def test_registro_valida_email_y_guarda_solo_hash_de_password(self):
+        password = 'clave-segura-123'
+        with patch('apps.usuarios.views.enviar_email_bienvenida'):
+            response = self.client.post(reverse('register'), {
+                'username': 'cliente_seguro',
+                'email': ' CLIENTE@Example.com ',
+                'password1': password,
+                'password2': password,
+                'terms_accepted': 'on',
+            })
+        self.assertEqual(response.status_code, 302)
+        user = get_user_model().objects.get(username='cliente_seguro')
+        self.assertNotEqual(user.password, password)
+        self.assertTrue(user.check_password(password))
+        # El algoritmo puede ser más rápido bajo settings de pruebas, pero el
+        # valor persistido siempre debe ser un hash reconocido por Django.
+        self.assertTrue(identify_hasher(user.password).algorithm)
+        self.assertEqual(user.email, 'cliente@example.com')
+
+        self.client.logout()
+        with patch('apps.usuarios.views.render', return_value=HttpResponse(status=200)):
+            response = self.client.post(reverse('register'), {
+                'username': 'otro_cliente',
+                'email': 'correo-invalido',
+                'password1': password,
+                'password2': password,
+                'terms_accepted': 'on',
+            })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(get_user_model().objects.filter(username='otro_cliente').exists())
+
+    def test_login_usa_mismo_error_sin_revelar_si_la_cuenta_existe(self):
+        get_user_model().objects.create_user(
+            username='cuenta_real', email='real@example.com', password='clave-segura-123'
+        )
+        with patch('apps.usuarios.views.render', return_value=HttpResponse(status=200)):
+            response_real = self.client.post(reverse('login'), {
+                'username': 'cuenta_real', 'password': 'incorrecta',
+            }, REMOTE_ADDR='10.0.0.1')
+        mensajes_reales = [str(m) for m in get_messages(response_real.wsgi_request)]
+        cache.clear()
+        with patch('apps.usuarios.views.render', return_value=HttpResponse(status=200)):
+            response_inexistente = self.client.post(reverse('login'), {
+                'username': 'no_existe', 'password': 'incorrecta',
+            }, REMOTE_ADDR='10.0.0.2')
+        mensajes_inexistentes = [str(m) for m in get_messages(response_inexistente.wsgi_request)]
+        mensaje = 'Email o usuario o contraseña incorrecta.'
+        self.assertIn(mensaje, mensajes_reales)
+        self.assertIn(mensaje, mensajes_inexistentes)
+
+    def test_bloquea_cuenta_despues_de_cinco_fallos_y_luego_se_recupera(self):
+        user = get_user_model().objects.create_user(
+            username='bloqueable', email='bloqueable@example.com', password='clave-segura-123'
+        )
+        with patch('apps.usuarios.views.render', return_value=HttpResponse(status=200)):
+            for index in range(5):
+                response = self.client.post(reverse('login'), {
+                    'username': 'bloqueable', 'password': 'incorrecta',
+                }, REMOTE_ADDR=f'10.0.0.{index + 1}')
+                self.assertEqual(response.status_code, 200)
+
+        perfil = PerfilUsuario.objects.get(usuario=user)
+        self.assertEqual(perfil.intentos_login_fallidos, 5)
+        self.assertGreater(perfil.bloqueado_hasta, timezone.now())
+
+        with patch('apps.usuarios.views.render', return_value=HttpResponse(status=200)):
+            response = self.client.post(reverse('login'), {
+                'username': 'bloqueable', 'password': 'clave-segura-123',
+            }, REMOTE_ADDR='10.0.1.1')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            'Email o usuario o contraseña incorrecta.',
+            [str(m) for m in get_messages(response.wsgi_request)],
+        )
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        perfil.bloqueado_hasta = timezone.now() - timedelta(seconds=1)
+        perfil.save(update_fields=['bloqueado_hasta'])
+        response = self.client.post(reverse('login'), {
+            'username': 'bloqueable', 'password': 'clave-segura-123',
+        }, REMOTE_ADDR='10.0.1.2')
+        self.assertEqual(response.status_code, 302)
+        perfil.refresh_from_db()
+        self.assertEqual(perfil.intentos_login_fallidos, 0)
+        self.assertIsNone(perfil.bloqueado_hasta)
 
     def test_sync_admin_actualiza_credenciales(self):
         variables = {

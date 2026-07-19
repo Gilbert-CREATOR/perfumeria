@@ -388,18 +388,19 @@ class PendingCartAuthenticationTests(TestCase):
     def test_registro_completa_el_producto_pendiente(self):
         self.request_add(quantity=1)
 
-        register_response = self.client.post(
-            reverse('register'),
-            {
-                'username': 'cliente_nuevo',
-                'email': 'nuevo@example.com',
-                'first_name': 'Cliente',
-                'last_name': 'Nuevo',
-                'password1': 'clave-segura-123',
-                'password2': 'clave-segura-123',
-                'terms_accepted': 'on',
-            },
-        )
+        with patch('apps.usuarios.views.enviar_email_bienvenida'):
+            register_response = self.client.post(
+                reverse('register'),
+                {
+                    'username': 'cliente_nuevo',
+                    'email': 'nuevo@example.com',
+                    'first_name': 'Cliente',
+                    'last_name': 'Nuevo',
+                    'password1': 'clave-segura-123',
+                    'password2': 'clave-segura-123',
+                    'terms_accepted': 'on',
+                },
+            )
         self.assertRedirects(register_response, reverse('ver_carrito'), fetch_redirect_response=False)
 
         item = ItemCarrito.objects.get(

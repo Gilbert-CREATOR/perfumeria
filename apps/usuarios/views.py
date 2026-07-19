@@ -5,25 +5,74 @@ from django.contrib.auth.decorators import login_required
 from apps.carrito.models import Pedido
 from apps.productos.models import Favorito
 from .models import PerfilUsuario, Direccion
-from .forms import PerfilForm, DireccionForm
+from .forms import DireccionForm, LoginSeguroForm, PerfilForm, RegistroSeguroForm
 from django.contrib import messages
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.core import signing
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.hashers import check_password, make_password
 from django.conf import settings
-from django.contrib.auth.password_validation import validate_password
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 import hashlib
+from datetime import timedelta
 
 from apps.carrito.services import complete_pending_cart_item
 from .emails import VERIFICACION_SALT, enviar_email_bienvenida, enviar_email_cuenta_eliminada
 
 
 FRASE_ELIMINAR_CUENTA = 'ELIMINAR MI CUENTA'
+CREDENCIALES_INVALIDAS = 'Email o usuario o contraseña incorrecta.'
+MAX_INTENTOS_LOGIN = getattr(settings, 'LOGIN_MAX_FAILED_ATTEMPTS', 5)
+BLOQUEO_LOGIN_SEGUNDOS = getattr(settings, 'LOGIN_LOCKOUT_SECONDS', 15 * 60)
+# Mantiene un coste de hash similar aunque la cuenta no exista, reduciendo las
+# diferencias de tiempo que podrían usarse para enumerar usuarios.
+PASSWORD_FALSA_HASH = make_password('darcy-comprobacion-login')
+
+
+def _ip_cliente(request):
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    return (forwarded.split(',')[0] if forwarded else request.META.get('REMOTE_ADDR', '')).strip()
+
+
+def _clave_intentos(request, credencial):
+    material = f'{_ip_cliente(request)}:{credencial.casefold()}'.encode('utf-8')
+    return 'login-attempt:' + hashlib.sha256(material).hexdigest()
+
+
+def _perfil_bloqueado(user):
+    perfil, _ = PerfilUsuario.objects.get_or_create(usuario=user)
+    if perfil.bloqueado_hasta and perfil.bloqueado_hasta <= timezone.now():
+        perfil.intentos_login_fallidos = 0
+        perfil.bloqueado_hasta = None
+        perfil.save(update_fields=['intentos_login_fallidos', 'bloqueado_hasta'])
+        return False
+    return perfil.esta_bloqueado()
+
+
+def _registrar_fallo_cuenta(user):
+    """Incremento atómico para que peticiones simultáneas no evadan el bloqueo."""
+    with transaction.atomic():
+        perfil, _ = PerfilUsuario.objects.select_for_update().get_or_create(usuario=user)
+        if perfil.bloqueado_hasta and perfil.bloqueado_hasta <= timezone.now():
+            perfil.intentos_login_fallidos = 0
+            perfil.bloqueado_hasta = None
+        perfil.intentos_login_fallidos += 1
+        if perfil.intentos_login_fallidos >= MAX_INTENTOS_LOGIN:
+            perfil.bloqueado_hasta = timezone.now() + timedelta(seconds=BLOQUEO_LOGIN_SEGUNDOS)
+        perfil.save(update_fields=['intentos_login_fallidos', 'bloqueado_hasta'])
+
+
+def _limpiar_fallos_cuenta(user):
+    PerfilUsuario.objects.filter(usuario=user).update(
+        intentos_login_fallidos=0,
+        bloqueado_hasta=None,
+    )
 
 
 def finish_pending_cart(request):
@@ -50,20 +99,27 @@ def safe_next_url(request, default='/'):
     return default
 
 
+@sensitive_post_parameters('password')
 def login_usuario(request):
     if request.user.is_authenticated:
         return redirect('/')
         
     if request.method == 'POST':
-        # Resuelve ambas credenciales sin depender de que el valor contenga "@".
-        login_field = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        remote = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
-        attempt_key = 'login-attempt:' + hashlib.sha256(f'{remote}:{login_field.lower()}'.encode()).hexdigest()
+        form = LoginSeguroForm({
+            'credencial': request.POST.get('username', ''),
+            'password': request.POST.get('password', ''),
+        })
+        if not form.is_valid():
+            messages.error(request, CREDENCIALES_INVALIDAS)
+            return render(request, 'usuarios/login.html')
+
+        login_field = form.cleaned_data['credencial']
+        password = form.cleaned_data['password']
+        attempt_key = _clave_intentos(request, login_field)
         intentos = cache.get(attempt_key, 0)
-        if intentos >= 5:
-            messages.error(request, 'Demasiados intentos. Espera 15 minutos antes de volver a intentarlo.')
-            return render(request, 'usuarios/login.html', status=429)
+        if intentos >= MAX_INTENTOS_LOGIN:
+            messages.error(request, CREDENCIALES_INVALIDAS)
+            return render(request, 'usuarios/login.html')
 
         user_obj = User.objects.filter(username__iexact=login_field).order_by('id').first()
         if user_obj is None:
@@ -73,10 +129,14 @@ def login_usuario(request):
         if username:
             user = authenticate(request, username=username, password=password)
         else:
+            check_password(password, PASSWORD_FALSA_HASH)
             user = None
 
-        if user:
+        cuenta_bloqueada = bool(user_obj and _perfil_bloqueado(user_obj))
+
+        if user and not cuenta_bloqueada:
             cache.delete(attempt_key)
+            _limpiar_fallos_cuenta(user)
             login(request, user)
             has_pending_cart = finish_pending_cart(request)
             # Si el usuario es admin, redirigir al panel de administración
@@ -89,8 +149,10 @@ def login_usuario(request):
             messages.success(request, f'¡Bienvenido {user.username}!')
             return redirect(next_url)
         else:
-            cache.set(attempt_key, intentos + 1, timeout=15 * 60)
-            messages.error(request, 'Usuario, correo o contraseña incorrectos')
+            cache.set(attempt_key, intentos + 1, timeout=BLOQUEO_LOGIN_SEGUNDOS)
+            if user_obj and not cuenta_bloqueada:
+                _registrar_fallo_cuenta(user_obj)
+            messages.error(request, CREDENCIALES_INVALIDAS)
 
     return render(request, 'usuarios/login.html')
 
@@ -102,60 +164,31 @@ def logout_usuario(request):
     return redirect('/')
 
 
+@sensitive_post_parameters('password1', 'password2')
 def registro_usuario(request):
     if request.user.is_authenticated:
         return redirect('/')
         
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password1', '')
-        password_confirm = request.POST.get('password2', '')
-        email = request.POST.get('email', '').strip().lower()
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-
-        if not username:
-            messages.error(request, 'El nombre de usuario es obligatorio.')
-            return render(request, 'usuarios/register.html')
-        
-        if password != password_confirm:
-            messages.error(request, 'Las contraseñas no coinciden')
-            return render(request, 'usuarios/register.html')
-
-        if not email:
-            messages.error(request, 'El correo electrónico es obligatorio.')
-            return render(request, 'usuarios/register.html')
-
-        candidato = User(username=username, email=email, first_name=first_name, last_name=last_name)
-        try:
-            validate_password(password, user=candidato)
-        except ValidationError as exc:
-            for error in exc.messages:
-                messages.error(request, error)
-            return render(request, 'usuarios/register.html')
-            
-        if User.objects.filter(username__iexact=username).exists():
-            messages.error(request, 'El usuario ya existe')
-            return render(request, 'usuarios/register.html')
-
-        if email and User.objects.filter(email__iexact=email).exists():
-            messages.error(request, 'Ya existe una cuenta con ese correo electrónico')
-            return render(request, 'usuarios/register.html')
+        form = RegistroSeguroForm(request.POST)
+        if not form.is_valid():
+            for errores in form.errors.values():
+                for error in errores:
+                    messages.error(request, error)
+            return render(request, 'usuarios/register.html', {'form': form})
         
         try:
             with transaction.atomic():
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    first_name=first_name,
-                    last_name=last_name,
-                )
+                user = form.save()
         except IntegrityError:
-            messages.error(request, 'Ese usuario o correo ya está registrado.')
-            return render(request, 'usuarios/register.html')
+            messages.error(request, 'No se pudo crear la cuenta con esos datos.')
+            return render(request, 'usuarios/register.html', {'form': form})
         
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(
+            request,
+            username=user.username,
+            password=form.cleaned_data['password1'],
+        )
         if user:
             login(request, user)
             enviar_email_bienvenida(user)
@@ -184,11 +217,21 @@ def verificar_email(request, token):
     return redirect('mi_cuenta' if request.user == user else 'login')
 
 
+@method_decorator(sensitive_post_parameters('email'), name='dispatch')
 class DarcyPasswordResetView(auth_views.PasswordResetView):
     template_name = 'usuarios/password_reset.html'
     email_template_name = 'emails/password_reset.txt'
     html_email_template_name = 'emails/password_reset.html'
     subject_template_name = 'emails/password_reset_subject.txt'
+
+    def post(self, request, *args, **kwargs):
+        key = 'password-reset:' + hashlib.sha256(_ip_cliente(request).encode()).hexdigest()
+        intentos = cache.get(key, 0)
+        if intentos >= 3:
+            # Misma respuesta haya o no una cuenta: evita enumeración y abuso de correo.
+            return redirect(self.get_success_url())
+        cache.set(key, intentos + 1, timeout=15 * 60)
+        return super().post(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
         site_url = getattr(settings, 'PUBLIC_SITE_URL', 'http://localhost:8000').rstrip('/')
@@ -200,6 +243,7 @@ class DarcyPasswordResetView(auth_views.PasswordResetView):
 
 
 @login_required
+@sensitive_post_parameters('password')
 def eliminar_cuenta(request):
     if request.user.is_staff or request.user.is_superuser:
         messages.error(request, 'Las cuentas administrativas no se eliminan desde esta opción.')
@@ -210,11 +254,11 @@ def eliminar_cuenta(request):
         frase_confirmacion = request.POST.get('frase_confirmacion', '').strip()
 
         if username_confirmacion != request.user.username:
-            messages.error(request, 'El nombre de usuario no coincide.')
+            messages.error(request, 'No se pudo confirmar la identidad con esos datos.')
         elif frase_confirmacion != FRASE_ELIMINAR_CUENTA:
             messages.error(request, f'Escribe exactamente: {FRASE_ELIMINAR_CUENTA}')
         elif not request.user.check_password(request.POST.get('password', '')):
-            messages.error(request, 'La contraseña no es correcta.')
+            messages.error(request, 'No se pudo confirmar la identidad con esos datos.')
         else:
             user = request.user
             email = user.email

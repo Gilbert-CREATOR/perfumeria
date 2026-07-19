@@ -2,7 +2,8 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .models import ArticuloBlog, ConfiguracionSitio, MensajeContacto, PreguntaFrecuente
+from .forms import MensajeContactoPublicoForm
+from .models import ArticuloBlog, ConfiguracionSitio, PreguntaFrecuente
 from django.shortcuts import get_object_or_404
 
 
@@ -16,21 +17,16 @@ def home(request):
 @require_http_methods(['GET', 'POST'])
 def contacto(request):
     if request.method == 'POST':
-        datos = {
-            'nombre': request.POST.get('nombre', '').strip(),
-            'email': request.POST.get('email', '').strip().lower(),
-            'telefono': request.POST.get('telefono', '').strip(),
-            'asunto': request.POST.get('asunto', '').strip(),
-            'mensaje': request.POST.get('mensaje', '').strip(),
-            'urgente': request.POST.get('urgente') == 'on',
-        }
-        if not all(datos[key] for key in ('nombre', 'email', 'asunto', 'mensaje')) or '@' not in datos['email']:
+        form = MensajeContactoPublicoForm(request.POST)
+        if not form.is_valid():
             messages.error(request, 'Completa correctamente los campos obligatorios.')
         else:
-            MensajeContacto.objects.create(**datos)
+            form.save()
             messages.success(request, 'Recibimos tu mensaje. Nuestro equipo se pondrá en contacto contigo.')
             return redirect('contacto')
-    return render(request, 'pages/contacto.html')
+    else:
+        form = MensajeContactoPublicoForm()
+    return render(request, 'pages/contacto.html', {'form': form})
 
 
 def nosotros(request):

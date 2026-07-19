@@ -4,6 +4,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Sum, Count
 from django.views.decorators.http import require_POST
+from django.views.decorators.debug import sensitive_post_parameters
+from django.db import transaction
+from .forms import EmpleadoCrearForm, EmpleadoEditarForm
 from .models import PerfilUsuario, Pedido
 
 def es_admin_o_empleado(user):
@@ -27,6 +30,7 @@ def es_admin(user):
         return user.is_staff  # Fallback para usuarios existentes
 
 @login_required
+@sensitive_post_parameters('password')
 def agregar_empleado(request):
     """Agregar nuevo empleado (solo admin)"""
     if not es_admin(request.user):
@@ -34,47 +38,15 @@ def agregar_empleado(request):
         return redirect('admin_usuarios')
     
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        telefono = request.POST.get('telefono')
-        direccion = request.POST.get('direccion')
-        
-        # Validaciones
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'El nombre de usuario ya existe')
-            return redirect('agregar_empleado')
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'El email ya está registrado')
-            return redirect('agregar_empleado')
-        
-        try:
-            # Crear usuario
-            nuevo_usuario = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name
-            )
-            
-            # Crear perfil de empleado
-            PerfilUsuario.objects.create(
-                usuario=nuevo_usuario,
-                tipo_usuario='empleado',
-                telefono=telefono,
-                direccion=direccion
-            )
-            
-            messages.success(request, f'Empleado {username} agregado correctamente')
+        form = EmpleadoCrearForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                nuevo_usuario = form.save()
+            messages.success(request, f'Empleado {nuevo_usuario.username} agregado correctamente')
             return redirect('admin_usuarios')
-            
-        except Exception as e:
-            messages.error(request, f'Error al agregar empleado: {str(e)}')
-            return redirect('agregar_empleado')
+        for errores in form.errors.values():
+            for error in errores:
+                messages.error(request, error)
     
     return render(request, 'carrito/agregar_empleado.html')
 
@@ -142,26 +114,23 @@ def editar_empleado(request, user_id):
     empleado = get_object_or_404(PerfilUsuario, usuario_id=user_id)
     
     if request.method == 'POST':
-        # Actualizar datos del usuario
         usuario = empleado.usuario
-        usuario.first_name = request.POST.get('first_name')
-        usuario.last_name = request.POST.get('last_name')
-        usuario.email = request.POST.get('email')
-        usuario.save()
-        
-        # Actualizar perfil
-        empleado.telefono = request.POST.get('telefono')
-        empleado.direccion = request.POST.get('direccion')
-        
-        # Cambiar rol (solo admin puede cambiar roles)
-        nuevo_rol = request.POST.get('tipo_usuario')
-        if nuevo_rol in ['admin', 'empleado', 'cliente']:
-            empleado.tipo_usuario = nuevo_rol
-        
-        empleado.save()
-        
-        messages.success(request, f'Empleado {usuario.username} actualizado correctamente')
-        return redirect('empleados_lista')
+        form = EmpleadoEditarForm(request.POST, usuario=usuario)
+        if form.is_valid():
+            with transaction.atomic():
+                usuario.first_name = form.cleaned_data['first_name']
+                usuario.last_name = form.cleaned_data['last_name']
+                usuario.email = form.cleaned_data['email']
+                usuario.save(update_fields=['first_name', 'last_name', 'email'])
+                empleado.telefono = form.cleaned_data['telefono']
+                empleado.direccion = form.cleaned_data['direccion']
+                empleado.tipo_usuario = form.cleaned_data['tipo_usuario']
+                empleado.save(update_fields=['telefono', 'direccion', 'tipo_usuario', 'actualizado'])
+            messages.success(request, f'Empleado {usuario.username} actualizado correctamente')
+            return redirect('empleados_lista')
+        for errores in form.errors.values():
+            for error in errores:
+                messages.error(request, error)
     
     context = {
         'empleado': empleado,

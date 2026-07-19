@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.urls import reverse
 from .models import Carrito, ItemCarrito, Pedido, ItemPedido, MetodoEnvio, TransaccionPago
+from .forms import CheckoutForm
 from apps.productos.models import Producto
 import paypalrestsdk
 from django.conf import settings
@@ -139,33 +140,20 @@ def checkout(request):
     metodos_envio = MetodoEnvio.objects.filter(activo=True)
 
     if request.method == 'POST':
-        metodo_pago = request.POST.get('metodo_pago', '').strip()
-        metodo_envio_id = request.POST.get('metodo_envio', '').strip()
-
-        # Obtener datos de dirección
-        nombre_completo = request.POST.get('nombre_completo')
-        telefono = request.POST.get('telefono')
-        direccion = request.POST.get('direccion')
-        ciudad = request.POST.get('ciudad')
-        provincia = request.POST.get('provincia')
-        codigo_postal = request.POST.get('codigo_postal')
-
-        # Validar campos requeridos
-        if not all([nombre_completo, telefono, direccion, ciudad, provincia, codigo_postal, metodo_envio_id]):
+        form = CheckoutForm(request.POST)
+        if not form.is_valid():
             return render(request, 'carrito/checkout_moderno.html', {
                 'items': items,
                 'productos': items,
                 'subtotal': sum(item.subtotal() for item in items),
                 'total': sum(item.subtotal() for item in items) + 5,
                 'metodos_envio': metodos_envio,
-                'error': 'Todos los campos son obligatorios'
+                'error': 'Revisa los datos de envío y pago.',
+                'form': form,
             })
 
-        metodo_envio_obj = MetodoEnvio.objects.filter(pk=metodo_envio_id, activo=True).first()
-        metodos_pago_permitidos = {'paypal', 'transferencia', 'contra_entrega'}
-        if not metodo_envio_obj or metodo_pago not in metodos_pago_permitidos:
-            messages.error(request, 'Selecciona un método de envío y pago válido.')
-            return redirect('checkout')
+        metodo_envio_obj = form.cleaned_data['metodo_envio']
+        metodo_pago = form.cleaned_data['metodo_pago']
 
         try:
             pedido = crear_pedido_desde_carrito(
@@ -173,12 +161,11 @@ def checkout(request):
                 metodo_envio=metodo_envio_obj,
                 metodo_pago=metodo_pago,
                 datos_envio={
-                    'nombre_completo': nombre_completo,
-                    'telefono': telefono,
-                    'direccion': direccion,
-                    'ciudad': ciudad,
-                    'provincia': provincia,
-                    'codigo_postal': codigo_postal,
+                    campo: form.cleaned_data[campo]
+                    for campo in (
+                        'nombre_completo', 'telefono', 'direccion',
+                        'ciudad', 'provincia', 'codigo_postal',
+                    )
                 },
             )
         except (CheckoutError, Carrito.DoesNotExist) as exc:

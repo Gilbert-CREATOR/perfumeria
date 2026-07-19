@@ -126,6 +126,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Seguridad de autenticación. Django almacena hashes con sal; nunca contraseñas
+# reversibles ni texto plano. El bloqueo persistente se registra en el perfil.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+]
+LOGIN_MAX_FAILED_ATTEMPTS = 5
+LOGIN_LOCKOUT_SECONDS = 15 * 60
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

@@ -166,7 +166,12 @@
 
       button.disabled = true;
       try {
-        const response = await fetch(button.dataset.favoriteUrl, {
+        const favoriteUrl = new URL(button.dataset.favoriteUrl, window.location.href);
+        favoriteUrl.searchParams.set(
+          'next',
+          window.location.pathname + window.location.search + window.location.hash
+        );
+        const response = await fetch(favoriteUrl.toString(), {
           method: 'POST',
           headers: {
             'X-CSRFToken': decodeURIComponent(cookie('csrftoken') || ''),

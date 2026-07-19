@@ -1,11 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     telefono = models.CharField(max_length=20, blank=True)
     fecha_nacimiento = models.DateField(null=True, blank=True)
     email_verificado = models.BooleanField(default=False)
+    intentos_login_fallidos = models.PositiveSmallIntegerField(default=0)
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True)
+
+    def esta_bloqueado(self):
+        return bool(self.bloqueado_hasta and self.bloqueado_hasta > timezone.now())
     
     def __str__(self):
         return f"Perfil de {self.usuario.username}"

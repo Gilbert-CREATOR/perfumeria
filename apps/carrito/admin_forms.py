@@ -3,8 +3,11 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
 from django.db import OperationalError, ProgrammingError
+from apps.usuarios.forms import normalizar_texto_usuario
 from .models import Pedido, MetodoEnvio, Envio
 from apps.productos.models import Producto
 from apps.productos.image_processing import remove_uniform_background, validate_product_image
@@ -262,6 +265,7 @@ class UsuarioPanelForm(forms.ModelForm):
     nueva_contrasena = forms.CharField(
         required=False,
         min_length=8,
+        max_length=128,
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'}),
         help_text='Déjala vacía para conservar la contraseña actual.',
     )
@@ -289,6 +293,29 @@ class UsuarioPanelForm(forms.ModelForm):
         if email and User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('Ese correo ya pertenece a otra cuenta.')
         return email
+
+    def clean_username(self):
+        username = normalizar_texto_usuario(
+            self.cleaned_data.get('username', ''), compactar_espacios=False
+        )
+        if User.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('No se pudo guardar la cuenta con esos datos.')
+        return username
+
+    def clean_first_name(self):
+        return normalizar_texto_usuario(self.cleaned_data.get('first_name', ''))
+
+    def clean_last_name(self):
+        return normalizar_texto_usuario(self.cleaned_data.get('last_name', ''))
+
+    def clean_nueva_contrasena(self):
+        password = self.cleaned_data.get('nueva_contrasena', '')
+        if password:
+            try:
+                validate_password(password, user=self.instance)
+            except ValidationError as exc:
+                raise forms.ValidationError(exc.messages) from exc
+        return password
 
     def clean(self):
         cleaned = super().clean()

@@ -8,11 +8,43 @@
   <meta name="description" content="{% block meta_description %}Perfumería D.A.R.C.Y.: descubre fragancias para cada temporada y ocasión.{% endblock %}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% elif request %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
   <link rel="stylesheet" href="{% static 'css/catalogo.css' %}" />
+  {% if configuracion_sitio.mostrar_animacion_entrada %}
+  <link rel="stylesheet" href="{% static 'css/brand-intro.css' %}" />
+  <script>
+    try {
+      if (!window.sessionStorage.getItem('darcy-brand-intro-seen')) {
+        document.documentElement.classList.add('brand-intro-pending');
+      }
+    } catch (error) {
+      document.documentElement.classList.add('brand-intro-pending');
+    }
+  </script>
+  {% endif %}
   <script src="{% static 'js/language.js' %}" defer></script>
   {% block extra_css %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
 </head>
 <body>
+  {% if configuracion_sitio.mostrar_animacion_entrada %}
+  <div class="brand-intro" data-brand-intro data-brand-name="{{ configuracion_sitio.marca }}" role="presentation" aria-hidden="true">
+    <button class="brand-intro__skip" type="button" data-brand-intro-skip aria-label="Omitir animación">OMITIR</button>
+    <div class="brand-intro__stage">
+      <div class="brand-intro__fragments" aria-hidden="true">
+        <i class="brand-intro__fragment brand-intro__fragment--1"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--2"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--3"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--4"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--5"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--6"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--7"></i>
+        <i class="brand-intro__fragment brand-intro__fragment--8"></i>
+      </div>
+      <p class="brand-intro__word" data-brand-intro-word></p>
+      <span class="brand-intro__line" aria-hidden="true"></span>
+    </div>
+  </div>
+  <script src="{% static 'js/brand-intro.js' %}" defer></script>
+  {% endif %}
   <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
     <symbol id="heart-filled-icon" viewBox="0 0 16 16">
       <path d="M7.99961 13.8667C7.88761 13.8667 7.77561 13.8315 7.68121 13.7611C7.43321 13.5766 1.59961 9.1963 1.59961 5.8667C1.59961 3.80856 3.27481 2.13336 5.33294 2.13336C6.59054 2.13336 7.49934 2.81176 7.99961 3.3131C8.49988 2.81176 9.40868 2.13336 10.6663 2.13336C12.7244 2.13336 14.3996 3.80803 14.3996 5.8667C14.3996 9.1963 8.56601 13.5766 8.31801 13.7616C8.22361 13.8315 8.11161 13.8667 7.99961 13.8667Z"/>

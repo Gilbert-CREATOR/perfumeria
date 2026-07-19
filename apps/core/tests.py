@@ -2,11 +2,38 @@ import sys
 from unittest import skipIf
 
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.newsletter.models import SuscriptorNewsletter
-from .models import MensajeContacto, PreguntaFrecuente
+from .models import ConfiguracionSitio, MensajeContacto, PreguntaFrecuente
+
+
+class AnimacionMarcaTests(TestCase):
+    def test_animacion_usa_el_nombre_configurado_de_la_tienda(self):
+        configuracion = ConfiguracionSitio.cargar()
+        configuracion.marca = 'JOSE'
+        configuracion.mostrar_animacion_entrada = True
+        configuracion.save()
+
+        contenido = render_to_string('base_moderno.html', {
+            'configuracion_sitio': configuracion,
+        })
+
+        self.assertIn('data-brand-intro', contenido)
+        self.assertIn('data-brand-name="JOSE"', contenido)
+
+    def test_animacion_puede_desactivarse_desde_el_admin(self):
+        configuracion = ConfiguracionSitio.cargar()
+        configuracion.mostrar_animacion_entrada = False
+        configuracion.save()
+
+        contenido = render_to_string('base_moderno.html', {
+            'configuracion_sitio': configuracion,
+        })
+
+        self.assertNotIn('data-brand-intro', contenido)
 
 
 class PanelOperativoTests(TestCase):

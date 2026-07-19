@@ -44,6 +44,11 @@ class ConfiguracionSitio(models.Model):
     texto_politica_envios = models.TextField(blank=True)
     texto_terminos = models.TextField(blank=True)
     mostrar_newsletter = models.BooleanField(default=True)
+    mostrar_animacion_entrada = models.BooleanField(
+        default=True,
+        verbose_name='Mostrar animación del nombre al entrar',
+        help_text='Se muestra una vez por sesión y usa automáticamente el nombre de la tienda.',
+    )
     actualizado = models.DateTimeField(auto_now=True)
 
     class Meta:

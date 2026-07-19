@@ -1,0 +1,200 @@
+.brand-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  place-items: center;
+  overflow: hidden;
+  background: #050505;
+  color: #f3f1ed;
+  isolation: isolate;
+}
+
+.brand-intro-pending,
+.brand-intro-pending body {
+  overflow: hidden;
+}
+
+.brand-intro-pending .brand-intro {
+  display: grid;
+}
+
+.brand-intro.is-leaving {
+  pointer-events: none;
+  animation: brandIntroLeave 720ms cubic-bezier(.76, 0, .24, 1) forwards;
+}
+
+.brand-intro__skip {
+  position: absolute;
+  right: clamp(18px, 3vw, 48px);
+  top: clamp(18px, 3vw, 42px);
+  z-index: 3;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(243, 241, 237, .4);
+  background: transparent;
+  color: rgba(243, 241, 237, .72);
+  font: 700 10px/1 Arial, sans-serif;
+  letter-spacing: 2px;
+  cursor: pointer;
+  opacity: 0;
+  animation: brandIntroSkip 400ms ease 900ms forwards;
+}
+
+.brand-intro__stage {
+  position: relative;
+  display: grid;
+  width: min(92vw, 1180px);
+  min-height: 240px;
+  place-items: center;
+}
+
+.brand-intro__word {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  margin: 0;
+  color: #f3f1ed;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(48px, 11.5vw, 178px);
+  font-weight: 900;
+  line-height: .82;
+  letter-spacing: clamp(2px, 1vw, 18px);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.brand-intro__letter {
+  position: relative;
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(var(--drift, 0), 42px, 0) rotate(var(--tilt, 0deg));
+  filter: blur(10px);
+  animation: brandIntroLetter 760ms cubic-bezier(.16, 1, .3, 1) var(--letter-delay, 1220ms) forwards;
+}
+
+.brand-intro__letter::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: #eeff2f;
+  content: attr(data-letter);
+  transform: translate(7px, 5px);
+  clip-path: inset(0 100% 0 0);
+  animation: brandIntroAccent 820ms cubic-bezier(.65, 0, .35, 1) var(--accent-delay, 1110ms) forwards;
+}
+
+.brand-intro__space {
+  width: .3em;
+}
+
+.brand-intro__line {
+  position: absolute;
+  z-index: 3;
+  top: calc(50% + clamp(34px, 6.5vw, 94px));
+  left: 50%;
+  width: min(54vw, 560px);
+  height: 3px;
+  border-radius: 99px;
+  background: #eeff2f;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  animation: brandIntroLine 760ms cubic-bezier(.16, 1, .3, 1) 2180ms forwards;
+}
+
+.brand-intro__fragments {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 1px;
+  height: 1px;
+}
+
+.brand-intro__fragment {
+  --color: #f3f1ed;
+  --x: 0px;
+  --y: 0px;
+  --rotation: 0deg;
+  --exit-x: 0px;
+  --exit-y: 0px;
+  position: absolute;
+  left: -22px;
+  top: -5px;
+  display: block;
+  width: 44px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color) 36%, transparent);
+  opacity: 0;
+  transform: translate(var(--x), var(--y)) rotate(var(--rotation)) scaleX(.2);
+  animation: brandIntroFragment 1750ms cubic-bezier(.65, 0, .35, 1) calc(var(--delay, 0ms) + 100ms) forwards;
+}
+
+.brand-intro__fragment--1 { --x: -38vw; --y: -24vh; --exit-x: 10vw; --exit-y: 5vh; --rotation: 68deg; --delay: 0ms; }
+.brand-intro__fragment--2 { --x: 34vw; --y: -28vh; --exit-x: -8vw; --exit-y: 6vh; --rotation: -42deg; --color: #eeff2f; --delay: 80ms; }
+.brand-intro__fragment--3 { --x: -32vw; --y: 22vh; --exit-x: 8vw; --exit-y: -5vh; --rotation: -18deg; --color: #eeff2f; --delay: 140ms; }
+.brand-intro__fragment--4 { --x: 39vw; --y: 19vh; --exit-x: -10vw; --exit-y: -4vh; --rotation: 82deg; --delay: 40ms; }
+.brand-intro__fragment--5 { --x: -8vw; --y: -36vh; --exit-x: 3vw; --exit-y: 8vh; --rotation: 90deg; --delay: 190ms; }
+.brand-intro__fragment--6 { --x: 9vw; --y: 34vh; --exit-x: -3vw; --exit-y: -8vh; --rotation: 20deg; --color: #eeff2f; --delay: 110ms; }
+.brand-intro__fragment--7 { --x: -43vw; --y: 1vh; --exit-x: 12vw; --exit-y: -1vh; --rotation: -65deg; --delay: 210ms; }
+.brand-intro__fragment--8 { --x: 44vw; --y: -2vh; --exit-x: -12vw; --exit-y: 1vh; --rotation: 32deg; --color: #eeff2f; --delay: 160ms; }
+
+@keyframes brandIntroFragment {
+  0% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--rotation)) scaleX(.15); }
+  18% { opacity: 1; }
+  52% { opacity: 1; transform: translate(0, 0) rotate(calc(var(--rotation) + 220deg)) scaleX(1); }
+  76% { opacity: 1; transform: translate(0, 0) rotate(calc(var(--rotation) + 380deg)) scaleX(.58); }
+  100% { opacity: 0; transform: translate(var(--exit-x), var(--exit-y)) rotate(calc(var(--rotation) + 520deg)) scaleX(.08); }
+}
+
+.brand-intro__word.is-long { font-size: clamp(38px, 8vw, 122px); }
+.brand-intro__word.is-extra-long { font-size: clamp(27px, 5.7vw, 86px); letter-spacing: clamp(1px, .45vw, 7px); }
+
+@keyframes brandIntroLetter {
+  0% { opacity: 0; filter: blur(10px); }
+  55% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; filter: blur(0); transform: translate3d(0, 0, 0) rotate(0); }
+}
+
+@keyframes brandIntroAccent {
+  0% { clip-path: inset(0 100% 0 0); transform: translate(12px, 7px); }
+  50% { clip-path: inset(0 0 0 0); }
+  100% { clip-path: inset(0 0 0 100%); transform: translate(-4px, -2px); }
+}
+
+@keyframes brandIntroLine {
+  0% { transform: translateX(-50%) scaleX(0); opacity: 1; }
+  55% { transform: translateX(-50%) scaleX(1); opacity: 1; }
+  100% { transform: translateX(-50%) scaleX(.08); opacity: 0; }
+}
+
+@keyframes brandIntroSkip { to { opacity: 1; } }
+
+@keyframes brandIntroLeave {
+  0% { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 100% 0); visibility: hidden; }
+}
+
+@media (max-width: 600px) {
+  .brand-intro__word {
+    font-size: clamp(42px, 14vw, 74px);
+    letter-spacing: clamp(1px, 1.2vw, 6px);
+  }
+
+  .brand-intro__fragment { width: 34px; height: 8px; }
+  .brand-intro__line { top: calc(50% + 50px); width: 58vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro__fragment,
+  .brand-intro__letter,
+  .brand-intro__letter::before,
+  .brand-intro__line,
+  .brand-intro__skip {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+}

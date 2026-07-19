@@ -96,6 +96,31 @@ class AutenticacionTests(TestCase):
     def setUp(self):
         cache.clear()
 
+    def test_logout_de_cliente_y_admin_redirige_al_inicio(self):
+        perfiles = (
+            {'username': 'cliente_logout', 'is_staff': False},
+            {'username': 'admin_logout', 'is_staff': True},
+        )
+
+        for perfil in perfiles:
+            with self.subTest(username=perfil['username']):
+                user = get_user_model().objects.create_user(
+                    username=perfil['username'],
+                    password='clave-segura-123',
+                    is_staff=perfil['is_staff'],
+                )
+                self.client.force_login(user)
+
+                response = self.client.post(reverse('logout'))
+
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.url, reverse('home'))
+                self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_logout_no_acepta_solicitudes_get(self):
+        response = self.client.get(reverse('logout'))
+        self.assertEqual(response.status_code, 405)
+
     def test_login_acepta_email_sin_importar_mayusculas(self):
         get_user_model().objects.create_user(
             username='cliente', email='Cliente@Example.com', password='clave-segura-123'

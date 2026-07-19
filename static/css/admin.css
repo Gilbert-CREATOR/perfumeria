@@ -104,6 +104,19 @@ body.admin-body {
     gap: 0.35rem;
 }
 
+.admin-logout-form {
+    margin: 0;
+}
+
+.admin-logout-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
 .admin-content {
     flex: 1;
     margin-left: 280px;

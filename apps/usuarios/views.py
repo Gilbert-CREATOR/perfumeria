@@ -161,7 +161,7 @@ def login_usuario(request):
 def logout_usuario(request):
     logout(request)
     messages.info(request, 'Has cerrado sesión correctamente')
-    return redirect('/')
+    return redirect('home')
 
 
 @sensitive_post_parameters('password1', 'password2')

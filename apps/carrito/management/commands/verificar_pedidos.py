@@ -27,7 +27,7 @@ class Command(BaseCommand):
                     f"\nPedido #{pedido.id}:"
                     f"\n  Usuario: {pedido.usuario.username} (ID: {pedido.usuario.id})"
                     f"\n  Estado: {pedido.estado}"
-                    f"\n  Total: ${pedido.total}"
+                    f"\n  Total: ${pedido.total:,.1f}"
                     f"\n  Fecha: {pedido.creado}"
                     f"\n  Items: {pedido.items.count()}"
                     f"\n  Método pago: {pedido.metodo_pago or 'No especificado'}"
@@ -35,7 +35,7 @@ class Command(BaseCommand):
                 
                 # Mostrar items del pedido
                 for item in pedido.items.all():
-                    self.stdout.write(f"    - {item.producto.nombre} x{item.cantidad} = ${item.subtotal()}")
+                    self.stdout.write(f"    - {item.producto.nombre} x{item.cantidad} = ${item.subtotal():,.1f}")
         else:
             self.stdout.write("  No hay pedidos en la base de datos")
         
@@ -51,10 +51,10 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"\n{usuario.username}:"
                     f"\n  Pedidos: {pedidos_usuario.count()}"
-                    f"\n  Total gastado: ${total}"
+                    f"\n  Total gastado: ${total:,.1f}"
                 )
                 for pedido in pedidos_usuario:
-                    self.stdout.write(f"    - Pedido #{pedido.id}: ${pedido.total} ({pedido.get_estado_display()})")
+                    self.stdout.write(f"    - Pedido #{pedido.id}: ${pedido.total:,.1f} ({pedido.get_estado_display()})")
             else:
                 self.stdout.write(f"\n{usuario.username}: 0 pedidos")
         

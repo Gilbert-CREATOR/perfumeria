@@ -129,7 +129,7 @@
                                     <span>⏱️</span> {{ metodo.tiempo_entrega }}
                                 </div>
                             </div>
-                            <div class="shipping-price">${{ metodo.costo|floatformat:2 }}</div>
+                            <div class="shipping-price">${{ metodo.costo|formato_numero }}</div>
                         </div>
                     </label>
                     {% empty %}<p>No hay métodos de envío disponibles.</p>{% endfor %}
@@ -175,15 +175,15 @@
                     <div class="order-item">
                         <div class="item-name">{{ item.producto.nombre }}</div>
                         <div class="item-quantity">{{ item.cantidad }}</div>
-                        <div class="item-price">${{ item.producto.precio|floatformat:2 }}</div>
-                        <div class="item-subtotal">${{ item.subtotal|floatformat:2 }}</div>
+                        <div class="item-price">${{ item.producto.precio|formato_numero }}</div>
+                        <div class="item-subtotal">${{ item.subtotal|formato_numero }}</div>
                     </div>
                     {% empty %}
                     <div class="order-item">
                         <div class="item-name">No hay productos</div>
                         <div class="item-quantity">0</div>
-                        <div class="item-price">$0.00</div>
-                        <div class="item-subtotal">$0.00</div>
+                        <div class="item-price">$0.0</div>
+                        <div class="item-subtotal">$0.0</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -191,15 +191,15 @@
                 <div class="order-totals">
                     <div class="total-row subtotal">
                         <span>Subtotal:</span>
-                        <span id="subtotal">${{ subtotal|floatformat:2 }}</span>
+                        <span id="subtotal">${{ subtotal|formato_numero }}</span>
                     </div>
                     <div class="total-row shipping">
                         <span>Envío:</span>
-                        <span id="shippingCost">${% if metodos_envio.first %}{{ metodos_envio.first.costo|floatformat:2 }}{% else %}0.00{% endif %}</span>
+                        <span id="shippingCost">${% if metodos_envio.first %}{{ metodos_envio.first.costo|formato_numero }}{% else %}0.0{% endif %}</span>
                     </div>
                     <div class="total-row total">
                         <span>Total:</span>
-                        <span id="total">${{ total|floatformat:2 }}</span>
+                        <span id="total">${{ total|formato_numero }}</span>
                     </div>
                 </div>
                 
@@ -290,10 +290,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function updateTotal() {
-        var subtotal = parseFloat(subtotalElement.textContent.replace('$', ''));
-        var shippingCost = parseFloat(shippingCostElement.textContent.replace('$', ''));
+        var subtotal = parseFloat(subtotalElement.textContent.replace(/[$,]/g, ''));
+        var shippingCost = parseFloat(shippingCostElement.textContent.replace(/[$,]/g, ''));
         var total = subtotal + shippingCost;
-        totalElement.textContent = '$' + total.toFixed(2);
+        totalElement.textContent = '$' + total.toLocaleString('en-US', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        });
     }
     
     // Form validation

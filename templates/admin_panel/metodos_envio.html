@@ -101,7 +101,7 @@
                                     <strong>{{ metodo.nombre }}</strong>
                                     <small>{{ metodo.descripcion|default:"Sin descripción" }}</small>
                                 </td>
-                                <td>${{ metodo.costo }}</td>
+                                <td>${{ metodo.costo|formato_numero }}</td>
                                 <td>{{ metodo.tiempo_entrega|default:"No definido" }}</td>
                                 <td>
                                     <span class="admin-badge {% if metodo.activo %}entregado{% else %}cancelado{% endif %}">

@@ -33,11 +33,11 @@
         </div>
         <div class="admin-stat">
             <small class="admin-stat-label">Ingresos Totales</small>
-            <strong>${{ total_ingresos|floatformat:2 }}</strong>
+            <strong>${{ total_ingresos|formato_numero }}</strong>
         </div>
         <div class="admin-stat">
             <small class="admin-stat-label">Promedio por Pedido</small>
-            <strong>${{ promedio_pedido|floatformat:2 }}</strong>
+            <strong>${{ promedio_pedido|formato_numero }}</strong>
         </div>
         <div class="admin-stat">
             <small class="admin-stat-label">Pedidos Pagados</small>
@@ -107,14 +107,14 @@
                             {{ pedido.get_metodo_pago_display|default:'N/A' }}
                         </td>
                         <td>
-                            <strong>${{ pedido.total|floatformat:2 }}</strong>
+                            <strong>${{ pedido.total|formato_numero }}</strong>
                         </td>
                         <td>
                             <div class="admin-mini-product-list">
                                 {% for item in pedido.items.all %}
                                     <div class="admin-mini-product-item">
                                         <strong>{{ item.producto.nombre }}</strong>
-                                        <small>x{{ item.cantidad }} (${{ item.subtotal|floatformat:2 }})</small>
+                                        <small>x{{ item.cantidad }} (${{ item.subtotal|formato_numero }})</small>
                                     </div>
                                 {% endfor %}
                             </div>

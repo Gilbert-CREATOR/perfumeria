@@ -181,7 +181,7 @@ def checkout(request):
         except Exception as e:
             print(f"⚠️ Error enviando email: {e}")
 
-        messages.success(request, f'¡Pedido #{pedido.id} realizado con éxito! Total: ${pedido.total}')
+        messages.success(request, f'¡Pedido #{pedido.id} realizado con éxito! Total: ${pedido.total:,.1f}')
 
         # 🔥 REDIRECCIÓN SEGÚN MÉTODO
         if metodo_pago == 'paypal':

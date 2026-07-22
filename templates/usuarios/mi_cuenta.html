@@ -59,7 +59,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="text-center">
-                                <h3 class="text-warning">{{ total_gastado|floatformat:0 }}</h3>
+                                <h3 class="text-warning">{{ total_gastado|formato_numero }}</h3>
                                 <p class="text-muted">Total Gastado</p>
                             </div>
                         </div>
@@ -82,7 +82,7 @@
                                         {% endif %}
                                         <div>
                                             <h6 class="mb-1">{{ producto.nombre }}</h6>
-                                            <small class="text-muted">${{ producto.precio|floatformat:2 }}</small>
+                                            <small class="text-muted">${{ producto.precio|formato_numero }}</small>
                                         </div>
                                     </div>
                                 </div>

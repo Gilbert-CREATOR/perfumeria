@@ -70,7 +70,7 @@
           <form action="{% url 'agregar_al_carrito' producto.id %}" method="POST">
             {% csrf_token %}
             <button class="buy-btn">
-              ADD TO CART <span>|</span> ${{ producto.precio }}
+              ADD TO CART <span>|</span> ${{ producto.precio|formato_numero }}
             </button>
           </form>
 
@@ -146,7 +146,7 @@
       <div class="related-grid">
         <article class="related-card">
           <h3>PRODUCTO</h3>
-          <p class="price">$0.00</p>
+          <p class="price">$0.0</p>
         </article>
       </div>
 

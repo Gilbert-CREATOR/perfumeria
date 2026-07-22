@@ -677,7 +677,7 @@
         </div>
         
         <!-- Precio -->
-        <div class="product-price">${{ producto.precio|floatformat:0 }}</div>
+        <div class="product-price">${{ producto.precio|formato_numero }}</div>
         
         <!-- Descripción -->
         <p class="product-description">{{ producto.descripcion }}</p>
@@ -881,7 +881,7 @@
           <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
         </button>
         <h2>{{ producto_relacionado.nombre|upper }}</h2>
-        <div class="price">${{ producto_relacionado.precio|floatformat:2 }}</div>
+        <div class="price">${{ producto_relacionado.precio|formato_numero }}</div>
         {% if producto_relacionado.tiene_imagen %}
           <img class="product-image" src="{{ producto_relacionado.imagen_url_property }}" alt="{{ producto_relacionado.nombre }}">
         {% else %}

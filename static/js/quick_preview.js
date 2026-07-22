@@ -61,7 +61,10 @@ function populateModal(product) {
     // Información básica
     document.getElementById('modalTitle').textContent = product.nombre;
     document.getElementById('modalBrand').textContent = product.marca;
-    document.getElementById('modalPrice').textContent = '$' + parseFloat(product.precio).toFixed(0);
+    document.getElementById('modalPrice').textContent = '$' + new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    }).format(parseFloat(product.precio));
     document.getElementById('modalSize').textContent = product.tamano_ml;
     document.getElementById('modalDescription').textContent = product.descripcion;
     document.getElementById('modalType').textContent = product.tipo_display;

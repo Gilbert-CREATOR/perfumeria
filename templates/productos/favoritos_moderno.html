@@ -29,7 +29,7 @@
           <svg class="favorite-icon favorite-icon-filled" aria-hidden="true"><use href="#heart-filled-icon"></use></svg>
         </button>
         <h2>{{ favorito.producto.nombre|upper }}</h2>
-        <div class="price">${{ favorito.producto.precio|floatformat:2 }}</div>
+        <div class="price">${{ favorito.producto.precio|formato_numero }}</div>
         <div class="product-visual">
           {% if favorito.producto.tiene_imagen %}
             <img src="{{ favorito.producto.imagen_url_property }}" alt="{{ favorito.producto.nombre }}" class="product-image">

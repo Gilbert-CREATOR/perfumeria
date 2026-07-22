@@ -64,7 +64,7 @@ class Command(BaseCommand):
             except Producto.DoesNotExist:
                 # Crear nuevo producto
                 producto = Producto.objects.create(**prod_data)
-                self.stdout.write(f"✅ Producto creado: {producto.nombre} - ${producto.precio}")
+                self.stdout.write(f"✅ Producto creado: {producto.nombre} - ${producto.precio:,.1f}")
                 creados += 1
         
         self.stdout.write("=" * 60)

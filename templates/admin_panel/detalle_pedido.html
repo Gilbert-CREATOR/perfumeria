@@ -41,9 +41,9 @@
                 </div>
                 <div class="col-md-6">
                     <div class="admin-data-list">
-                        <div><span>Subtotal</span><strong>${{ pedido.subtotal|default:pedido.total }}</strong></div>
-                        <div><span>Envío</span><strong>${{ pedido.costo_envio|default:"0.00" }}</strong></div>
-                        <div><span>Total</span><strong>${{ pedido.total }}</strong></div>
+                        <div><span>Subtotal</span><strong>${{ pedido.subtotal|default:pedido.total|formato_numero }}</strong></div>
+                        <div><span>Envío</span><strong>${{ pedido.costo_envio|default:"0"|formato_numero }}</strong></div>
+                        <div><span>Total</span><strong>${{ pedido.total|formato_numero }}</strong></div>
                         <div><span>Estado</span><strong>{{ pedido.get_estado_display }}</strong></div>
                     </div>
                 </div>
@@ -114,8 +114,8 @@
                                 </td>
                                 <td>{{ item.marca_producto|default:"—" }}</td>
                                 <td>{{ item.cantidad }}</td>
-                                <td>${{ item.precio }}</td>
-                                <td>${{ item.precio|mul:item.cantidad }}</td>
+                                <td>${{ item.precio|formato_numero }}</td>
+                                <td>${{ item.precio|mul:item.cantidad|formato_numero }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -129,7 +129,7 @@
                 <thead><tr><th>Proveedor</th><th>Referencia</th><th>Estado</th><th>Monto</th><th>Fecha</th></tr></thead>
                 <tbody>{% for transaccion in pedido.transacciones.all %}<tr>
                     <td>{{ transaccion.proveedor|upper }}</td><td><code>{{ transaccion.referencia }}</code></td>
-                    <td>{{ transaccion.get_estado_display }}</td><td>{{ transaccion.moneda }} {{ transaccion.monto }}</td>
+                    <td>{{ transaccion.get_estado_display }}</td><td>{{ transaccion.moneda }} {{ transaccion.monto|formato_numero }}</td>
                     <td>{{ transaccion.actualizado|date:"d/m/Y H:i" }}</td>
                 </tr>{% empty %}<tr><td colspan="5">Este pedido todavía no tiene transacciones registradas.</td></tr>{% endfor %}</tbody>
             </table></div>

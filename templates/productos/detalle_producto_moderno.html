@@ -102,7 +102,7 @@
                 <!-- 💰 PRECIO -->
                 <div class="price-section mb-4">
                     <div class="d-flex align-items-baseline">
-                        <span class="price-current h2 text-success">${{ producto.precio }}</span>
+                        <span class="price-current h2 text-success">${{ producto.precio|formato_numero }}</span>
                         <span class="price-unit ms-2 text-muted">/ {{ producto.tamano_ml }}ml</span>
                     </div>
                     <div class="text-muted small">
@@ -374,7 +374,7 @@
                             <h6 class="card-title">{{ producto_relacionado.nombre }}</h6>
                             <p class="card-text">
                                 <small class="text-muted">{{ producto_relacionado.marca }}</small><br>
-                                <strong>${{ producto_relacionado.precio }}</strong>
+                                <strong>${{ producto_relacionado.precio|formato_numero }}</strong>
                             </p>
                             <div class="d-grid">
                                 <a href="/productos/{{ producto_relacionado.id }}/" class="btn btn-primary btn-sm">

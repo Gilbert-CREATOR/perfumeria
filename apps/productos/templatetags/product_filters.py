@@ -5,6 +5,6 @@ register = template.Library()
 @register.filter
 def format_price(price):
     """Formatear precio para que sea más legible"""
-    if price:
-        return f"${price:,.0f}".replace(",", ",")
-    return "$0"
+    if price is not None:
+        return f"${price:,.1f}"
+    return "$0.0"

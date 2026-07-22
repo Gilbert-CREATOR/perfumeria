@@ -27,7 +27,7 @@
                             
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>Total: ${{ pedido.total|floatformat:2 }}</strong>
+                                    <strong>Total: ${{ pedido.total|formato_numero }}</strong>
                                     <br>
                                     <small class="text-muted">{{ pedido.items.count }} productos</small>
                                 </div>

@@ -97,7 +97,7 @@
                                 <span class="admin-badge cancelado ms-1">Inactivo</span>
                             {% endif %}
                         </td>
-                        <td>${{ producto.precio }}</td>
+                        <td>${{ producto.precio|formato_numero }}</td>
                         <td>{{ producto.get_tipo_display }}</td>
                         <td class="text-end">
                             <div class="admin-table-actions">

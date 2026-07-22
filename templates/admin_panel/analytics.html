@@ -14,7 +14,7 @@
 <section class="admin-stat-grid">
     <article class="admin-stat">
         <span class="admin-stat-label">Ingresos acumulados</span>
-        <strong>${{ resumen.ingresos_totales|floatformat:2 }}</strong>
+        <strong>${{ resumen.ingresos_totales|formato_numero }}</strong>
         <small>Pedidos cobrados, enviados o entregados</small>
     </article>
     <article class="admin-stat">
@@ -29,7 +29,7 @@
     </article>
     <article class="admin-stat">
         <span class="admin-stat-label">Ticket promedio</span>
-        <strong>${{ resumen.ticket_promedio|floatformat:2 }}</strong>
+        <strong>${{ resumen.ticket_promedio|formato_numero }}</strong>
         <small>Promedio por pedido cobrado</small>
     </article>
 </section>
@@ -58,7 +58,7 @@
                             <tr>
                                 <td>{{ estadistica.mes }}</td>
                                 <td>{{ estadistica.pedidos }}</td>
-                                <td>${{ estadistica.ingresos|floatformat:2 }}</td>
+                                <td>${{ estadistica.ingresos|formato_numero }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -115,7 +115,7 @@
                         <td>{{ producto.producto__nombre }}</td>
                         <td>{{ producto.producto__marca }}</td>
                         <td>{{ producto.total_vendido }}</td>
-                        <td>${{ producto.ingresos|floatformat:2 }}</td>
+                        <td>${{ producto.ingresos|formato_numero }}</td>
                     </tr>
                 {% empty %}
                     <tr>

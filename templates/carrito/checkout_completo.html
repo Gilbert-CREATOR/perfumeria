@@ -82,7 +82,7 @@
                                             <small class="text-success">⏱️ {{ metodo.tiempo_entrega }}</small>
                                         </div>
                                         <div class="text-end">
-                                            <strong class="text-success">${{ metodo.costo }}</strong>
+                                            <strong class="text-success">${{ metodo.costo|formato_numero }}</strong>
                                         </div>
                                     </div>
                                 </label>
@@ -132,23 +132,23 @@
                                     <tr>
                                         <td>{{ item.producto.nombre }}</td>
                                         <td>{{ item.cantidad }}</td>
-                                        <td>${{ item.producto.precio }}</td>
-                                        <td>${{ item.subtotal }}</td>
+                                        <td>${{ item.producto.precio|formato_numero }}</td>
+                                        <td>${{ item.subtotal|formato_numero }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                                 <tfoot>
                                     <tr>
                                         <th colspan="3">Subtotal:</th>
-                                        <th>${{ subtotal }}</th>
+                                        <th>${{ subtotal|formato_numero }}</th>
                                     </tr>
                                     <tr>
                                         <th colspan="3">Envío:</th>
-                                        <th id="costo_envio">$5.00</th>
+                                        <th id="costo_envio">$5.0</th>
                                     </tr>
                                     <tr class="table-active">
                                         <th colspan="3">Total:</th>
-                                        <th class="text-success fw-bold" id="total">${{ subtotal|add:5 }}</th>
+                                        <th class="text-success fw-bold" id="total">${{ subtotal|add:5|formato_numero }}</th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -217,8 +217,12 @@ document.querySelectorAll('input[name="metodo_envio"]').forEach(radio => {
         const subtotal = parseFloat('{{ subtotal }}');
         const total = subtotal + costoEnvio;
         
-        document.getElementById('costo_envio').textContent = `$${costoEnvio.toFixed(2)}`;
-        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        const formatoNumero = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        });
+        document.getElementById('costo_envio').textContent = `$${formatoNumero.format(costoEnvio)}`;
+        document.getElementById('total').textContent = `$${formatoNumero.format(total)}`;
     });
 });
 
@@ -226,7 +230,7 @@ document.querySelectorAll('input[name="metodo_envio"]').forEach(radio => {
 document.querySelectorAll('input[name="metodo_envio"]').forEach(radio => {
     const label = radio.nextElementSibling;
     const costoText = label.querySelector('.text-success').textContent;
-    const costo = parseFloat(costoText.replace('$', ''));
+    const costo = parseFloat(costoText.replace(/[$,]/g, ''));
     radio.dataset.costo = costo;
 });
 </script>

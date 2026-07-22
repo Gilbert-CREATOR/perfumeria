@@ -36,7 +36,7 @@
             <strong>Pedido #{{ pedido.id }}</strong><br>
             Usuario: {{ pedido.usuario.username }} (ID: {{ pedido.usuario.id }})<br>
             Estado: {{ pedido.get_estado_display }}<br>
-            Total: ${{ pedido.total }}<br>
+            Total: ${{ pedido.total|formato_numero }}<br>
             Fecha: {{ pedido.creado|date:"d/m/Y H:i" }}<br>
             Items: {{ pedido.items.count }}<br>
             Método Pago: {{ pedido.metodo_pago|default:"No especificado" }}
@@ -52,7 +52,7 @@
         <div style="padding: 15px; border: 2px solid #000; margin-bottom: 10px; background: #f8f8f8;">
             <strong>Pedido #{{ pedido.id }}</strong><br>
             Estado: {{ pedido.get_estado_display }}<br>
-            Total: ${{ pedido.total }}<br>
+            Total: ${{ pedido.total|formato_numero }}<br>
             Fecha: {{ pedido.creado|date:"d/m/Y H:i" }}<br>
             Items: {{ pedido.items.count }}
             
@@ -60,7 +60,7 @@
             <h4>Productos:</h4>
             {% for item in pedido.items.all %}
             <div style="margin-left: 20px;">
-                - {{ item.producto.nombre }} x{{ item.cantidad }} = ${{ item.subtotal }}
+                - {{ item.producto.nombre }} x{{ item.cantidad }} = ${{ item.subtotal|formato_numero }}
             </div>
             {% endfor %}
             {% endif %}

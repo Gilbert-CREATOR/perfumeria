@@ -8,6 +8,14 @@ from django.urls import reverse
 
 from apps.newsletter.models import SuscriptorNewsletter
 from .models import ConfiguracionSitio, MensajeContacto, PreguntaFrecuente
+from .templatetags.number_filters import formato_numero
+
+
+class FormatoNumeroTests(TestCase):
+    def test_agrega_miles_y_exactamente_un_decimal(self):
+        self.assertEqual(formato_numero('13000.00'), '13,000.0')
+        self.assertEqual(formato_numero('5'), '5.0')
+        self.assertEqual(formato_numero(None), '0.0')
 
 
 class AnimacionMarcaTests(TestCase):

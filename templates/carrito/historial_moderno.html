@@ -59,7 +59,7 @@
                     
                     <div class="meta-item">
                         <span class="meta-label">Total</span>
-                        <div class="meta-value">${{ pedido.total|floatformat:2 }}</div>
+                        <div class="meta-value">${{ pedido.total|formato_numero }}</div>
                     </div>
                     
                     <div class="meta-item">
@@ -89,7 +89,7 @@
             </div>
             
             <div class="pedido-action">
-                <div class="pedido-total">${{ pedido.total|floatformat:2 }}</div>
+                <div class="pedido-total">${{ pedido.total|formato_numero }}</div>
                 <div class="pedido-productos">{{ pedido.items.count }} producto{{ pedido.items.count|pluralize }}</div>
                 <a href="{% url 'detalle_pedido' pedido.id %}" class="btn-detalles">
                     Ver Detalles
@@ -118,7 +118,7 @@
         <p><strong>Usuario:</strong> {{ user.username }}</p>
         <p><strong>Total de pedidos:</strong> {{ pedidos.count }}</p>
         {% for pedido in pedidos %}
-        <p><strong>Pedido #{{ pedido.id }}:</strong> {{ pedido.estado }} - ${{ pedido.total }} - {{ pedido.creado|date:"d/m/Y H:i" }}</p>
+        <p><strong>Pedido #{{ pedido.id }}:</strong> {{ pedido.estado }} - ${{ pedido.total|formato_numero }} - {{ pedido.creado|date:"d/m/Y H:i" }}</p>
         {% endfor %}
     </div>
     {% endif %}

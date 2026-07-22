@@ -16,7 +16,7 @@
 
                     <div class="card-body">
                         <h5>{{ fav.producto.nombre }}</h5>
-                        <p>${{ fav.producto.precio }}</p>
+                        <p>${{ fav.producto.precio|formato_numero }}</p>
 
                         <a href="{% url 'toggle_favorito' fav.producto.id %}" class="btn btn-danger">
                             Quitar ❤️

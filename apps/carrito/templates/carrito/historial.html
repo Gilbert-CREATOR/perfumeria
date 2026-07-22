@@ -5,14 +5,14 @@
         <div style="border:1px solid #ccc; margin:10px; padding:10px;">
             <h3>Pedido #{{ pedido.id }}</h3>
             <p>Fecha: {{ pedido.creado }}</p>
-            <p>Total: ${{ pedido.total }}</p>
+            <p>Total: ${{ pedido.total|formato_numero }}</p>
 
             <ul>
                 {% for item in pedido.items.all %}
                     <li>
                         {{ item.producto.nombre }} -
                         Cantidad: {{ item.cantidad }} -
-                        ${{ item.precio }}
+                        ${{ item.precio|formato_numero }}
                     </li>
                 {% endfor %}
             </ul>

@@ -19,7 +19,7 @@
         </td>
         <td width="50%" valign="top" align="right" style="padding:0 0 28px 12px;border-bottom:1px solid {{ email_theme.color_borde }};">
           <p style="margin:0 0 8px;color:#77726b;font-size:9px;line-height:13px;font-weight:800;letter-spacing:1.5px;">TOTAL</p>
-          <p style="margin:0;color:{{ email_theme.color_acento }};font-size:22px;line-height:24px;font-weight:900;">${{ total|floatformat:2 }}</p>
+          <p style="margin:0;color:{{ email_theme.color_acento }};font-size:22px;line-height:24px;font-weight:900;">${{ total|formato_numero }}</p>
         </td>
       </tr>
     </table>

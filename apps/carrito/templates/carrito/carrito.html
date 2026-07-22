@@ -14,7 +14,7 @@
                 {{ item.cantidad }}
                 <a href="{% url 'agregar_al_carrito' item.producto.id %}">➕</a>
 
-                - ${{ item.subtotal }}
+                - ${{ item.subtotal|formato_numero }}
 
                 <a href="{% url 'eliminar_del_carrito' item.producto.id %}">
                     ❌
@@ -23,7 +23,7 @@
         {% endfor %}
     </ul>
 
-    <h3 class="mt-3">Total: ${{ total }}</h3>
+    <h3 class="mt-3">Total: ${{ total|formato_numero }}</h3>
 
     <a href="{% url 'checkout' %}" class="btn btn-success mt-3">
         Ir a pagar

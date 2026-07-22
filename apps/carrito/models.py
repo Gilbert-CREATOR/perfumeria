@@ -159,7 +159,7 @@ class MetodoEnvio(models.Model):
     activo = models.BooleanField(default=True)
     
     def __str__(self):
-        return f"{self.nombre} - ${self.costo}"
+        return f"{self.nombre} - ${self.costo:,.1f}"
 
 class Envio(models.Model):
     ESTADO_ENVIO = [

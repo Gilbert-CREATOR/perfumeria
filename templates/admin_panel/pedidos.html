@@ -64,7 +64,7 @@
                             <small>{{ pedido.usuario.email|default:"Sin correo" }}</small>
                         </td>
                         <td>{{ pedido.creado|date:"d/m/Y H:i" }}</td>
-                        <td>${{ pedido.total }}</td>
+                        <td>${{ pedido.total|formato_numero }}</td>
                         <td>{{ pedido.get_metodo_pago_display|default:"No definido" }}</td>
                         <td><span class="admin-badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></td>
                         <td class="text-end">

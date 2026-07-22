@@ -116,7 +116,7 @@ class Command(BaseCommand):
             )
             
             if created:
-                self.stdout.write(f"✅ Producto creado: {producto.nombre} - ${producto.precio}")
+                self.stdout.write(f"✅ Producto creado: {producto.nombre} - ${producto.precio:,.1f}")
             else:
                 self.stdout.write(f"📋 Producto ya existe: {producto.nombre}")
         

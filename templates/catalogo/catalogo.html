@@ -154,9 +154,13 @@ function loadMore() {
 
 function comprarPorWhatsApp(nombre, precio, stock) {
   // Construir mensaje dinámico
+  var precioFormateado = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  }).format(Number(precio));
   var mensaje = "Hola, quiero este perfume:\n";
   mensaje += "Nombre: " + nombre + "\n";
-  mensaje += "Precio: RD$" + precio + "\n";
+  mensaje += "Precio: RD$" + precioFormateado + "\n";
   mensaje += "¿Está disponible?";
   
   // Número de WhatsApp

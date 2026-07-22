@@ -99,16 +99,16 @@ def generar_factura_pdf(pedido, output_path=None):
         data.append([
             descripcion,
             str(item.cantidad),
-            f"${item.precio:.2f}",
-            f"${item.subtotal():.2f}"
+            f"${item.precio:,.1f}",
+            f"${item.subtotal():,.1f}"
         ])
     
     # Totales
-    data.append(["", "", "Subtotal:", f"${pedido.subtotal:.2f}"])
-    data.append(["", "", "Envío:", f"${pedido.costo_envio:.2f}"])
+    data.append(["", "", "Subtotal:", f"${pedido.subtotal:,.1f}"])
+    data.append(["", "", "Envío:", f"${pedido.costo_envio:,.1f}"])
     itbis_incluido = pedido.subtotal - (pedido.subtotal / Decimal('1.18'))
-    data.append(["", "", "ITBIS incluido:", f"${itbis_incluido:.2f}"])
-    data.append(["", "", "TOTAL:", f"${pedido.total:.2f}"])
+    data.append(["", "", "ITBIS incluido:", f"${itbis_incluido:,.1f}"])
+    data.append(["", "", "TOTAL:", f"${pedido.total:,.1f}"])
     
     # Tabla de productos
     products_table = Table(data, colWidths=[3*inch, 1*inch, 1.5*inch, 1.5*inch])

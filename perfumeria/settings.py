@@ -71,6 +71,9 @@ TEMPLATES = [
         'APP_DIRS': True,
         
         'OPTIONS': {
+            'builtins': [
+                'apps.core.templatetags.number_filters',
+            ],
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',

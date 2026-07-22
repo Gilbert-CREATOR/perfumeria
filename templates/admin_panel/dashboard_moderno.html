@@ -27,7 +27,7 @@
     </article>
     <article class="admin-stat">
         <span class="admin-stat-label">Ingresos del mes</span>
-        <strong>${{ stats.ingresos_mes|floatformat:2 }}</strong>
+        <strong>${{ stats.ingresos_mes|formato_numero }}</strong>
         <small>{{ stats.pedidos_mes }} pedidos este mes</small>
     </article>
     <article class="admin-stat">
@@ -83,7 +83,7 @@
                             <tr>
                                 <td>#{{ pedido.id }}</td>
                                 <td>{{ pedido.usuario.username }}</td>
-                                <td>${{ pedido.total }}</td>
+                                <td>${{ pedido.total|formato_numero }}</td>
                                 <td><span class="admin-badge {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></td>
                                 <td>{{ pedido.creado|date:"d/m/Y H:i" }}</td>
                                 <td class="text-end">

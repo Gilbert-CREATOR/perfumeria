@@ -385,6 +385,26 @@ img {
     height: 45px;
     font-size: 11px;
   }
+
+  /* Forzar apilamiento vertical en móviles pequeños: items encima, resumen abajo */
+  .cart-container {
+    display: block !important;
+    width: 100%;
+  }
+
+  .cart-items {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+    width: 100% !important;
+  }
+
+  .cart-summary {
+    width: 100% !important;
+    position: static !important;
+    margin-top: 22px !important;
+    box-shadow: none !important;
+  }
 }
 
 /* 📱 Móviles (320px - 480px) */
